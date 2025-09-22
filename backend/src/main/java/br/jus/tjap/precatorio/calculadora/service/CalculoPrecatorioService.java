@@ -87,42 +87,7 @@ public class CalculoPrecatorioService {
         System.out.println("Calculo: " + FATOR_DOIS_PORCENTO.multiply(BigDecimal.valueOf(meses)).setScale(4, RoundingMode.HALF_UP)); // saída: 7
     }
 
-    private void verificaRegraDeCalculoPrevEhIR(CalculoRetornoDTO resultado){
-        String tipoPessoa = StringUtil.retornaSeCpfOuCnpj(resultado.getRequisitorioDTO().getDocumentoCredor());
-        String categoria = resultado.getRequisitorioDTO().getSituacaoFuncionalCredor().toUpperCase();
 
-        // CPF
-        if ("CPF".equals(tipoPessoa)) {
-            if ("EFETIVO".equals(categoria) || "CONTRATO/FUNÇÃO".equals(categoria)) {
-                // Cálculo A ou A1
-                if (resultado.getRequisitorioDTO().getNumeroMesesRendimentoAcumulado()>0) { // SIM
-                    return TipoCalculo.CALCULO_A;
-                } else { // NÃO
-                    return TipoCalculo.CALCULO_A1;
-                }
-            } else if ("SEM VÍNCULO".equals(categoria)) {
-                return TipoCalculo.CALCULO_B;
-            } else if ("APOSENTADO".equals(categoria)) {
-                return TipoCalculo.CALCULO_C;
-            }
-        }
-
-        // CNPJ
-        if ("CNPJ".equals(tipoPessoa)) {
-            switch (categoria) {
-                case "PJ-CESSÃO M.O":
-                    return TipoCalculo.CALCULO_B2;
-                case "PJ-P. SERVIÇOS":
-                    return TipoCalculo.CALCULO_B1;
-                case "PJ-OUTROS":
-                case "SIMPLES NACIONAL":
-                case "INDENIZAÇÃO":
-                    return TipoCalculo.CALCULO_C;
-            }
-        }
-
-        throw new IllegalArgumentException("Combinação não prevista na regra");
-    }
 
     private PeriodoResultado calcularPeriodoIPCA(
             LocalDate dataInicio,
