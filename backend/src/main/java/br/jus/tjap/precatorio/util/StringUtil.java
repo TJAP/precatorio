@@ -28,6 +28,22 @@ public class StringUtil {
         str = str.replaceAll("\\<[^>]*>","");
         return StringEscapeUtils.unescapeHtml4(str);
     }
+    public static String retornaSeCpfOuCnpj(String documento) {
+        if (documento == null) {
+            return "INVÁLIDO";
+        }
+
+        // remove tudo que não é número
+        String numeros = documento.replaceAll("\\D", "");
+
+        if (numeros.length() == 11) {
+            return "CPF";
+        } else if (numeros.length() == 14) {
+            return "CNPJ";
+        } else {
+            return "INVÁLIDO";
+        }
+    }
     public static String formataNumeroProcesso(String numeroProc){
         String numero = numeroProc.substring(0,7);
         String digito = numeroProc.substring(7,9);

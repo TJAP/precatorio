@@ -1,7 +1,6 @@
-package br.jus.tjap.precatorio.calculadora.entities;
+package br.jus.tjap.precatorio.calculadora.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 

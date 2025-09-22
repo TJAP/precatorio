@@ -1,6 +1,7 @@
 package br.jus.tjap.precatorio.calculadora.dto;
 
 import br.jus.tjap.precatorio.calculadora.util.UtilCalculo;
+import br.jus.tjap.precatorio.requisitorio.dto.RequisitorioDTO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -19,6 +20,7 @@ public class CalculoRetornoDTO {
     private Long idPrecatorio;
     private String numeroProcesso;
     private String tipoCalculoRetornado;
+    private RequisitorioDTO requisitorioDTO;
 
     private LocalDate dataAntesGracaDataInicio;
     private LocalDate dataAntesGracaDataFim;

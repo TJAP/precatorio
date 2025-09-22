@@ -1,6 +1,6 @@
 package br.jus.tjap.precatorio.calculadora.repository;
 
-import br.jus.tjap.precatorio.calculadora.entities.IndiceBacen;
+import br.jus.tjap.precatorio.calculadora.entity.IndiceBacen;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;

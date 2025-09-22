@@ -32,7 +32,7 @@ public class CalculoController {
     @PostMapping("/precatorios/calculo")
     @Operation(summary = "Calcula atualização monetária", description = "Retorna o extrato de calculo")
     public ResponseEntity<CalculoRetornoDTO> calcular(@RequestBody CalculoRequest req) {
-        CalculoRetornoDTO resp = service.calcularNovo(req);
+        CalculoRetornoDTO resp = service.calcularAtualizacao(req);
         resp.preencherIpcaAntesComEscala();
         resp.preencherIpcaDuranteComEscala();
         resp.preencherIpcaDepoisComEscala();

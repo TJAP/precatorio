@@ -1,14 +1,17 @@
 package br.jus.tjap.precatorio.calculadora.service;
 
 import br.jus.tjap.precatorio.calculadora.apibancocentral.BancoCentralService;
-import br.jus.tjap.precatorio.calculadora.dto.CalculoRequest;
-import br.jus.tjap.precatorio.calculadora.dto.CalculoResponse;
-import br.jus.tjap.precatorio.calculadora.dto.CalculoRetornoDTO;
-import br.jus.tjap.precatorio.calculadora.dto.PeriodoResultado;
+import br.jus.tjap.precatorio.calculadora.dto.*;
+import br.jus.tjap.precatorio.calculadora.entity.TabelaIRRF;
 import br.jus.tjap.precatorio.calculadora.exception.CalculationException;
 import br.jus.tjap.precatorio.calculadora.exception.IndexNotFoundException;
 import br.jus.tjap.precatorio.calculadora.repository.IndicadorIndiceRepository;
+import br.jus.tjap.precatorio.calculadora.repository.TabelaIRRFRepository;
 import br.jus.tjap.precatorio.calculadora.util.UtilCalculo;
+import br.jus.tjap.precatorio.requisitorio.dto.RequisitorioDTO;
+import br.jus.tjap.precatorio.requisitorio.entity.Requisitorio;
+import br.jus.tjap.precatorio.requisitorio.repository.RequisitorioRepository;
+import br.jus.tjap.precatorio.util.StringUtil;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -16,6 +19,7 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -39,11 +43,20 @@ public class CalculoPrecatorioService {
 
     private final IndicadorIndiceRepository indicadorIndiceRepository;
 
+    private final TabelaIRRFRepository tabelaIRRFRepository;
+    private final RequisitorioRepository requisitorioRepository;
+
     private BancoCentralService bancoCentralService;
 
-    public CalculoPrecatorioService(IndicadorIndiceRepository indicadorIndiceRepository, BancoCentralService bancoCentralService) {
+    public CalculoPrecatorioService(
+            IndicadorIndiceRepository indicadorIndiceRepository,
+            BancoCentralService bancoCentralService,
+            TabelaIRRFRepository tabelaIRRFRepository,
+            RequisitorioRepository requisitorioRepository) {
         this.indicadorIndiceRepository = indicadorIndiceRepository;
         this.bancoCentralService = bancoCentralService;
+        this.tabelaIRRFRepository = tabelaIRRFRepository;
+        this.requisitorioRepository = requisitorioRepository;
     }
 
     public static long contarMesesInclusivos(LocalDate dataInicio, LocalDate dataFim) {
@@ -74,6 +87,43 @@ public class CalculoPrecatorioService {
         System.out.println("Calculo: " + FATOR_DOIS_PORCENTO.multiply(BigDecimal.valueOf(meses)).setScale(4, RoundingMode.HALF_UP)); // saída: 7
     }
 
+    private void verificaRegraDeCalculoPrevEhIR(CalculoRetornoDTO resultado){
+        String tipoPessoa = StringUtil.retornaSeCpfOuCnpj(resultado.getRequisitorioDTO().getDocumentoCredor());
+        String categoria = resultado.getRequisitorioDTO().getSituacaoFuncionalCredor().toUpperCase();
+
+        // CPF
+        if ("CPF".equals(tipoPessoa)) {
+            if ("EFETIVO".equals(categoria) || "CONTRATO/FUNÇÃO".equals(categoria)) {
+                // Cálculo A ou A1
+                if (resultado.getRequisitorioDTO().getNumeroMesesRendimentoAcumulado()>0) { // SIM
+                    return TipoCalculo.CALCULO_A;
+                } else { // NÃO
+                    return TipoCalculo.CALCULO_A1;
+                }
+            } else if ("SEM VÍNCULO".equals(categoria)) {
+                return TipoCalculo.CALCULO_B;
+            } else if ("APOSENTADO".equals(categoria)) {
+                return TipoCalculo.CALCULO_C;
+            }
+        }
+
+        // CNPJ
+        if ("CNPJ".equals(tipoPessoa)) {
+            switch (categoria) {
+                case "PJ-CESSÃO M.O":
+                    return TipoCalculo.CALCULO_B2;
+                case "PJ-P. SERVIÇOS":
+                    return TipoCalculo.CALCULO_B1;
+                case "PJ-OUTROS":
+                case "SIMPLES NACIONAL":
+                case "INDENIZAÇÃO":
+                    return TipoCalculo.CALCULO_C;
+            }
+        }
+
+        throw new IllegalArgumentException("Combinação não prevista na regra");
+    }
+
     private PeriodoResultado calcularPeriodoIPCA(
             LocalDate dataInicio,
             LocalDate dataFim,
@@ -84,7 +134,8 @@ public class CalculoPrecatorioService {
             BigDecimal selic,
             boolean temTotalMeses,
             boolean isFatorEscalaOito,
-            boolean isMesMaisUm) {
+            boolean isMesMaisUm
+    ) {
 
         PeriodoResultado pr = new PeriodoResultado();
         BigDecimal ipcaFator = UM;
@@ -219,9 +270,99 @@ public class CalculoPrecatorioService {
 
     }
 
-    public CalculoRetornoDTO calcularNovo(CalculoRequest req) {
+    public BigDecimal calculoPrevidencia(
+            BigDecimal valorPrevidencia,
+            BigDecimal valorPrincipalTributavel,
+            BigDecimal valorPrincipalNaoTributavel){
+
+        BigDecimal valoPrevidenciaCorrigido =
+                valorPrevidencia.add(valorPrincipalNaoTributavel);
+        return valoPrevidenciaCorrigido;
+    }
+
+    public CalculoRetornoDTO calcularPagamento(CalculoRetornoDTO atualizacao, boolean temHC){
+
+        // Constantes
+        final BigDecimal PERCENTUAL_HC = new BigDecimal("0.10");
+        final BigDecimal REGIME_TRIBUTACAO_PJ = new BigDecimal("1.5");
+        // Percentuais e valores iniciais
+        BigDecimal percentualHC = temHC ? PERCENTUAL_HC : BigDecimal.ZERO;
+
+        BigDecimal totalMesesRRA = BigDecimal.TEN;// BigDecimal.valueOf(
+        //contarMesesInclusivos(LocalDate.of(2024, 7, 1), LocalDate.of(2025, 9, 1))
+        //);
+
+        BigDecimal ipcaTotalAtualizado = UtilCalculo.coalesceBigDecimal(
+                atualizacao.getIpcaAntesGracaTotalAtualizado(),
+                atualizacao.getIpcaDuranteGracaTotalAtualizado(),
+                atualizacao.getIpcaPosGracaTotalAtualizado()
+        );
+
+        // Determinar valores tributáveis e não tributáveis
+        BigDecimal valorTributavelBase;
+        BigDecimal valorNaoTributavelBase;
+
+        switch (atualizacao.getTipoCalculoRetornado()) {
+            case "IPCA" -> {
+                valorTributavelBase = UtilCalculo.coalesceBigDecimal(
+                        atualizacao.getIpcaAntesGracaPrincipalTributavelCorrigido(),
+                        atualizacao.getIpcaDuranteGracaPrincipalTributavelCorrigido(),
+                        atualizacao.getIpcaPosGracaPrincipalTributavelCorrigido()
+                );
+                valorNaoTributavelBase = ipcaTotalAtualizado.subtract(valorTributavelBase);
+            }
+            case "SELIC" -> {
+                valorTributavelBase = atualizacao.getSelicDuranteGracaPrincipalTributavelCorrigido();
+                valorNaoTributavelBase = atualizacao.getSelicPosGracaTotalAtualizado()
+                        .subtract(valorTributavelBase);
+            }
+            default -> {
+                // Se não for IPCA nem SELIC, devolve sem alterações
+                return atualizacao;
+            }
+        }
+
+        // Regime tributação advogado / credor
+        BigDecimal valorRegimeTributacaoHC = BigDecimal.ZERO;
+        String tipoTributacao = "PF";//atualizacao.getRequisitorioDTO().getIdTipoTributacaoAdvCredor();
+
+        if ("PJ".equals(tipoTributacao)) {
+            valorRegimeTributacaoHC = REGIME_TRIBUTACAO_PJ;
+        } else if ("PF".equals(tipoTributacao)) {
+            List<TabelaIRRF> tabelaIrrf = tabelaIRRFRepository.findAll();
+            // Mapeamento usando totalMesesRRA
+            List<TabelaIRRFDTO> tabelaDTO = tabelaIrrf.stream()
+                    .map(t -> t.toCalculoCorrigido(totalMesesRRA))
+                    .toList();
+
+            var total = tabelaDTO.get(3);
+            valorRegimeTributacaoHC = valorRegimeTributacaoHC.add(total.getValorAliquotaCalculado());
+        }
+
+
+
+        // Cálculo do HC
+        BigDecimal valorHCSobreAtualizacao =
+                atualizacao.getValorGlobalAtualizado().multiply(percentualHC);
+
+        BigDecimal valorParteCredorRetiradoHC =
+                atualizacao.getValorGlobalAtualizado().subtract(valorHCSobreAtualizacao);
+
+        // Atualiza o DTO conforme necessidade (exemplo fictício)
+        atualizacao.setIrrfValorHCLiquido(valorRegimeTributacaoHC);
+        //atualizacao.setValorParteCredorRetiradoHC(valorParteCredorRetiradoHC);
+        //atualizacao.setValorRegimeTributacaoHC(valorRegimeTributacaoHC);
+        //atualizacao.setValorTributavelBase(valorTributavelBase);
+        //atualizacao.setValorNaoTributavelBase(valorNaoTributavelBase);
+
+        return atualizacao;
+    }
+
+    public CalculoRetornoDTO calcularAtualizacao(CalculoRequest req) {
         validateRequest(req);
         var resultado = new CalculoRetornoDTO();
+        RequisitorioDTO dto = requisitorioRepository.findById(1335L).get().toMetadado();
+        resultado.setRequisitorioDTO(dto);
 
         // PERÍODOS base
         LocalDate dataFinalGraca = LocalDate.of(req.getAnoVencimento(),12,31);
@@ -342,6 +483,8 @@ public class CalculoPrecatorioService {
 
         resultado.setValorGlobalAtualizado(UtilCalculo.escala(menor, 2));
         resultado.setTipoCalculoRetornado(tipo);
+
+        resultado = calcularPagamento(resultado, true);
 
         return resultado;
     }
@@ -643,3 +786,4 @@ public class CalculoPrecatorioService {
     }
 
 }
+

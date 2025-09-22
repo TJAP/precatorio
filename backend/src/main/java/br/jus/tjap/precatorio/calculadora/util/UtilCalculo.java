@@ -14,6 +14,23 @@ public class UtilCalculo {
     private static final YearMonth EC113_DATA_CORTE = YearMonth.of(2021, 11); // nov/2021
     private static final BigDecimal ZERO = new BigDecimal("0.00");
 
+    public static BigDecimal coalesceBigDecimal(BigDecimal valor1, BigDecimal valor2, BigDecimal valor3) {
+        if (isNotNullOrZero(valor3)) {
+            return valor3;
+        }
+        if (isNotNullOrZero(valor2)) {
+            return valor2;
+        }
+        if (isNotNullOrZero(valor1)) {
+            return valor1;
+        }
+        return BigDecimal.ZERO; // se todos forem null ou zero
+    }
+
+    public static boolean isNotNullOrZero(BigDecimal valor) {
+        return valor != null && valor.compareTo(BigDecimal.ZERO) != 0;
+    }
+
     public static BigDecimal escala(BigDecimal valor, int escala) {
         if(valor.compareTo(BigDecimal.ZERO)==0){
             return BigDecimal.ZERO;
