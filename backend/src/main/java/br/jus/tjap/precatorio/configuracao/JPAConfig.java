@@ -7,10 +7,10 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @Configuration
 @EnableJpaRepositories(
         basePackages = {
-                "br.jus.tjap.precatorio"
+                "br.jus.tjap.precatorio.calculadora.repository"
         })
 @EntityScan(basePackages = {
-        "br.jus.pdpj.precatorio"
+        "br.jus.tjap.precatorio.calculadora.entities"
 })
 public class JPAConfig {
 }

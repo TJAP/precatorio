@@ -11,12 +11,11 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(schema="public", name="indicador_financeiro_tipo")
+@Table(schema = "precatorio", name="tipo_indice_bacen")
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
 @JsonIgnoreProperties(value = {"applications", "hibernateLazyInitializer"})
-public class TipoInidicadorIndice {
+public class TipoIndiceBacen {
 
     @Id
     @Column(name="id")
@@ -25,6 +24,24 @@ public class TipoInidicadorIndice {
     @Column(name="descricao")
     private String descricao;
 
-    @Column(name="correcao_monetaria")
-    private Boolean correcaoMonetaria;
+    public TipoIndiceBacen(Long id, String descricao) {
+        this.id = id;
+        this.descricao = descricao;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getDescricao() {
+        return descricao;
+    }
+
+    public void setDescricao(String descricao) {
+        this.descricao = descricao;
+    }
 }

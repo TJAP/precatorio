@@ -150,4 +150,380 @@ public class CalculoRetornoDTO {
         this.ipcaPosGracaSelicCorrigido = arredondar(this.ipcaPosGracaSelicCorrigido);
         this.ipcaPosGracaTotalAtualizado = arredondar(this.ipcaPosGracaTotalAtualizado);
     }
+
+    public Long getIdPrecatorio() {
+        return idPrecatorio;
+    }
+
+    public void setIdPrecatorio(Long idPrecatorio) {
+        this.idPrecatorio = idPrecatorio;
+    }
+
+    public String getNumeroProcesso() {
+        return numeroProcesso;
+    }
+
+    public void setNumeroProcesso(String numeroProcesso) {
+        this.numeroProcesso = numeroProcesso;
+    }
+
+    public String getTipoCalculoRetornado() {
+        return tipoCalculoRetornado;
+    }
+
+    public void setTipoCalculoRetornado(String tipoCalculoRetornado) {
+        this.tipoCalculoRetornado = tipoCalculoRetornado;
+    }
+
+    public LocalDate getDataAntesGracaDataInicio() {
+        return dataAntesGracaDataInicio;
+    }
+
+    public void setDataAntesGracaDataInicio(LocalDate dataAntesGracaDataInicio) {
+        this.dataAntesGracaDataInicio = dataAntesGracaDataInicio;
+    }
+
+    public LocalDate getDataAntesGracaDataFim() {
+        return dataAntesGracaDataFim;
+    }
+
+    public void setDataAntesGracaDataFim(LocalDate dataAntesGracaDataFim) {
+        this.dataAntesGracaDataFim = dataAntesGracaDataFim;
+    }
+
+    public LocalDate getDataDuranteGracaDataInicio() {
+        return dataDuranteGracaDataInicio;
+    }
+
+    public void setDataDuranteGracaDataInicio(LocalDate dataDuranteGracaDataInicio) {
+        this.dataDuranteGracaDataInicio = dataDuranteGracaDataInicio;
+    }
+
+    public LocalDate getDataDuranteGracaDataFim() {
+        return dataDuranteGracaDataFim;
+    }
+
+    public void setDataDuranteGracaDataFim(LocalDate dataDuranteGracaDataFim) {
+        this.dataDuranteGracaDataFim = dataDuranteGracaDataFim;
+    }
+
+    public LocalDate getDataPosGracaDataInicio() {
+        return dataPosGracaDataInicio;
+    }
+
+    public void setDataPosGracaDataInicio(LocalDate dataPosGracaDataInicio) {
+        this.dataPosGracaDataInicio = dataPosGracaDataInicio;
+    }
+
+    public LocalDate getDataPosGracaDataFim() {
+        return dataPosGracaDataFim;
+    }
+
+    public void setDataPosGracaDataFim(LocalDate dataPosGracaDataFim) {
+        this.dataPosGracaDataFim = dataPosGracaDataFim;
+    }
+
+    public BigDecimal getIpcaAntesGracaFator() {
+        return ipcaAntesGracaFator;
+    }
+
+    public void setIpcaAntesGracaFator(BigDecimal ipcaAntesGracaFator) {
+        this.ipcaAntesGracaFator = ipcaAntesGracaFator;
+    }
+
+    public BigDecimal getIpcaAntesGracaFatorJuros() {
+        return ipcaAntesGracaFatorJuros;
+    }
+
+    public void setIpcaAntesGracaFatorJuros(BigDecimal ipcaAntesGracaFatorJuros) {
+        this.ipcaAntesGracaFatorJuros = ipcaAntesGracaFatorJuros;
+    }
+
+    public BigDecimal getIpcaAntesGracaPrincipalTributavelCorrigido() {
+        return ipcaAntesGracaPrincipalTributavelCorrigido;
+    }
+
+    public void setIpcaAntesGracaPrincipalTributavelCorrigido(BigDecimal ipcaAntesGracaPrincipalTributavelCorrigido) {
+        this.ipcaAntesGracaPrincipalTributavelCorrigido = ipcaAntesGracaPrincipalTributavelCorrigido;
+    }
+
+    public BigDecimal getIpcaAntesGracaPrincipalNaoTributavelCorrigido() {
+        return ipcaAntesGracaPrincipalNaoTributavelCorrigido;
+    }
+
+    public void setIpcaAntesGracaPrincipalNaoTributavelCorrigido(BigDecimal ipcaAntesGracaPrincipalNaoTributavelCorrigido) {
+        this.ipcaAntesGracaPrincipalNaoTributavelCorrigido = ipcaAntesGracaPrincipalNaoTributavelCorrigido;
+    }
+
+    public BigDecimal getIpcaAntesGracaValorJurosCorrigido() {
+        return ipcaAntesGracaValorJurosCorrigido;
+    }
+
+    public void setIpcaAntesGracaValorJurosCorrigido(BigDecimal ipcaAntesGracaValorJurosCorrigido) {
+        this.ipcaAntesGracaValorJurosCorrigido = ipcaAntesGracaValorJurosCorrigido;
+    }
+
+    public BigDecimal getIpcaAntesGracaCustasMultaCorrigido() {
+        return ipcaAntesGracaCustasMultaCorrigido;
+    }
+
+    public void setIpcaAntesGracaCustasMultaCorrigido(BigDecimal ipcaAntesGracaCustasMultaCorrigido) {
+        this.ipcaAntesGracaCustasMultaCorrigido = ipcaAntesGracaCustasMultaCorrigido;
+    }
+
+    public BigDecimal getIpcaAntesGracaSelicCorrigido() {
+        return ipcaAntesGracaSelicCorrigido;
+    }
+
+    public void setIpcaAntesGracaSelicCorrigido(BigDecimal ipcaAntesGracaSelicCorrigido) {
+        this.ipcaAntesGracaSelicCorrigido = ipcaAntesGracaSelicCorrigido;
+    }
+
+    public BigDecimal getIpcaAntesGracaTotalAtualizado() {
+        return ipcaAntesGracaTotalAtualizado;
+    }
+
+    public void setIpcaAntesGracaTotalAtualizado(BigDecimal ipcaAntesGracaTotalAtualizado) {
+        this.ipcaAntesGracaTotalAtualizado = ipcaAntesGracaTotalAtualizado;
+    }
+
+    public BigDecimal getIpcaDuranteGracaFator() {
+        return ipcaDuranteGracaFator;
+    }
+
+    public void setIpcaDuranteGracaFator(BigDecimal ipcaDuranteGracaFator) {
+        this.ipcaDuranteGracaFator = ipcaDuranteGracaFator;
+    }
+
+    public BigDecimal getIpcaDuranteGracaFatorJuros() {
+        return ipcaDuranteGracaFatorJuros;
+    }
+
+    public void setIpcaDuranteGracaFatorJuros(BigDecimal ipcaDuranteGracaFatorJuros) {
+        this.ipcaDuranteGracaFatorJuros = ipcaDuranteGracaFatorJuros;
+    }
+
+    public BigDecimal getIpcaDuranteGracaPrincipalTributavelCorrigido() {
+        return ipcaDuranteGracaPrincipalTributavelCorrigido;
+    }
+
+    public void setIpcaDuranteGracaPrincipalTributavelCorrigido(BigDecimal ipcaDuranteGracaPrincipalTributavelCorrigido) {
+        this.ipcaDuranteGracaPrincipalTributavelCorrigido = ipcaDuranteGracaPrincipalTributavelCorrigido;
+    }
+
+    public BigDecimal getIpcaDuranteGracaPrincipalNaoTributavelCorrigido() {
+        return ipcaDuranteGracaPrincipalNaoTributavelCorrigido;
+    }
+
+    public void setIpcaDuranteGracaPrincipalNaoTributavelCorrigido(BigDecimal ipcaDuranteGracaPrincipalNaoTributavelCorrigido) {
+        this.ipcaDuranteGracaPrincipalNaoTributavelCorrigido = ipcaDuranteGracaPrincipalNaoTributavelCorrigido;
+    }
+
+    public BigDecimal getIpcaDuranteGracaValorJurosCorrigido() {
+        return ipcaDuranteGracaValorJurosCorrigido;
+    }
+
+    public void setIpcaDuranteGracaValorJurosCorrigido(BigDecimal ipcaDuranteGracaValorJurosCorrigido) {
+        this.ipcaDuranteGracaValorJurosCorrigido = ipcaDuranteGracaValorJurosCorrigido;
+    }
+
+    public BigDecimal getIpcaDuranteGracaCustasMultaCorrigido() {
+        return ipcaDuranteGracaCustasMultaCorrigido;
+    }
+
+    public void setIpcaDuranteGracaCustasMultaCorrigido(BigDecimal ipcaDuranteGracaCustasMultaCorrigido) {
+        this.ipcaDuranteGracaCustasMultaCorrigido = ipcaDuranteGracaCustasMultaCorrigido;
+    }
+
+    public BigDecimal getIpcaDuranteGracaSelicCorrigido() {
+        return ipcaDuranteGracaSelicCorrigido;
+    }
+
+    public void setIpcaDuranteGracaSelicCorrigido(BigDecimal ipcaDuranteGracaSelicCorrigido) {
+        this.ipcaDuranteGracaSelicCorrigido = ipcaDuranteGracaSelicCorrigido;
+    }
+
+    public BigDecimal getIpcaDuranteGracaTotalAtualizado() {
+        return ipcaDuranteGracaTotalAtualizado;
+    }
+
+    public void setIpcaDuranteGracaTotalAtualizado(BigDecimal ipcaDuranteGracaTotalAtualizado) {
+        this.ipcaDuranteGracaTotalAtualizado = ipcaDuranteGracaTotalAtualizado;
+    }
+
+    public BigDecimal getIpcaPosGracaFator() {
+        return ipcaPosGracaFator;
+    }
+
+    public void setIpcaPosGracaFator(BigDecimal ipcaPosGracaFator) {
+        this.ipcaPosGracaFator = ipcaPosGracaFator;
+    }
+
+    public BigDecimal getIpcaPosGracaFatorJuros() {
+        return ipcaPosGracaFatorJuros;
+    }
+
+    public void setIpcaPosGracaFatorJuros(BigDecimal ipcaPosGracaFatorJuros) {
+        this.ipcaPosGracaFatorJuros = ipcaPosGracaFatorJuros;
+    }
+
+    public BigDecimal getIpcaPosGracaPrincipalTributavelCorrigido() {
+        return ipcaPosGracaPrincipalTributavelCorrigido;
+    }
+
+    public void setIpcaPosGracaPrincipalTributavelCorrigido(BigDecimal ipcaPosGracaPrincipalTributavelCorrigido) {
+        this.ipcaPosGracaPrincipalTributavelCorrigido = ipcaPosGracaPrincipalTributavelCorrigido;
+    }
+
+    public BigDecimal getIpcaPosGracaPrincipalNaoTributavelCorrigido() {
+        return ipcaPosGracaPrincipalNaoTributavelCorrigido;
+    }
+
+    public void setIpcaPosGracaPrincipalNaoTributavelCorrigido(BigDecimal ipcaPosGracaPrincipalNaoTributavelCorrigido) {
+        this.ipcaPosGracaPrincipalNaoTributavelCorrigido = ipcaPosGracaPrincipalNaoTributavelCorrigido;
+    }
+
+    public BigDecimal getIpcaPosGracaValorJurosCorrigido() {
+        return ipcaPosGracaValorJurosCorrigido;
+    }
+
+    public void setIpcaPosGracaValorJurosCorrigido(BigDecimal ipcaPosGracaValorJurosCorrigido) {
+        this.ipcaPosGracaValorJurosCorrigido = ipcaPosGracaValorJurosCorrigido;
+    }
+
+    public BigDecimal getIpcaPosGracaCustasMultaCorrigido() {
+        return ipcaPosGracaCustasMultaCorrigido;
+    }
+
+    public void setIpcaPosGracaCustasMultaCorrigido(BigDecimal ipcaPosGracaCustasMultaCorrigido) {
+        this.ipcaPosGracaCustasMultaCorrigido = ipcaPosGracaCustasMultaCorrigido;
+    }
+
+    public BigDecimal getIpcaPosGracaSelicCorrigido() {
+        return ipcaPosGracaSelicCorrigido;
+    }
+
+    public void setIpcaPosGracaSelicCorrigido(BigDecimal ipcaPosGracaSelicCorrigido) {
+        this.ipcaPosGracaSelicCorrigido = ipcaPosGracaSelicCorrigido;
+    }
+
+    public BigDecimal getIpcaPosGracaTotalAtualizado() {
+        return ipcaPosGracaTotalAtualizado;
+    }
+
+    public void setIpcaPosGracaTotalAtualizado(BigDecimal ipcaPosGracaTotalAtualizado) {
+        this.ipcaPosGracaTotalAtualizado = ipcaPosGracaTotalAtualizado;
+    }
+
+    public BigDecimal getSelicAntesGracaTaxa() {
+        return selicAntesGracaTaxa;
+    }
+
+    public void setSelicAntesGracaTaxa(BigDecimal selicAntesGracaTaxa) {
+        this.selicAntesGracaTaxa = selicAntesGracaTaxa;
+    }
+
+    public BigDecimal getSelicAntesGracaSelicValorCorrigido() {
+        return selicAntesGracaSelicValorCorrigido;
+    }
+
+    public void setSelicAntesGracaSelicValorCorrigido(BigDecimal selicAntesGracaSelicValorCorrigido) {
+        this.selicAntesGracaSelicValorCorrigido = selicAntesGracaSelicValorCorrigido;
+    }
+
+    public BigDecimal getSelicDuranteGracaFatorIPCA() {
+        return selicDuranteGracaFatorIPCA;
+    }
+
+    public void setSelicDuranteGracaFatorIPCA(BigDecimal selicDuranteGracaFatorIPCA) {
+        this.selicDuranteGracaFatorIPCA = selicDuranteGracaFatorIPCA;
+    }
+
+    public BigDecimal getSelicDuranteGracaPrincipalTributavelCorrigido() {
+        return selicDuranteGracaPrincipalTributavelCorrigido;
+    }
+
+    public void setSelicDuranteGracaPrincipalTributavelCorrigido(BigDecimal selicDuranteGracaPrincipalTributavelCorrigido) {
+        this.selicDuranteGracaPrincipalTributavelCorrigido = selicDuranteGracaPrincipalTributavelCorrigido;
+    }
+
+    public BigDecimal getSelicDuranteGracaPrincipalNaoTributavelCorrigido() {
+        return selicDuranteGracaPrincipalNaoTributavelCorrigido;
+    }
+
+    public void setSelicDuranteGracaPrincipalNaoTributavelCorrigido(BigDecimal selicDuranteGracaPrincipalNaoTributavelCorrigido) {
+        this.selicDuranteGracaPrincipalNaoTributavelCorrigido = selicDuranteGracaPrincipalNaoTributavelCorrigido;
+    }
+
+    public BigDecimal getSelicDuranteGracaValorJurosCorrigido() {
+        return selicDuranteGracaValorJurosCorrigido;
+    }
+
+    public void setSelicDuranteGracaValorJurosCorrigido(BigDecimal selicDuranteGracaValorJurosCorrigido) {
+        this.selicDuranteGracaValorJurosCorrigido = selicDuranteGracaValorJurosCorrigido;
+    }
+
+    public BigDecimal getSelicDuranteGracaCustasMultaCorrigido() {
+        return selicDuranteGracaCustasMultaCorrigido;
+    }
+
+    public void setSelicDuranteGracaCustasMultaCorrigido(BigDecimal selicDuranteGracaCustasMultaCorrigido) {
+        this.selicDuranteGracaCustasMultaCorrigido = selicDuranteGracaCustasMultaCorrigido;
+    }
+
+    public BigDecimal getSelicDuranteGracaSelicCorrigido() {
+        return selicDuranteGracaSelicCorrigido;
+    }
+
+    public void setSelicDuranteGracaSelicCorrigido(BigDecimal selicDuranteGracaSelicCorrigido) {
+        this.selicDuranteGracaSelicCorrigido = selicDuranteGracaSelicCorrigido;
+    }
+
+    public BigDecimal getSelicDuranteGracaTotalAtualizado() {
+        return selicDuranteGracaTotalAtualizado;
+    }
+
+    public void setSelicDuranteGracaTotalAtualizado(BigDecimal selicDuranteGracaTotalAtualizado) {
+        this.selicDuranteGracaTotalAtualizado = selicDuranteGracaTotalAtualizado;
+    }
+
+    public BigDecimal getSelicPosGracaTaxa() {
+        return selicPosGracaTaxa;
+    }
+
+    public void setSelicPosGracaTaxa(BigDecimal selicPosGracaTaxa) {
+        this.selicPosGracaTaxa = selicPosGracaTaxa;
+    }
+
+    public BigDecimal getSelicPosGracaSelicValorCorrigido() {
+        return selicPosGracaSelicValorCorrigido;
+    }
+
+    public void setSelicPosGracaSelicValorCorrigido(BigDecimal selicPosGracaSelicValorCorrigido) {
+        this.selicPosGracaSelicValorCorrigido = selicPosGracaSelicValorCorrigido;
+    }
+
+    public BigDecimal getSelicPosGracaTotalAtualizado() {
+        return selicPosGracaTotalAtualizado;
+    }
+
+    public void setSelicPosGracaTotalAtualizado(BigDecimal selicPosGracaTotalAtualizado) {
+        this.selicPosGracaTotalAtualizado = selicPosGracaTotalAtualizado;
+    }
+
+    public BigDecimal getValorGlobalAtualizado() {
+        return valorGlobalAtualizado;
+    }
+
+    public void setValorGlobalAtualizado(BigDecimal valorGlobalAtualizado) {
+        this.valorGlobalAtualizado = valorGlobalAtualizado;
+    }
+
+    public BigDecimal getPrevValorBase() {
+        return prevValorBase;
+    }
+
+    public void setPrevValorBase(BigDecimal prevValorBase) {
+        this.prevValorBase = prevValorBase;
+    }
 }
