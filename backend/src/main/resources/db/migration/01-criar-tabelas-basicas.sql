@@ -1,4 +1,62 @@
--- =========================================================
+-- Criação da tabela tipo_indice_bacen
+CREATE TABLE tipo_indice_bacen (
+                                   id SERIAL PRIMARY KEY,                -- Número com autoincremento
+                                   descricao VARCHAR(255) NOT NULL       -- Descrição do tipo de índice
+);
+
+-- Criação da tabela indice_bacen
+CREATE TABLE indice_bacen (
+                              id SERIAL PRIMARY KEY,                -- Número com autoincremento
+                              id_tipo_indice_bacen INT NOT NULL,    -- FK para tipo_indice_bacen
+                              dt_referencia DATE NOT NULL,          -- Data de referência
+                              valor NUMERIC(20,6) NOT NULL,         -- Valor com casas decimais
+
+                              CONSTRAINT fk_indice_bacen_tipo
+                                  FOREIGN KEY (id_tipo_indice_bacen)
+                                      REFERENCES tipo_indice_bacen (id)
+                                      ON DELETE RESTRICT
+                                      ON UPDATE CASCADE
+);
+
+drop table tabela_irrf
+
+-- Criação da tabela tabela_irrf
+CREATE TABLE tabela_irrf (
+                             id SERIAL PRIMARY KEY,               -- Número autoincremento
+                             exercicio numeric not null,
+                             dt_periodo_inicio DATE not null,
+                             dt_periodo_fim DATE not null,
+                             faixa_inicial NUMERIC(15,2) NOT NULL, -- Valor inicial da faixa (moeda)
+                             faixa_final NUMERIC(15,2) NOT NULL,   -- Valor final da faixa (moeda)
+                             aliquota NUMERIC(4,2) NOT NULL,       -- Percentual da alíquota (ex.: 0, 7.5, 15, 22.5, 27.5)
+                             deducao NUMERIC(15,2) NOT NULL        -- Valor de dedução (moeda)
+);
+
+-- Índice para busca por dt_referencia (opcional, mas recomendável se for usar muito em consultas)
+CREATE INDEX idx_indice_bacen_dt_ref
+    ON indice_bacen (dt_referencia);
+
+-- Índice para busca por tipo de índice (opcional)
+CREATE INDEX idx_indice_bacen_tipo
+    ON indice_bacen (id_tipo_indice_bacen);
+
+-- Índice opcional para consultas por faixa (recomendável)
+CREATE INDEX idx_tabela_irrf_faixa
+    ON tabela_irrf (faixa_inicial, faixa_final);
+
+GRANT ALL ON TABLE tipo_indice_bacen TO postgres;
+GRANT ALL ON TABLE tipo_indice_bacen TO web;
+GRANT ALL ON TABLE tipo_indice_bacen TO u44181;
+
+GRANT ALL ON TABLE indice_bacen TO postgres;
+GRANT ALL ON TABLE indice_bacen TO web;
+GRANT ALL ON TABLE indice_bacen TO u44181;
+
+GRANT ALL ON TABLE tabela_irrf TO postgres;
+GRANT ALL ON TABLE tabela_irrf TO web;
+GRANT ALL ON TABLE tabela_irrf TO u44181;
+
+
 -- Tabela: tipo_previdencia
 -- =========================================================
 

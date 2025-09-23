@@ -31,42 +31,4 @@ public class IndiceBacen implements Serializable {
     @Column(name="valor")
     private BigDecimal valor;
 
-    public IndiceBacen(Long id, TipoIndiceBacen tipoInidicadorIndice, LocalDate dataInicioVigencia, BigDecimal valor) {
-        this.id = id;
-        this.tipoInidicadorIndice = tipoInidicadorIndice;
-        this.dataInicioVigencia = dataInicioVigencia;
-        this.valor = valor;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public TipoIndiceBacen getTipoInidicadorIndice() {
-        return tipoInidicadorIndice;
-    }
-
-    public void setTipoInidicadorIndice(TipoIndiceBacen tipoInidicadorIndice) {
-        this.tipoInidicadorIndice = tipoInidicadorIndice;
-    }
-
-    public LocalDate getDataInicioVigencia() {
-        return dataInicioVigencia;
-    }
-
-    public void setDataInicioVigencia(LocalDate dataInicioVigencia) {
-        this.dataInicioVigencia = dataInicioVigencia;
-    }
-
-    public BigDecimal getValor() {
-        return valor;
-    }
-
-    public void setValor(BigDecimal valor) {
-        this.valor = valor;
-    }
 }

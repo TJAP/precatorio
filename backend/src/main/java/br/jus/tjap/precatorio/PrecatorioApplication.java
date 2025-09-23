@@ -11,5 +11,4 @@ public class PrecatorioApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(PrecatorioApplication.class, args);
 	}
-
 }
