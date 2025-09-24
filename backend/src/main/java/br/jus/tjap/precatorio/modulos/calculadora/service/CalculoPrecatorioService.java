@@ -179,8 +179,11 @@ public class CalculoPrecatorioService {
 
         BigDecimal selicTaxaSelicAntesGraca =
                 temDataAtesGraca ?
-                        bancoCentralService.somarSelic(YearMonth.from(dataInicioAntesGraca), YearMonth.from(dataFimAntesGraca))
-                        : UM;
+                        bancoCentralService.somarSelic(YearMonth.from(dataInicioAntesGraca),
+                                YearMonth.from(
+                                        dataFimAntesGraca.isAfter(LocalDate.now().minusMonths(1)) ? LocalDate.now().minusMonths(1) : dataFimAntesGraca
+                                ))
+                        : ZERO;
         BigDecimal selicFatorIPCADuranteGraca =
                 temDataDuranteGraca ?
                         bancoCentralService.multiplicarIPCA(YearMonth.from(dataInicioDuranteGraca), YearMonth.from(dataFimDuranteGraca))
@@ -188,7 +191,7 @@ public class CalculoPrecatorioService {
         BigDecimal selictTaxaSelicAposGraca =
                 temDataAposGraca ?
                         bancoCentralService.somarSelic(YearMonth.from(dataInicioPosGraca), YearMonth.from(dataFimPosGraca))
-                        : UM;
+                        : ZERO;
 
         resultado.setSelicAntesGracaTaxa(temDataAtesGraca ? selicTaxaSelicAntesGraca : ZERO);
         resultado.setSelicDuranteGracaFatorIPCA(UtilCalculo.escala(selicFatorIPCADuranteGraca, 7));
@@ -362,8 +365,10 @@ public class CalculoPrecatorioService {
         } else {
             if(dataAtualizacao.isBefore(dataFinalGraca) && temPeriodoAntesGraca){
                 if(dataFinalGraca.isAfter(dataHoje)){
-                    dataInicioDuranteGraca = dataInicialGraca;
-                    dataFimDuranteGraca = dataHoje.minusMonths(1);
+                    if(!dataInicialGraca.isAfter(dataHoje.minusMonths(1))){
+                        dataInicioDuranteGraca = dataInicialGraca;
+                        dataFimDuranteGraca = dataHoje.minusMonths(1);
+                    }
                 } else {
                     dataInicioDuranteGraca = dataInicialGraca;
                     dataFimDuranteGraca = dataFinalGraca;
