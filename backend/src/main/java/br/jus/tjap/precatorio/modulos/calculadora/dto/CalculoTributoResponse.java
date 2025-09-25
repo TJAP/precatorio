@@ -1,12 +1,23 @@
 package br.jus.tjap.precatorio.modulos.calculadora.dto;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.math.BigDecimal;
 
-public record CalculoTributoResponse (
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class CalculoTributoResponse {
 
-    BigDecimal baseIrCredor,
-    BigDecimal irCredor,
-    BigDecimal previdenciaCredor,
-    BigDecimal baseIrAdvogado,
-    BigDecimal irAdvogado
-){}
+    private BigDecimal totalBruto = BigDecimal.ZERO;
+    private BigDecimal percentualParteAdvogado = BigDecimal.ZERO;
+    private BigDecimal percentualParteCredor = BigDecimal.ZERO;
+    private BigDecimal valorParteAdvogado = BigDecimal.ZERO;
+    private BigDecimal valorParteCredor = BigDecimal.ZERO;
+    private BigDecimal valorParteTributavelCredor = BigDecimal.ZERO;
+    private BigDecimal valorParteNaoTributavelCredor = BigDecimal.ZERO;
+    private BigDecimal valorJurosCredor = BigDecimal.ZERO;
+    private BigDecimal valorSelicCredor = BigDecimal.ZERO;
+}
