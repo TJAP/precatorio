@@ -6,8 +6,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-import br.jus.tjap.precatorio.modulos.requisitorio.dto.RelatorioJsRequestDTO;
-import br.jus.tjap.precatorio.modulos.requisitorio.dto.RequisitorioDTO;
+import br.jus.tjap.precatorio.modulos.requisitorio.dto.*;
 import br.jus.tjap.precatorio.util.DateUtil;
 import br.jus.tjap.precatorio.util.StringUtil;
 import jakarta.persistence.*;
@@ -33,8 +32,8 @@ public class Requisitorio implements Serializable {
     private Long id;
 
     //1: OR, 2:RPV
-    @Column(name = "tp_precatorio")
-    private Integer tipoPrecatorio;
+    // @Column(name = "tp_precatorio")
+    // private Integer tipoPrecatorio;
 
     @Column(name = "id_processo")
     private String idProcesso;
@@ -42,16 +41,16 @@ public class Requisitorio implements Serializable {
     private String numProcessoTucujuris;
     @Column(name = "nome_magistrado")
     private String nomeMagistrado;
-    @Column(name = "id_tipo_titulo")
-    private Long idTipoTitulo;
+    // @Column(name = "id_tipo_titulo")
+    // private Long idTipoTitulo;
     @Column(name = "id_natureza_credito")
     private Long idNaturezaCredito;
-    @Column(name = "id_tipo_previdencia")
-    private Long idTipoPrevidencia;
-    @Column(name = "id_tipo_orbigacao")
-    private Long idTipoOrbigacao;
-    @Column(name = "ds_tipo_obrigacao")
-    private String dsTipoObrigacao;
+    // @Column(name = "id_tipo_previdencia")
+    // private Long idTipoPrevidencia;
+    // @Column(name = "id_tipo_orbigacao")
+    // private Long idTipoOrbigacao;
+    // @Column(name = "ds_tipo_obrigacao")
+    // private String dsTipoObrigacao;
     @Column(name = "dt_ajuizamento")
     private LocalDate dtAjuizamento;
     @Column(name = "dt_decurso_prazo")
@@ -86,10 +85,10 @@ public class Requisitorio implements Serializable {
     private String documentoCredorAdv;
     @Column(name = "dt_nascimento_adv_credor")
     private LocalDate nascimentoAdvCredor;
-    @Column(name = "percent_honor_adv_credor")
-    private BigDecimal vlPercentualHonorarioAdvCredor;
-    @Column(name = "tp_tributacao_adv_credor")
-    private String idTipoTributacaoAdvCredor;
+    // @Column(name = "percent_honor_adv_credor")
+    // private BigDecimal vlPercentualHonorarioAdvCredor;
+    // @Column(name = "tp_tributacao_adv_credor")
+    // private String idTipoTributacaoAdvCredor;
 
     @Column(name = "nome_representante_credor")
     private String nomeCredorRepresentante;
@@ -103,20 +102,20 @@ public class Requisitorio implements Serializable {
 
     @Column(name = "orgao_vinculo_credor")
     private String orgaoVinculoCredor;
-    @Column(name = "situcao_funcional_credor")
-    private String situacaoFuncionalCredor;
-    @Column(name = "nome_banco_credor")
-    private String nomeBancoCredor;
-    @Column(name = "agencia_bancaria_credor")
-    private String agenciaCredor;
-    @Column(name = "conta_corrente_credor")
-    private String contaCorrenteCredor;
-    @Column(name = "nome_banco_adv_credor")
-    private String nomeBancoAdvCredor;
-    @Column(name = "agencia_bancaria_adv_credor")
-    private String agenciaAdvCredor;
-    @Column(name = "conta_corrente_adv_credor")
-    private String contaCorrenteAdvCredor;
+    // @Column(name = "situcao_funcional_credor")
+    // private String situacaoFuncionalCredor;
+    // @Column(name = "nome_banco_credor")
+    // private String nomeBancoCredor;
+    // @Column(name = "agencia_bancaria_credor")
+    // private String agenciaCredor;
+    // @Column(name = "conta_corrente_credor")
+    // private String contaCorrenteCredor;
+    // @Column(name = "nome_banco_adv_credor")
+    // private String nomeBancoAdvCredor;
+    // @Column(name = "agencia_bancaria_adv_credor")
+    // private String agenciaAdvCredor;
+    // @Column(name = "conta_corrente_adv_credor")
+    // private String contaCorrenteAdvCredor;
 
     @Column(name = "vl_causa")
     private BigDecimal valorCausa;
@@ -241,11 +240,11 @@ public class Requisitorio implements Serializable {
         dto.setNumProcessoTucujuris(this.numProcessoTucujuris);
         dto.setPrecato(this.precato);
         dto.setNomeMagistrado(this.nomeMagistrado);
-        dto.setIdTipoTitulo(this.idTipoTitulo);
+        // dto.setIdTipoTitulo(this.idTipoTitulo);
         dto.setIdNaturezaCredito(this.idNaturezaCredito);
-        dto.setIdTipoPrevidencia(this.idTipoPrevidencia);
-        dto.setIdTipoOrbigacao(this.idTipoOrbigacao);
-        dto.setDsTipoObrigacao(this.dsTipoObrigacao);
+        // dto.setIdTipoPrevidencia(this.idTipoPrevidencia);
+        // dto.setIdTipoOrbigacao(this.idTipoOrbigacao);
+        // dto.setDsTipoObrigacao(this.dsTipoObrigacao);
         dto.setDtAjuizamento(this.dtAjuizamento);
         dto.setDtDecursoPrazo(this.dtDecursoPrazo);
         dto.setDtTransitoJulgadoConhecimento(this.dtTransitoJulgadoConhecimento);
@@ -262,20 +261,20 @@ public class Requisitorio implements Serializable {
         dto.setNomeCredorAdv(this.nomeCredorAdv);
         dto.setDocumentoCredorAdv(this.documentoCredorAdv);
         dto.setNascimentoAdvCredor(this.nascimentoAdvCredor);
-        dto.setVlPercentualHonorarioAdvCredor(this.vlPercentualHonorarioAdvCredor);
-        dto.setIdTipoTributacaoAdvCredor(this.idTipoTributacaoAdvCredor);
+        // dto.setVlPercentualHonorarioAdvCredor(this.vlPercentualHonorarioAdvCredor);
+        // dto.setIdTipoTributacaoAdvCredor(this.idTipoTributacaoAdvCredor);
         dto.setNomeCredorRepresentante(this.nomeCredorRepresentante);
         dto.setDocCredorRepresentante(this.docCredorRepresentante);
         dto.setNascimentoRepresentanteCredor(this.nascimentoRepresentanteCredor);
         dto.setIdCredorNaturezaQualificacao(this.idCredorNaturezaQualificacao);
         dto.setOrgaoVinculoCredor(this.orgaoVinculoCredor);
-        dto.setSituacaoFuncionalCredor(this.situacaoFuncionalCredor);
-        dto.setNomeBancoCredor(this.nomeBancoCredor);
-        dto.setAgenciaCredor(this.agenciaCredor);
-        dto.setContaCorrenteCredor(this.contaCorrenteCredor);
-        dto.setNomeBancoAdvCredor(this.nomeBancoAdvCredor);
-        dto.setAgenciaAdvCredor(this.agenciaAdvCredor);
-        dto.setContaCorrenteAdvCredor(this.contaCorrenteAdvCredor);
+        // dto.setSituacaoFuncionalCredor(this.situacaoFuncionalCredor);
+        // dto.setNomeBancoCredor(this.nomeBancoCredor);
+        // dto.setAgenciaCredor(this.agenciaCredor);
+        // dto.setContaCorrenteCredor(this.contaCorrenteCredor);
+        // dto.setNomeBancoAdvCredor(this.nomeBancoAdvCredor);
+        // dto.setAgenciaAdvCredor(this.agenciaAdvCredor);
+        // dto.setContaCorrenteAdvCredor(this.contaCorrenteAdvCredor);
         dto.setValorCausa(this.valorCausa);
         //dto.setSituacao(this.situacao);
         dto.setVlGlobalRequisicao(this.vlGlobalRequisicao);
@@ -301,7 +300,7 @@ public class Requisitorio implements Serializable {
         dto.setVlSessaoCredito(this.vlSessaoCredito);
         dto.setPagamentoAdministrativo(this.pagamentoAdministrativo);
         dto.setVlPagamentoAdministrativo(this.vlPagamentoAdministrativo);
-        dto.setTipoPrecatorio(this.tipoPrecatorio);
+        // dto.setTipoPrecatorio(this.tipoPrecatorio);
         dto.setDtAssinatura(this.dtAssinatura);
         dto.setAssinador(this.assinador);
         dto.setIdPeAssinador(this.idPeAssinador);
@@ -323,9 +322,9 @@ public class Requisitorio implements Serializable {
 
         var minuta = this.dtAssinatura == null;
 
-        relatorio.setRpv(this.tipoPrecatorio == 2);
-        relatorio.setPrecatorio(this.tipoPrecatorio == 1);
-        relatorio.setTipoDocumento(this.tipoPrecatorio == 1 ? "OFÍCIO REQUISITÓRIO DE PRECATÓRIO" : "REQUISIÇÃO DE PEQUENO VALOR");
+        // relatorio.setRpv(this.tipoPrecatorio == 2);
+        // relatorio.setPrecatorio(this.tipoPrecatorio == 1);
+        // relatorio.setTipoDocumento(this.tipoPrecatorio == 1 ? "OFÍCIO REQUISITÓRIO DE PRECATÓRIO" : "REQUISIÇÃO DE PEQUENO VALOR");
 
         relatorio.setDataAtual(DateUtil.localDataFormatada(LocalDate.now(), "dd/MM/yyyy"));
 
@@ -334,7 +333,7 @@ public class Requisitorio implements Serializable {
         relatorio.setMinuta(minuta);
         relatorio.setNomeJuiz(this.nomeMagistrado);
 
-        relatorio.setNumeroPrecatorio((minuta ? "xxxx" : StringUtil.leftPad(this.id + "", "0", 4)) + "-" + this.codOrgaoJulgadorPje + "" + this.tipoPrecatorio + "/" + this.dtCadastro.getYear());
+        //relatorio.setNumeroPrecatorio((minuta ? "xxxx" : StringUtil.leftPad(this.id + "", "0", 4)) + "-" + this.codOrgaoJulgadorPje + "" + this.tipoPrecatorio + "/" + this.dtCadastro.getYear());
         //relatorio.setNomeComarca(DeParaPrecatorioTucujuris.deParaComarca(this.lotacaoTucujuris.getComarca()));
         //relatorio.setNomeVara(this.lotacaoTucujuris.getDescricao());
         relatorio.setNumeroProcesso(this.idProcesso);
@@ -359,7 +358,7 @@ public class Requisitorio implements Serializable {
             relatorio.setDsTipoObrigacao("");
         }
 */
-        relatorio.setTipoTitulo(this.idTipoTitulo == 0L ? "Judicial" : "Extrajudicial");
+        // relatorio.setTipoTitulo(this.idTipoTitulo == 0L ? "Judicial" : "Extrajudicial");
         relatorio.setDataAjuizamento(DateUtil.localDataFormatada(this.dtAjuizamento, "dd/MM/yyyy"));
         relatorio.setDataTransitoJulgadoConhecimento(DateUtil.localDataFormatada(this.dtTransitoJulgadoConhecimento, "dd/MM/yyyy"));
         relatorio.setDataTransitoJulgadoEmbargos(DateUtil.localDataFormatada(this.dtTransitoJulgadoEmbargos, "dd/MM/yyyy"));
@@ -369,10 +368,10 @@ public class Requisitorio implements Serializable {
         relatorio.setNomeCredor(this.nomeCredor);
         relatorio.setDocumentoCredor(this.documentoCredor);
         relatorio.setNascimentoCredor(DateUtil.localDataFormatada(this.nascimentoCredor, "dd/MM/yyyy"));
-        relatorio.setBancoCredor(this.nomeBancoCredor);
-        relatorio.setAgenciaCredor(this.agenciaCredor);
-        relatorio.setContaCorrenteCredor(this.contaCorrenteCredor);
-        relatorio.setSituacaoFuncionalCredor(this.situacaoFuncionalCredor);
+        // relatorio.setBancoCredor(this.nomeBancoCredor);
+        // relatorio.setAgenciaCredor(this.agenciaCredor);
+        // relatorio.setContaCorrenteCredor(this.contaCorrenteCredor);
+        // relatorio.setSituacaoFuncionalCredor(this.situacaoFuncionalCredor);
         relatorio.setOrgaoVinculoCredor(this.orgaoVinculoCredor);
 
         /*
@@ -390,11 +389,11 @@ public class Requisitorio implements Serializable {
             relatorio.setNomeCredorAdv(this.nomeCredorAdv);
             relatorio.setDocumentoCredorAdv(this.documentoCredorAdv);
             relatorio.setNascimentoAdvCredor(DateUtil.localDataFormatada(this.nascimentoAdvCredor, "dd/MM/yyyy"));
-            relatorio.setNomeBancoAdvCredor(this.nomeBancoAdvCredor);
-            relatorio.setAgenciaAdvCredor(this.agenciaAdvCredor);
-            relatorio.setContaCorrenteAdvCredor(this.contaCorrenteAdvCredor);
-            relatorio.setTipoTributacaoAdvCredor(this.idTipoTributacaoAdvCredor);
-            relatorio.setVlPercentualHonorarioAdvCredor(StringUtil.formatarValorMoeda(this.vlPercentualHonorarioAdvCredor));
+            // relatorio.setNomeBancoAdvCredor(this.nomeBancoAdvCredor);
+            // relatorio.setAgenciaAdvCredor(this.agenciaAdvCredor);
+            // relatorio.setContaCorrenteAdvCredor(this.contaCorrenteAdvCredor);
+            // relatorio.setTipoTributacaoAdvCredor(this.idTipoTributacaoAdvCredor);
+            // relatorio.setVlPercentualHonorarioAdvCredor(StringUtil.formatarValorMoeda(this.vlPercentualHonorarioAdvCredor));
             relatorio.setTemAdvogado(true);
         } else {
             relatorio.setTemAdvogado(false);
