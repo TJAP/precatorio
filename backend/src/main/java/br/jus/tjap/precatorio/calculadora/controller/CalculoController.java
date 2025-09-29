@@ -1,12 +1,14 @@
 package br.jus.tjap.precatorio.calculadora.controller;
 
-import br.jus.tjap.precatorio.calculadora.dto.CalculoRequest;
-import br.jus.tjap.precatorio.calculadora.dto.CalculoResponse;
-import br.jus.tjap.precatorio.calculadora.dto.CalculoRetornoDTO;
-import br.jus.tjap.precatorio.calculadora.service.CalculoPrecatorioService;
-import br.jus.tjap.precatorio.modelo.ApiVersions;
+import br.jus.tjap.precatorio.modulos.calculadora.dto.CalculoRequest;
+import br.jus.tjap.precatorio.modulos.calculadora.dto.CalculoResponse;
+import br.jus.tjap.precatorio.modulos.calculadora.dto.CalculoRetornoDTO;
+import br.jus.tjap.precatorio.modulos.calculadora.service.CalculoPrecatorioService;
+import br.jus.tjap.precatorio.util.ApiVersions;
+import br.jus.tjap.precatorio.util.Response;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -47,7 +49,7 @@ public class CalculoController {
         var precatorioFinded = precatorioService.precatorioPorId(id);
 
         if (precatorioFinded.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErroDTO("Precatorio Não existe",404)); // ou criar DTO de erro com mensagem
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new Response(404, List.of("Precatório não encontrado"), "Dados gravados", "ERROR")); // ou criar DTO de erro com mensagem
         }
 
         var precatorio = precatorioFinded.get();
