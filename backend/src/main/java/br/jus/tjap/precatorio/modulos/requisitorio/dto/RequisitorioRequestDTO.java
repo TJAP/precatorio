@@ -2,33 +2,23 @@ package br.jus.tjap.precatorio.modulos.requisitorio.dto;
 
 
 import lombok.*;
+
+import java.math.BigDecimal;
 import java.util.Date;
+import java.time.LocalDate;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class RequisitorioRequestDTO {
-    
-    private String Processo;
-    private String precato;
-    private String nomeMagistrado;
-    private String numeroPrecatorio;
-    private String nomeDevedor;
-    private String nomeCredor;
-    private String documentoDevedor;
-    private String documentoCredor;
-    private Date nascimentoDevedor;
-    private Date nascimentoCredor;
-    private String representanteCredor;
-    private String credorNaturezaQualificacao;
-    private String naturezaCredito;
-    private String creditoPreferencial;
-    private String tipoObrigacao;
-    private String dsTipoObrigacao;
-    private String tipoTitulo;
-    private Date dataAjuizamento;
-    private Date dataTransitoJulgadoConhecimento;
-    private Date dataTransitoJulgadoEmbargos;
-    private Date dataDecursoPrazo;
-    private Date dataTransitoJulgado; 
+    private long id;
+    private String idProcesso; 
+    private long idNaturezaCredito;
+    private BigDecimal vlGlobalRequisicao;
+    private BigDecimal vlPrincipalTributavelCorrigido;
+    private BigDecimal vlPrincipalNaoTributavelCorrigido;
+    private Integer indiceAtualizacao;
+    private BigDecimal vlJurosAplicado;
+    private LocalDate dtUltimaAtualizacaoPlanilha;
+    private BigDecimal valorCausa;
 }

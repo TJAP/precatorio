@@ -11,15 +11,10 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-
-public class TipoRequisitorioDTO {
-    private long idTipoObrigacao;
-    private Long idTipoPrevidencia;
-    private Long idTipoTitulo;
+public class TipoRequisitorioResponseDTO {
     private Integer tipoPrecatorio;
     private String dsTipoObrigacao;
     private String nomeBancoCredor;
@@ -30,7 +25,7 @@ public class TipoRequisitorioDTO {
     private String situacaoFuncionalCredor;
     private Integer percentHonorAdvCredor;
     private String tpTributacaoAdvCredor;
-    private String nomeBancoAdvCredor;    
+    private String nomeBancoAdvCredor;
     private Boolean sessaoCredito;
     private BigDecimal vlSessaoCredito;
 }

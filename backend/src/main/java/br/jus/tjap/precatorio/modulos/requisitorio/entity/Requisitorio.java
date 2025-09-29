@@ -171,12 +171,6 @@ public class Requisitorio implements Serializable {
     @Column(name = "vl_averbacao_penhora")
     private BigDecimal vlAverbacaoPenhora;
 
-    // sessão crédito
-    @Column(name = "in_sessao_credito")
-    private Boolean sessaoCredito;
-    @Column(name = "vl__sessao_credito")
-    private BigDecimal vlSessaoCredito;
-
     // pagamento administrativo
     @Column(name = "in_pagamento_administrativo")
     private Boolean pagamentoAdministrativo;

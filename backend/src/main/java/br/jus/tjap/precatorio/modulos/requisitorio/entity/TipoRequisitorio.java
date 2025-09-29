@@ -29,7 +29,7 @@ public class TipoRequisitorio implements Serializable {
     @SequenceGenerator(name = "gen_" + TABLE_NAME, sequenceName = "precatorio.sq_" + TABLE_NAME, allocationSize = 1)
 
     @Column(name = "id_tipo_orbigacao")
-    private long idTipoOrbigacao;
+    private long idTipoObrigacao;
     @Column(name = "id_tipo_previdencia")
     private Long idTipoPrevidencia;
     @Column(name = "id_tipo_titulo")
@@ -56,6 +56,10 @@ public class TipoRequisitorio implements Serializable {
     private String tpTributacaoAdvCredor;
     @Column(name = "nome_banco_adv_credor")
     private String nomeBancoAdvCredor;
+    @Column(name = "in_sessao_credito")
+    private Boolean sessaoCredito;
+    @Column(name = "vl__sessao_credito")
+    private BigDecimal vlSessaoCredito;
 
     /**
      * Method to convert the TipoRequisicao entity to the TipoRequisicaoDTO
@@ -67,7 +71,7 @@ public class TipoRequisitorio implements Serializable {
         TipoRequisitorioDTO dto = new TipoRequisitorioDTO();
         
         // Set the properties of the DTO
-        dto.setIdTipoOrbigacao(this.idTipoOrbigacao);
+        dto.setIdTipoObrigacao(this.idTipoObrigacao);
         dto.setIdTipoPrevidencia(this.idTipoPrevidencia);
         dto.setIdTipoTitulo(this.idTipoTitulo);
         dto.setTipoPrecatorio(this.tipoPrecatorio);

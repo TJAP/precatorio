@@ -20,11 +20,7 @@ public class RequisitorioDTO {
     private String numProcessoTucujuris;
     private String precato;
     private String nomeMagistrado;
-    private Long idTipoTitulo;
     private Long idNaturezaCredito;
-    private Long idTipoPrevidencia;
-    private Long idTipoOrbigacao;
-    private String dsTipoObrigacao;
     private LocalDate dtAjuizamento;
     private LocalDate dtDecursoPrazo;
     private LocalDate dtTransitoJulgadoConhecimento;
@@ -41,20 +37,11 @@ public class RequisitorioDTO {
     private String nomeCredorAdv;
     private String documentoCredorAdv;
     private LocalDate nascimentoAdvCredor;
-    private BigDecimal vlPercentualHonorarioAdvCredor;
-    private String idTipoTributacaoAdvCredor;
     private String nomeCredorRepresentante;
     private String docCredorRepresentante;
     private LocalDate nascimentoRepresentanteCredor;
     private Long idCredorNaturezaQualificacao;
     private String orgaoVinculoCredor;
-    private String situacaoFuncionalCredor;
-    private String nomeBancoCredor;
-    private String agenciaCredor;
-    private String contaCorrenteCredor;
-    private String nomeBancoAdvCredor;
-    private String agenciaAdvCredor;
-    private String contaCorrenteAdvCredor;
     private BigDecimal valorCausa;
     //private SituacaoPrecatorioEnum situacao;
     private BigDecimal vlGlobalRequisicao;
@@ -80,7 +67,6 @@ public class RequisitorioDTO {
     private BigDecimal vlSessaoCredito;
     private boolean pagamentoAdministrativo;
     private BigDecimal vlPagamentoAdministrativo;
-    private Integer tipoPrecatorio;
     private LocalDateTime dtAssinatura;
     private String assinador;
     private Integer idPeAssinador;
@@ -98,7 +84,6 @@ public class RequisitorioDTO {
     private String dsJustificativaInvalidade;
     private boolean ativo;
     private String msgErroDistribuicao;
-
 
     public String getNumeroProcessoPJE(){
         return StringUtil.formataNumeroProcesso(getIdProcesso());
