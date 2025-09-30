@@ -20,6 +20,9 @@ import lombok.*;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name = "tp_precatorio", length = 1, discriminatorType = DiscriminatorType.INTEGER)
+@DiscriminatorValue("Requisitorio")
 public class Requisitorio implements Serializable {
 
     public static final String TABLE_NAME = "precatorio";
@@ -32,8 +35,8 @@ public class Requisitorio implements Serializable {
     private Long id;
 
     //1: OR, 2:RPV
-    // @Column(name = "tp_precatorio")
-    // private Integer tipoPrecatorio;
+    @Column(name = "tp_precatorio")
+    private Integer tipoPrecatorio;
 
     @Column(name = "id_processo")
     private String idProcesso;
@@ -89,6 +92,15 @@ public class Requisitorio implements Serializable {
     // private BigDecimal vlPercentualHonorarioAdvCredor;
     // @Column(name = "tp_tributacao_adv_credor")
     // private String idTipoTributacaoAdvCredor;
+
+    @Embedded
+    private CessaoCredito cessaoCredito; // dados de cessao de credito
+
+    @Embedded
+    private Penhora penhora;
+
+    @Embedded
+    private DestaqueHonorario destaqueHonorario;
 
     @Column(name = "nome_representante_credor")
     private String nomeCredorRepresentante;
@@ -290,8 +302,8 @@ public class Requisitorio implements Serializable {
         dto.setOrgaoPrevidencia(this.orgaoPrevidencia);
         dto.setAverbacaoPenhora(this.averbacaoPenhora);
         dto.setVlAverbacaoPenhora(this.vlAverbacaoPenhora);
-        dto.setSessaoCredito(this.sessaoCredito);
-        dto.setVlSessaoCredito(this.vlSessaoCredito);
+        // dto.setSessaoCredito(this.sessaoCredito);
+        // dto.setVlSessaoCredito(this.vlSessaoCredito);
         dto.setPagamentoAdministrativo(this.pagamentoAdministrativo);
         dto.setVlPagamentoAdministrativo(this.vlPagamentoAdministrativo);
         // dto.setTipoPrecatorio(this.tipoPrecatorio);
@@ -409,8 +421,8 @@ public class Requisitorio implements Serializable {
         //relatorio.setOrgaoPrevidencia(this.tipoPrevidencia.getDescricao());
         relatorio.setAverbacaoPenhora(this.averbacaoPenhora ? "SIM" : "NÃO");
         relatorio.setVlAverbacaoPenhora(this.averbacaoPenhora ? StringUtil.formatarValorMoeda(this.vlAverbacaoPenhora) : "R$ 0,00");
-        relatorio.setSessaoCredito(this.sessaoCredito ? "SIM" : "NÃO");
-        relatorio.setVlSessaoCredito(this.sessaoCredito ? StringUtil.formatarValorMoeda(this.vlSessaoCredito) : "R$ 0,00");
+        //relatorio.setSessaoCredito(this.sessaoCredito ? "SIM" : "NÃO");
+        //relatorio.setVlSessaoCredito(this.sessaoCredito ? StringUtil.formatarValorMoeda(this.vlSessaoCredito) : "R$ 0,00");
         relatorio.setPagamentoAdministrativo(this.pagamentoAdministrativo ? "SIM" : "NÃO");
         relatorio.setVlPagamentoAdministrativo(this.pagamentoAdministrativo ? StringUtil.formatarValorMoeda(this.vlPagamentoAdministrativo) : "R$ 0,00");
 
