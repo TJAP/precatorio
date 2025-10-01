@@ -168,6 +168,7 @@
 	</dependencies>
 
 	<build>
+		<finalName>precatorio</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>

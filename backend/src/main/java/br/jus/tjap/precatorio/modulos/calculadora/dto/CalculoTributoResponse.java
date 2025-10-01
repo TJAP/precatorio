@@ -1,5 +1,6 @@
 package br.jus.tjap.precatorio.modulos.calculadora.dto;
 
+import br.jus.tjap.precatorio.modulos.calculadora.util.PagamentoUtil;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -20,4 +21,8 @@ public class CalculoTributoResponse {
     private BigDecimal valorParteNaoTributavelCredor = BigDecimal.ZERO;
     private BigDecimal valorJurosCredor = BigDecimal.ZERO;
     private BigDecimal valorSelicCredor = BigDecimal.ZERO;
+    private BigDecimal baseTributavelCredor = BigDecimal.ZERO;
+
+    private PagamentoUtil.ResultadoCalculo tipoCalculo;
+
 }

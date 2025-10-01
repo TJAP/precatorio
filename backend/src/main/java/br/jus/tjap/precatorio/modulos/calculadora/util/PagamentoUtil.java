@@ -1,10 +1,10 @@
-package br.jus.tjap.precatorio.modulos.calculadora;
+package br.jus.tjap.precatorio.modulos.calculadora.util;
 
 import java.text.Normalizer;
 import java.util.Locale;
 import java.util.Objects;
 
-public class Teste {
+public class PagamentoUtil {
 
     // ====== DTO ======
     public static class DadosCalculoDTO {
@@ -76,7 +76,7 @@ public class Teste {
     }
 
     private static PrevidenciaDestino determinarPrevidencia(String tipoPessoa, String vinculoNorm, boolean campoPrevidenciaPreenchido) {
-        if ("CPF".equals(tipoPessoa)) {
+        if ("PF".equals(tipoPessoa)) {
             if (campoPrevidenciaPreenchido) {
                 if (vinculoNorm.contains("EFETIVO")) {
                     return PrevidenciaDestino.AMPREV; // Efetivo + campoPrev = AMPREV
@@ -92,7 +92,7 @@ public class Teste {
     }
 
     private static TributacaoIR determinarTributacaoIR(String tipoPessoa, String vinculoNorm, boolean rraNoRequisitorio) {
-        if ("CPF".equals(tipoPessoa)) {
+        if ("PF".equals(tipoPessoa)) {
             if (vinculoNorm.contains("INDENIZACAO") || vinculoNorm.contains("INDENIZACAO".toUpperCase(Locale.ROOT))) {
                 return TributacaoIR.ISENTO; // CPF indenização -> isento
             }
@@ -114,7 +114,7 @@ public class Teste {
     }
 
     private static TipoCalculo determinarTipoCalculo(String tipoPessoa, String vinculoNorm, TributacaoIR tributacaoIR) {
-        if ("CPF".equals(tipoPessoa)) {
+        if ("PF".equals(tipoPessoa)) {
             if (vinculoNorm.contains("EFETIVO") || vinculoNorm.contains("COMISSIONADO")) {
                 // para efetivo/comissionado: diferenciar por tributacao (RRA => A ; ALIQUOTA => A1)
                 if (tributacaoIR == TributacaoIR.RRA) return TipoCalculo.CALCULO_A;
@@ -128,7 +128,7 @@ public class Teste {
             } else {
                 throw new IllegalArgumentException("Vínculo CPF não reconhecido: " + vinculoNorm);
             }
-        } else if ("CNPJ".equals(tipoPessoa)) {
+        } else if ("PJ".equals(tipoPessoa)) {
             if (vinculoNorm.contains("PJ CESSAO") || vinculoNorm.contains("PJCESSAO")) {
                 return TipoCalculo.CALCULO_B2;
             } else if (vinculoNorm.contains("SERVICOS") || vinculoNorm.contains("SERVICO")) {
