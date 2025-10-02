@@ -96,8 +96,7 @@ public class CalculoPrecatorioService {
             BigDecimal custasMulta,
             BigDecimal selic,
             boolean temTotalMeses,
-            boolean isFatorEscalaOito,
-            boolean isMesMaisUm
+            boolean isFatorEscalaOito
     ) {
 
         PeriodoResultado pr = new PeriodoResultado();
@@ -173,9 +172,9 @@ public class CalculoPrecatorioService {
 
         BigDecimal totalValoresNaRequisicao =
                 req.getValorPrincipalTributavel().add(req.getValorPrincipalNaoTributavel())
-                        .add(req.getValorJurosTributavel().add(req.getValorJurosNaoTributavel()))
+                        .add(req.getValorJuros())
                         .add(req.getMulta().add(req.getCustas()).add(req.getOutrosReembolsos()))
-                        .add(req.getValorSelicJuros());
+                        .add(req.getValorSelic());
 
         BigDecimal selicTaxaSelicAntesGraca =
                 temDataAtesGraca ?
@@ -199,7 +198,7 @@ public class CalculoPrecatorioService {
 
         // Calculo Selic Antes da graça
         BigDecimal valorSelicAntesGraca = !temDataAtesGraca ? BigDecimal.ZERO : totalValoresNaRequisicao
-                .subtract(req.getValorSelicJuros())
+                .subtract(req.getValorSelic())
                 .multiply(selicTaxaSelicAntesGraca)
                 .divide(CEM);
         resultado.setSelicAntesGracaSelicValorCorrigido(UtilCalculo.escala(valorSelicAntesGraca, 2));
@@ -207,9 +206,9 @@ public class CalculoPrecatorioService {
         // Calculo Selic Durante Graça
         BigDecimal valorSelicDurantePrincipalTributavel = req.getValorPrincipalTributavel().multiply(selicFatorIPCADuranteGraca);
         BigDecimal valorSelicDurantePrincipalNaoTributavel = req.getValorPrincipalNaoTributavel().multiply(selicFatorIPCADuranteGraca);
-        BigDecimal valorSelicDuranteJuros = req.getValorJurosTributavel().add(req.getValorJurosNaoTributavel()).multiply(selicFatorIPCADuranteGraca);
+        BigDecimal valorSelicDuranteJuros = req.getValorJuros().multiply(selicFatorIPCADuranteGraca);
         BigDecimal valorSelicDuranteMultaCusta = req.getCustas().add(req.getMulta()).add(req.getOutrosReembolsos()).multiply(selicFatorIPCADuranteGraca);
-        BigDecimal valorSelicDuranteSelic = req.getValorSelicJuros().add(valorSelicAntesGraca).multiply(selicFatorIPCADuranteGraca);
+        BigDecimal valorSelicDuranteSelic = req.getValorSelic().add(valorSelicAntesGraca).multiply(selicFatorIPCADuranteGraca);
         BigDecimal valorSelicTotalDuranteGranca =
                 valorSelicDurantePrincipalTributavel
                         .add(valorSelicDurantePrincipalNaoTributavel)
@@ -306,16 +305,15 @@ public class CalculoPrecatorioService {
         }
 
 
-
         // Cálculo do HC
         BigDecimal valorHCSobreAtualizacao =
-                atualizacao.getValorGlobalAtualizado().multiply(percentualHC);
+                atualizacao.getResultadoValorBrutoAtualizado().multiply(percentualHC);
 
         BigDecimal valorParteCredorRetiradoHC =
-                atualizacao.getValorGlobalAtualizado().subtract(valorHCSobreAtualizacao);
+                atualizacao.getResultadoValorBrutoAtualizado().subtract(valorHCSobreAtualizacao);
 
         // Atualiza o DTO conforme necessidade (exemplo fictício)
-        atualizacao.setIrrfValorHCLiquido(valorRegimeTributacaoHC);
+        //atualizacao.setIrrfValorHCLiquido(valorRegimeTributacaoHC);
         //atualizacao.setValorParteCredorRetiradoHC(valorParteCredorRetiradoHC);
         //atualizacao.setValorRegimeTributacaoHC(valorRegimeTributacaoHC);
         //atualizacao.setValorTributavelBase(valorTributavelBase);
@@ -391,10 +389,9 @@ public class CalculoPrecatorioService {
                 dataFimAntesGraca,
                 req.getValorPrincipalTributavel(),
                 req.getValorPrincipalNaoTributavel(),
-                req.getValorJurosTributavel().add(req.getValorJurosNaoTributavel()),
+                req.getValorJuros(),
                 req.getCustas().add(req.getMulta()).add(req.getOutrosReembolsos()),
-                req.getValorSelicJuros(),
-                true,
+                req.getValorSelic(),
                 true,
                 true
         );
@@ -409,13 +406,12 @@ public class CalculoPrecatorioService {
                 resultado.getIpcaAntesGracaCustasMultaCorrigido(),
                 resultado.getIpcaAntesGracaSelicCorrigido(),
                 false,
-                false,
                 false
         );
         resultado.preencherIpcaDurante(duranteGraca);
 
 
-        PeriodoResultado duranteApos = calcularPeriodoIPCA(
+        PeriodoResultado aposGraca = calcularPeriodoIPCA(
                 dataInicioPosGraca,
                 dataFimPosGraca,
                 resultado.getIpcaDuranteGracaPrincipalTributavelCorrigido(),
@@ -424,10 +420,17 @@ public class CalculoPrecatorioService {
                 resultado.getIpcaDuranteGracaCustasMultaCorrigido(),
                 resultado.getIpcaDuranteGracaSelicCorrigido(),
                 true,
-                false,
                 false
         );
-        resultado.preencherIpcaDepois(duranteApos);
+        resultado.setIpcaValorPrevidenciaCorrigido(
+                UtilCalculo.escala(
+                        req.getValorPrevidencia()
+                                .multiply(antesGraca.getIpcaFator())
+                                .multiply(duranteGraca.getIpcaFator())
+                                .multiply(aposGraca.getIpcaFator())
+                        ,2)
+        );
+        resultado.preencherIpcaDepois(aposGraca);
 
         // calculo SELIC
         calcularPeriodoSelic(
@@ -441,6 +444,15 @@ public class CalculoPrecatorioService {
                 resultado
         );
 
+        resultado.setSelicValorPrevidenciaCorrigido(
+                UtilCalculo.escala(
+                        req.getValorPrevidencia()
+                                .multiply(UM)
+                                .multiply(resultado.getSelicDuranteGracaFatorIPCA())
+                                .multiply(UM)
+                        ,2)
+        );
+
         BigDecimal maiorValorIpca = resultado.getIpcaAntesGracaTotalAtualizado().max(resultado.getIpcaDuranteGracaTotalAtualizado())
                 .max(resultado.getIpcaPosGracaTotalAtualizado());
 
@@ -449,10 +461,28 @@ public class CalculoPrecatorioService {
         BigDecimal menor = ipcaZero ? resultado.getSelicPosGracaTotalAtualizado() : maiorValorIpca.min(resultado.getSelicPosGracaTotalAtualizado());
         String tipo = menor.equals(maiorValorIpca) ? "IPCA" : "SELIC";
 
-        resultado.setValorGlobalAtualizado(UtilCalculo.escala(menor, 2));
-        resultado.setTipoCalculoRetornado(tipo);
+        resultado.setResultadoValorBrutoAtualizado(UtilCalculo.escala(menor, 2));
 
-        resultado = calcularPagamento(resultado, true);
+        if(tipo.equals("IPCA")){
+
+            resultado.setResultadoValorPrincipalTributavelAtualizado(UtilCalculo.escala(resultado.getIpcaPosGracaPrincipalTributavelCorrigido(),2));
+            resultado.setResultadoValorPrincipalNaoTributavelAtualizado(UtilCalculo.escala(resultado.getIpcaPosGracaPrincipalNaoTributavelCorrigido(),2));
+            resultado.setResultadoValorJurosAtualizado(UtilCalculo.escala(resultado.getIpcaPosGracaValorJurosCorrigido(),2));
+            resultado.setResultadoValorMultaCustasOutrosAtualizado(UtilCalculo.escala(resultado.getIpcaPosGracaCustasMultaCorrigido(),2));
+            resultado.setResultadoValorSelicAtualizado(UtilCalculo.escala(resultado.getIpcaPosGracaSelicCorrigido(),2));
+            resultado.setResultadoValorBrutoAtualizado(UtilCalculo.escala(resultado.getIpcaPosGracaTotalAtualizado(),2));
+            resultado.setResultadoValorPrevidenciaAtualizado(UtilCalculo.escala(resultado.getIpcaValorPrevidenciaCorrigido(),2));
+        }else{
+            resultado.setResultadoValorPrincipalTributavelAtualizado(UtilCalculo.escala(resultado.getSelicDuranteGracaPrincipalTributavelCorrigido(),2));
+            resultado.setResultadoValorPrincipalNaoTributavelAtualizado(UtilCalculo.escala(resultado.getSelicDuranteGracaPrincipalNaoTributavelCorrigido(),2));
+            resultado.setResultadoValorJurosAtualizado(UtilCalculo.escala(resultado.getSelicDuranteGracaValorJurosCorrigido(),2));
+            resultado.setResultadoValorMultaCustasOutrosAtualizado(UtilCalculo.escala(resultado.getSelicDuranteGracaCustasMultaCorrigido(),2));
+            resultado.setResultadoValorSelicAtualizado(UtilCalculo.escala(resultado.getSelicDuranteGracaSelicCorrigido(),2));
+            resultado.setResultadoValorBrutoAtualizado(UtilCalculo.escala(resultado.getSelicPosGracaTotalAtualizado(),2));
+            resultado.setResultadoValorPrevidenciaAtualizado(UtilCalculo.escala(resultado.getSelicValorPrevidenciaCorrigido(),2));
+        }
+
+        resultado.setTipoCalculoRetornado(tipo);
 
         return resultado;
     }
@@ -571,8 +601,8 @@ public class CalculoPrecatorioService {
             // --- Aplicar fator de correção e calcular atualizações iniciais ---
             BigDecimal principalTribAtual = UtilCalculo.calculaAtualizacaoJuros(req.getValorPrincipalTributavel(), fatorCorrecao);
             BigDecimal principalNaoTribAtual = UtilCalculo.calculaAtualizacaoJuros(req.getValorPrincipalNaoTributavel(), fatorCorrecao);
-            BigDecimal jurosTribAtual = UtilCalculo.calculaAtualizacaoJuros(req.getValorJurosTributavel(), fatorCorrecao);
-            BigDecimal jurosNaoTribAtual = UtilCalculo.calculaAtualizacaoJuros(req.getValorJurosNaoTributavel(), fatorCorrecao);
+            BigDecimal jurosTribAtual = UtilCalculo.calculaAtualizacaoJuros(req.getValorJuros(), fatorCorrecao);
+            BigDecimal jurosNaoTribAtual = UtilCalculo.calculaAtualizacaoJuros(req.getValorJuros(), fatorCorrecao);
 
             // Custas/Multas/Outros
             BigDecimal somaCustas = UtilCalculo.manterValorZeroSeNulo(req.getCustas())
@@ -612,8 +642,8 @@ public class CalculoPrecatorioService {
                     resultado,
                     totaisJurosTributavel,
                     totaisJurosNaoTributavel,
-                    req.getValorSelicPrincipal(),
-                    req.getValorSelicJuros()
+                    req.getValorSelic(),
+                    req.getValorSelic()
             );
 
             // --- Preencher campos finais da resposta (com formatações de escala) ---

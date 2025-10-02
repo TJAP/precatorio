@@ -6,6 +6,8 @@ import br.jus.tjap.precatorio.modulos.calculadora.entity.TabelaIRRF;
 import br.jus.tjap.precatorio.modulos.calculadora.repository.TabelaIRRFRepository;
 import br.jus.tjap.precatorio.modulos.calculadora.util.PagamentoUtil;
 import br.jus.tjap.precatorio.modulos.calculadora.util.UtilCalculo;
+import br.jus.tjap.precatorio.modulos.tabelasbasicas.entity.EnteDevedor;
+import br.jus.tjap.precatorio.modulos.tabelasbasicas.repository.EnteDevedorRepository;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -17,9 +19,56 @@ import java.util.Objects;
 public class PagamentoPrecatorioService {
 
     private final TabelaIRRFRepository tabelaIRRFRepository;
+    private final EnteDevedorRepository enteDevedorRepository;
 
-    public PagamentoPrecatorioService(TabelaIRRFRepository tabelaIRRFRepository) {
+    public PagamentoPrecatorioService(
+            TabelaIRRFRepository tabelaIRRFRepository,
+            EnteDevedorRepository enteDevedorRepository) {
         this.tabelaIRRFRepository = tabelaIRRFRepository;
+        this.enteDevedorRepository = enteDevedorRepository;
+    }
+
+    public static BigDecimal calcularINSS(BigDecimal salario) {
+        BigDecimal desconto = BigDecimal.ZERO;
+
+        BigDecimal faixa1 = new BigDecimal("1412.00");
+        BigDecimal faixa2 = new BigDecimal("2666.68");
+        BigDecimal faixa3 = new BigDecimal("4000.03");
+        BigDecimal teto   = new BigDecimal("7786.02");
+
+        BigDecimal[] aliquotas = {
+                new BigDecimal("0.075"), // 7,5%
+                new BigDecimal("0.09"),  // 9%
+                new BigDecimal("0.12"),  // 12%
+                new BigDecimal("0.14")   // 14%
+        };
+
+        if (salario.compareTo(faixa1) <= 0) {
+            desconto = salario.multiply(aliquotas[0]);
+        } else {
+            // faixa 1
+            desconto = faixa1.multiply(aliquotas[0]);
+
+            if (salario.compareTo(faixa2) <= 0) {
+                desconto = desconto.add(salario.subtract(faixa1).multiply(aliquotas[1]));
+            } else {
+                desconto = desconto.add(faixa2.subtract(faixa1).multiply(aliquotas[1]));
+
+                if (salario.compareTo(faixa3) <= 0) {
+                    desconto = desconto.add(salario.subtract(faixa2).multiply(aliquotas[2]));
+                } else {
+                    desconto = desconto.add(faixa3.subtract(faixa2).multiply(aliquotas[2]));
+
+                    if (salario.compareTo(teto) <= 0) {
+                        desconto = desconto.add(salario.subtract(faixa3).multiply(aliquotas[3]));
+                    } else {
+                        desconto = desconto.add(teto.subtract(faixa3).multiply(aliquotas[3]));
+                    }
+                }
+            }
+        }
+
+        return desconto.setScale(2, RoundingMode.HALF_UP);
     }
 
     private BigDecimal calcularIR(BigDecimal base, int qtdMesesRRA) {
@@ -141,4 +190,13 @@ public class PagamentoPrecatorioService {
 
         return resultado;
     }
+
+    private void calculoA1(CalculoTributoResponse tributo){
+
+        if(tributo.getTipoCalculo().getPrevidenciaDestino().equals("INSS")){
+
+        }
+
+    }
+
 }

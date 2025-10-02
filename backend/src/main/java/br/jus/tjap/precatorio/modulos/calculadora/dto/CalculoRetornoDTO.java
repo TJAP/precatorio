@@ -56,6 +56,8 @@ public class CalculoRetornoDTO {
     private BigDecimal ipcaPosGracaSelicCorrigido = ZERO;
     private BigDecimal ipcaPosGracaTotalAtualizado = ZERO;
 
+    private BigDecimal ipcaValorPrevidenciaCorrigido = ZERO;
+
     // SELIC
     private BigDecimal selicAntesGracaTaxa = ZERO;
     private BigDecimal selicAntesGracaSelicValorCorrigido = ZERO;
@@ -72,23 +74,25 @@ public class CalculoRetornoDTO {
     private BigDecimal selicPosGracaSelicValorCorrigido = ZERO;
     private BigDecimal selicPosGracaTotalAtualizado = ZERO;
 
-    private BigDecimal valorGlobalAtualizado = ZERO;
+    private BigDecimal selicValorPrevidenciaCorrigido = ZERO;
 
-    // Calculo previdenciário
-    // Tipo regime: RPPS Regime Próprio de Previdência Social, um sistema de previdência para servidores públicos,
-    // RGPS Regime Geral de Previdência Social, o sistema para trabalhadores do setor privado e outros, gerido pelo INSS
-    private BigDecimal prevValorBase = ZERO;
-
+    private BigDecimal resultadoValorPrincipalTributavelAtualizado = ZERO;
+    private BigDecimal resultadoValorPrincipalNaoTributavelAtualizado = ZERO;
+    private BigDecimal resultadoValorJurosAtualizado = ZERO;
+    private BigDecimal resultadoValorMultaCustasOutrosAtualizado = ZERO;
+    private BigDecimal resultadoValorSelicAtualizado = ZERO;
+    private BigDecimal resultadoValorBrutoAtualizado = ZERO;
+    private BigDecimal resultadoValorPrevidenciaAtualizado = ZERO;
 
     // Calculo IRRF
-    private BigDecimal irrfValorCredor = ZERO;
-    private BigDecimal irrfValorPrevidenciaCredor = ZERO;
-    private BigDecimal irrfValorHCLiquido = ZERO;
-    private BigDecimal irrfValorSemHC = ZERO;
-    private BigDecimal irrfValorPenhora = ZERO;
-    private BigDecimal irrfValorCessao = ZERO;
+    //private BigDecimal irrfValorCredor = ZERO;
+    //private BigDecimal irrfValorPrevidenciaCredor = ZERO;
+    //private BigDecimal irrfValorHCLiquido = ZERO;
+    //private BigDecimal irrfValorSemHC = ZERO;
+    //private BigDecimal irrfValorPenhora = ZERO;
+    //private BigDecimal irrfValorCessao = ZERO;
 
-    private BigDecimal valorLiquidoCredor = ZERO;
+    //private BigDecimal valorLiquidoCredor = ZERO;
 
     private BigDecimal arredondar(BigDecimal valor) {
         if (valor == null) {

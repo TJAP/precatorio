@@ -19,18 +19,15 @@ public class CalculoRequest {
     // Data do período de graça é calculada conforme regra - não enviada
     private BigDecimal valorPrincipalTributavel;
     private BigDecimal valorPrincipalNaoTributavel;
-    private BigDecimal valorJurosTributavel;
-    private BigDecimal valorJurosNaoTributavel;
-
-    private BigDecimal valorSelicPrincipal;
-    private BigDecimal valorSelicJuros;
-    private String tipoSelicTributacao;
-
+    private BigDecimal valorJuros;
+    private BigDecimal valorSelic;
+    private BigDecimal valorPrevidencia;
     private BigDecimal custas;
     private BigDecimal multa;
     private BigDecimal outrosReembolsos;
+
+    private String tipoSelicTributacao;
     private String tipoIndice;
     private String tipoNaturezaRenda;
-
     private BigDecimal saldoRemanescente;
 }
