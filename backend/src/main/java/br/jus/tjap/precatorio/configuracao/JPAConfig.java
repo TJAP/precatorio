@@ -8,11 +8,13 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @EnableJpaRepositories(
         basePackages = {
                 "br.jus.tjap.precatorio.modulos.calculadora.repository",
-                "br.jus.tjap.precatorio.modulos.requisitorio.repository"
+                "br.jus.tjap.precatorio.modulos.requisitorio.repository",
+                "br.jus.tjap.precatorio.modulos.tabelasbasicas.repository"
         })
 @EntityScan(basePackages = {
         "br.jus.tjap.precatorio.modulos.calculadora.entity",
-        "br.jus.tjap.precatorio.modulos.requisitorio.entity"
+        "br.jus.tjap.precatorio.modulos.requisitorio.entity",
+        "br.jus.tjap.precatorio.modulos.tabelasbasicas.entity"
 })
 public class JPAConfig {
 }

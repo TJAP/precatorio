@@ -6,6 +6,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.YearMonth;
+import java.time.temporal.ChronoUnit;
 import java.util.Map;
 import java.util.Objects;
 
@@ -365,5 +366,23 @@ public class UtilCalculo {
                 return dataFimCalculo; // retorna N10 (mesmo dia)
             }
         }
+    }
+
+    public static long contarMesesInclusivos(LocalDate dataInicio, LocalDate dataFim) {
+        if (dataInicio == null || dataFim == null) {
+            throw new IllegalArgumentException("Datas não podem ser nulas");
+        }
+        if (dataFim.isBefore(dataInicio)) {
+            throw new IllegalArgumentException("Data fim não pode ser anterior à data início");
+        }
+
+        // diferença em meses (exclusiva)
+        long diffMeses = ChronoUnit.MONTHS.between(
+                dataInicio.withDayOfMonth(1),
+                dataFim.withDayOfMonth(1)
+        );
+
+        // +1 para incluir o mês inicial
+        return diffMeses + 1;
     }
 }

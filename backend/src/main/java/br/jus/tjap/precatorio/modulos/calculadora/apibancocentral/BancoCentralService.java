@@ -1,5 +1,7 @@
 package br.jus.tjap.precatorio.modulos.calculadora.apibancocentral;
 
+import br.jus.tjap.precatorio.modulos.calculadora.entity.IndiceBacen;
+import br.jus.tjap.precatorio.modulos.calculadora.repository.IndicadorIndiceRepository;
 import br.jus.tjap.precatorio.modulos.calculadora.util.UtilCalculo;
 import br.jus.tjap.precatorio.util.DateUtil;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -13,6 +15,8 @@ import java.util.*;
 
 @Service
 public class BancoCentralService {
+
+    private final IndicadorIndiceRepository indicadorIndiceRepository;
 
     private static final String BASE_URL =
             "https://api.bcb.gov.br/dados/serie/bcdata.sgs.%s/dados?formato=json&dataInicial=%s&dataFinal=%s";
@@ -34,7 +38,8 @@ public class BancoCentralService {
 
     private RestTemplate restTemplate;
 
-    public BancoCentralService(RestTemplate restTemplate){
+    public BancoCentralService(IndicadorIndiceRepository indicadorIndiceRepository, RestTemplate restTemplate){
+        this.indicadorIndiceRepository = indicadorIndiceRepository;
         this.restTemplate = restTemplate;
     }
 
@@ -57,12 +62,26 @@ public class BancoCentralService {
 
             String url = String.format(BASE_URL, codigoIndice,
                     DateUtil.formatarData(dataIniIgualHoje ? inicioYM.minusMonths(1).atDay(1) : dataInicial),
-                    DateUtil.formatarData(dataFimIgualHoje ? fimYM.minusMonths(1).atDay(1) : dataFinal)
+                    DateUtil.formatarData(dataFimIgualHoje ? fimYM.minusMonths(1).atDay(1) : hoje.minusMonths(1).atDay(1))
             );
             BancoCentralResponse[] response = restTemplate.getForObject(url, BancoCentralResponse[].class);
             return Arrays.asList(response);
         }
 
+    }
+
+    private List<BancoCentralResponse> buscarSerieBanco(Long codigoIndice, LocalDate dataInicial, LocalDate dataFinal) {
+        if(dataInicial == null || dataFinal == null){
+            return Collections.emptyList();
+        }
+        List<BancoCentralResponse> listaIndice = new ArrayList<>();
+        var indices = indicadorIndiceRepository.findByTipoIndiceAndPeriodo(codigoIndice, dataInicial, dataFinal);
+
+        for( IndiceBacen ind : indices){
+            listaIndice.add(new BancoCentralResponse(DateUtil.formatarData(ind.getDataInicioVigencia()), ind.getValor()) );
+        }
+
+        return listaIndice;
     }
 
     public BigDecimal somarSelic(YearMonth inicio, YearMonth fim) {
@@ -132,6 +151,11 @@ public class BancoCentralService {
     public static class BancoCentralResponse {
         private String data;
         private BigDecimal valor;
+
+        BancoCentralResponse(String data, BigDecimal valor){
+            this.data = data;
+            this.valor = valor;
+        }
 
         public String getData() {
             return data;

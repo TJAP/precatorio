@@ -1,11 +1,9 @@
 package br.jus.tjap.precatorio.modulos.calculadora.controller;
 
-import br.jus.tjap.precatorio.modulos.calculadora.dto.CalculoRequest;
-import br.jus.tjap.precatorio.modulos.calculadora.dto.CalculoRetornoDTO;
-import br.jus.tjap.precatorio.modulos.calculadora.dto.CalculoTributoRequest;
-import br.jus.tjap.precatorio.modulos.calculadora.dto.CalculoTributoResponse;
+import br.jus.tjap.precatorio.modulos.calculadora.dto.*;
 import br.jus.tjap.precatorio.modulos.calculadora.service.CalculoPrecatorioService;
 import br.jus.tjap.precatorio.modulos.calculadora.service.PagamentoPrecatorioService;
+import br.jus.tjap.precatorio.modulos.calculadora.util.UtilCalculo;
 import br.jus.tjap.precatorio.util.ApiVersions;
 import br.jus.tjap.precatorio.util.Response;
 import br.jus.tjap.precatorio.util.ResponseFactory;
@@ -32,12 +30,46 @@ public class CalculoController {
             summary = "Calcula atualização monetária",
             description = "Retorna o extrato de calculo",
             operationId = "calcularCorrecaoMonetaria")
-    public ResponseEntity<Response<CalculoRetornoDTO>> calcularCorrecaoMonetaria(@RequestBody CalculoRequest req) {
-        CalculoRetornoDTO resp = calculoJurosService.calcularAtualizacao(req);
+    public ResponseEntity<Response<CalculoRequisitorioDTO>> calcularCorrecaoMonetaria(@RequestBody CalculoRequest req) {
+        var resultado = new CalculoRequisitorioDTO();
+        CalculoAtualizacaoDTO resp = calculoJurosService.calcularAtualizacao(req);
+        // para atualização
         resp.preencherIpcaAntesComEscala();
         resp.preencherIpcaDuranteComEscala();
         resp.preencherIpcaDepoisComEscala();
-        return ResponseFactory.ok(resp);
+        resultado.setCalculoAtualizacaoDTO(resp);
+
+        // para pagamento
+        var pagRequest = new CalculoTributoRequest();
+        pagRequest.setValorPrincipalTributavelAtualizado(resp.getResultadoValorPrincipalTributavelAtualizado());
+        pagRequest.setValorPrincipalNaoTributavelAtualizado(resp.getResultadoValorPrincipalNaoTributavelAtualizado());
+        pagRequest.setValorJurosAtualizado(resp.getResultadoValorJurosAtualizado());
+        pagRequest.setValorMultaCustaOutrosAtualizado(resp.getResultadoValorMultaCustasOutrosAtualizado());
+        pagRequest.setValorSelicAtualizada(resp.getResultadoValorSelicAtualizado());
+
+        pagRequest.setValorPrevidenciaAtualizada(resp.getResultadoValorPrevidenciaAtualizado());
+        pagRequest.setNumeroMesesRRA(UtilCalculo.contarMesesInclusivos(req.getDataInicioRRA(), req.getDataFimRRA()));
+        pagRequest.setTemPrioridade(req.isTemPrioridade());
+        pagRequest.setPagamentoParcial(req.isPagamentoParcial());
+        pagRequest.setValorPagamentoParcial(req.getValorPagamentoParcial());
+        pagRequest.setPercentualHonorario(req.getPercentualHonorario());
+        pagRequest.setValorPagoAdvogado(req.getValorPagoAdvogado());
+        pagRequest.setTributacaoAdvogado(req.getTributacaoAdvogado());
+        pagRequest.setPercentualDesagio(req.getPercentualDesagio());
+        pagRequest.setAcordoAdvogado(req.isAcordoAdvogado());
+        pagRequest.setAcordoCredor(req.isAcordoCredor());
+        pagRequest.setTipoVinculoCredor(req.getTipoVinculoCredor());
+        pagRequest.setTipoTributacaoCredor(req.getTipoTributacaoCredor());
+        pagRequest.setPercentualCessao(req.getPercentualCessao());
+        pagRequest.setValorPenhora(req.getValorPenhora());
+
+        pagRequest.setCnpjDevedor(req.getCnpjDevedor());
+
+        var pagamento = pagamentoPrecatorioService.calcularTributo(pagRequest);
+
+        resultado.setCalculoPagamentoDTO(pagamento);
+
+        return ResponseFactory.ok(resultado);
     }
 
     @PostMapping("/precatorios/calculo-tributo")
@@ -45,8 +77,8 @@ public class CalculoController {
             summary = "Calcula Previdência e Imposto de Renda (IR) de acordo com as bases previstas",
             description = "Retorna o extrato de calculo",
             operationId = "calcularTributos")
-    public ResponseEntity<Response<CalculoTributoResponse>> calcularTributos(@RequestBody CalculoTributoRequest req) {
-        CalculoTributoResponse resp = pagamentoPrecatorioService.calcularTributo(req);
+    public ResponseEntity<Response<CalculoPagamentoDTO>> calcularTributos(@RequestBody CalculoTributoRequest req) {
+        CalculoPagamentoDTO resp = pagamentoPrecatorioService.calcularTributo(req);
         return ResponseFactory.ok(resp);
     }
 

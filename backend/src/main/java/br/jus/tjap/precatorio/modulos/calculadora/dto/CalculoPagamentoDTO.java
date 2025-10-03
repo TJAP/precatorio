@@ -10,7 +10,7 @@ import java.math.BigDecimal;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class CalculoTributoResponse {
+public class CalculoPagamentoDTO {
 
     private BigDecimal totalBruto = BigDecimal.ZERO;
     private BigDecimal percentualParteAdvogado = BigDecimal.ZERO;

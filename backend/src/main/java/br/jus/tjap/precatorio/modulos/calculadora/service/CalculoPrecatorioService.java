@@ -4,11 +4,9 @@ import br.jus.tjap.precatorio.modulos.calculadora.apibancocentral.BancoCentralSe
 import br.jus.tjap.precatorio.modulos.calculadora.dto.*;
 import br.jus.tjap.precatorio.modulos.calculadora.entity.TabelaIRRF;
 import br.jus.tjap.precatorio.modulos.calculadora.exception.CalculationException;
-import br.jus.tjap.precatorio.modulos.calculadora.exception.IndexNotFoundException;
 import br.jus.tjap.precatorio.modulos.calculadora.repository.IndicadorIndiceRepository;
 import br.jus.tjap.precatorio.modulos.calculadora.repository.TabelaIRRFRepository;
 import br.jus.tjap.precatorio.modulos.calculadora.util.UtilCalculo;
-import br.jus.tjap.precatorio.modulos.requisitorio.dto.RequisitorioDTO;
 import br.jus.tjap.precatorio.modulos.requisitorio.repository.RequisitorioRepository;
 import org.springframework.stereotype.Service;
 
@@ -32,7 +30,7 @@ public class CalculoPrecatorioService {
     private static final BigDecimal UM = BigDecimal.ONE;
     private static final BigDecimal CEM = BigDecimal.valueOf(100);
     private static final int ESCALA_DEFAULT = 2;
-    private static final int ESCALA_FATOR = 6;
+    private static final int ESCALA_FATOR = 7;
     private static final int ESCALA_INDICE = 7;
     private static final int ESCALA_TAXA = 4;
 
@@ -57,29 +55,11 @@ public class CalculoPrecatorioService {
         this.requisitorioRepository = requisitorioRepository;
     }
 
-    public static long contarMesesInclusivos(LocalDate dataInicio, LocalDate dataFim) {
-        if (dataInicio == null || dataFim == null) {
-            throw new IllegalArgumentException("Datas não podem ser nulas");
-        }
-        if (dataFim.isBefore(dataInicio)) {
-            throw new IllegalArgumentException("Data fim não pode ser anterior à data início");
-        }
-
-        // diferença em meses (exclusiva)
-        long diffMeses = ChronoUnit.MONTHS.between(
-                dataInicio.withDayOfMonth(1),
-                dataFim.withDayOfMonth(1)
-        );
-
-        // +1 para incluir o mês inicial
-        return diffMeses + 1;
-    }
-
     public static void main(String[] args) {
         LocalDate inicio = LocalDate.of(2025, 1, 1);
         LocalDate fim = LocalDate.of(2025, 8, 1);
 
-        long meses = contarMesesInclusivos(inicio, fim);
+        long meses = UtilCalculo.contarMesesInclusivos(inicio, fim);
         System.out.println("Meses: " + meses); // saída: 7
 
         System.out.println("Calculo: " + FATOR_DOIS_PORCENTO.multiply(BigDecimal.valueOf(meses)).setScale(4, RoundingMode.HALF_UP)); // saída: 7
@@ -110,7 +90,7 @@ public class CalculoPrecatorioService {
                     YearMonth.from(dataFim)
             );
 
-            long totalMeses = contarMesesInclusivos(dataInicio, dataFim);
+            long totalMeses = UtilCalculo.contarMesesInclusivos(dataInicio, dataFim);
 
             mesesFator = FATOR_DOIS_PORCENTO.multiply(
                     BigDecimal.valueOf(totalMeses)
@@ -163,7 +143,7 @@ public class CalculoPrecatorioService {
             LocalDate dataInicioPosGraca,
             LocalDate dataFimPosGraca,
             CalculoRequest req,
-            CalculoRetornoDTO resultado
+            CalculoAtualizacaoDTO resultado
     ) {
 
         boolean temDataAtesGraca = !Objects.isNull(dataInicioAntesGraca);
@@ -178,10 +158,10 @@ public class CalculoPrecatorioService {
 
         BigDecimal selicTaxaSelicAntesGraca =
                 temDataAtesGraca ?
-                        bancoCentralService.somarSelic(YearMonth.from(dataInicioAntesGraca),
+                        UtilCalculo.escala(bancoCentralService.somarSelic(YearMonth.from(dataInicioAntesGraca),
                                 YearMonth.from(
                                         dataFimAntesGraca.isAfter(LocalDate.now().minusMonths(1)) ? LocalDate.now().minusMonths(1) : dataFimAntesGraca
-                                ))
+                                )),4)
                         : ZERO;
         BigDecimal selicFatorIPCADuranteGraca =
                 temDataDuranteGraca ?
@@ -189,7 +169,7 @@ public class CalculoPrecatorioService {
                         : ZERO;
         BigDecimal selictTaxaSelicAposGraca =
                 temDataAposGraca ?
-                        bancoCentralService.somarSelic(YearMonth.from(dataInicioPosGraca), YearMonth.from(dataFimPosGraca))
+                        UtilCalculo.escala(bancoCentralService.somarSelic(YearMonth.from(dataInicioPosGraca), YearMonth.from(dataFimPosGraca)),4)
                         : ZERO;
 
         resultado.setSelicAntesGracaTaxa(temDataAtesGraca ? selicTaxaSelicAntesGraca : ZERO);
@@ -228,8 +208,9 @@ public class CalculoPrecatorioService {
         BigDecimal valorSelicAposGraca = valorCalculoSemDuranteGraca
                 .subtract(valorSelicDuranteSelic)
                 .multiply(selictTaxaSelicAposGraca)
-                .divide(CEM);
-        BigDecimal valorTotalSelicAposGraca = valorSelicAposGraca.add(valorCalculoSemDuranteGraca);
+                .divide(CEM)
+                .add(valorSelicDuranteSelic);
+        BigDecimal valorTotalSelicAposGraca = valorSelicAposGraca.add(valorCalculoSemDuranteGraca).subtract(valorSelicDuranteSelic);
         resultado.setSelicPosGracaSelicValorCorrigido(UtilCalculo.escala(valorSelicAposGraca, 2));
         resultado.setSelicPosGracaTotalAtualizado(UtilCalculo.escala(valorTotalSelicAposGraca, 2));
 
@@ -245,94 +226,17 @@ public class CalculoPrecatorioService {
         return valoPrevidenciaCorrigido;
     }
 
-    public CalculoRetornoDTO calcularPagamento(CalculoRetornoDTO atualizacao, boolean temHC){
-
-        // Constantes
-        final BigDecimal PERCENTUAL_HC = new BigDecimal("0.10");
-        final BigDecimal REGIME_TRIBUTACAO_PJ = new BigDecimal("1.5");
-        // Percentuais e valores iniciais
-        BigDecimal percentualHC = temHC ? PERCENTUAL_HC : BigDecimal.ZERO;
-
-        BigDecimal totalMesesRRA = BigDecimal.TEN;// BigDecimal.valueOf(
-        //contarMesesInclusivos(LocalDate.of(2024, 7, 1), LocalDate.of(2025, 9, 1))
-        //);
-
-        BigDecimal ipcaTotalAtualizado = UtilCalculo.coalesceBigDecimal(
-                atualizacao.getIpcaAntesGracaTotalAtualizado(),
-                atualizacao.getIpcaDuranteGracaTotalAtualizado(),
-                atualizacao.getIpcaPosGracaTotalAtualizado()
-        );
-
-        // Determinar valores tributáveis e não tributáveis
-        BigDecimal valorTributavelBase;
-        BigDecimal valorNaoTributavelBase;
-
-        switch (atualizacao.getTipoCalculoRetornado()) {
-            case "IPCA" -> {
-                valorTributavelBase = UtilCalculo.coalesceBigDecimal(
-                        atualizacao.getIpcaAntesGracaPrincipalTributavelCorrigido(),
-                        atualizacao.getIpcaDuranteGracaPrincipalTributavelCorrigido(),
-                        atualizacao.getIpcaPosGracaPrincipalTributavelCorrigido()
-                );
-                valorNaoTributavelBase = ipcaTotalAtualizado.subtract(valorTributavelBase);
-            }
-            case "SELIC" -> {
-                valorTributavelBase = atualizacao.getSelicDuranteGracaPrincipalTributavelCorrigido();
-                valorNaoTributavelBase = atualizacao.getSelicPosGracaTotalAtualizado()
-                        .subtract(valorTributavelBase);
-            }
-            default -> {
-                // Se não for IPCA nem SELIC, devolve sem alterações
-                return atualizacao;
-            }
-        }
-
-        // Regime tributação advogado / credor
-        BigDecimal valorRegimeTributacaoHC = BigDecimal.ZERO;
-        String tipoTributacao = "PF";//atualizacao.getRequisitorioDTO().getIdTipoTributacaoAdvCredor();
-
-        if ("PJ".equals(tipoTributacao)) {
-            valorRegimeTributacaoHC = REGIME_TRIBUTACAO_PJ;
-        } else if ("PF".equals(tipoTributacao)) {
-            List<TabelaIRRF> tabelaIrrf = tabelaIRRFRepository.findAll();
-            // Mapeamento usando totalMesesRRA
-            List<TabelaIRRFDTO> tabelaDTO = tabelaIrrf.stream()
-                    .map(t -> t.toCalculoCorrigido(totalMesesRRA))
-                    .toList();
-
-            var total = tabelaDTO.get(3);
-            valorRegimeTributacaoHC = valorRegimeTributacaoHC.add(total.getValorAliquotaCalculado());
-        }
-
-
-        // Cálculo do HC
-        BigDecimal valorHCSobreAtualizacao =
-                atualizacao.getResultadoValorBrutoAtualizado().multiply(percentualHC);
-
-        BigDecimal valorParteCredorRetiradoHC =
-                atualizacao.getResultadoValorBrutoAtualizado().subtract(valorHCSobreAtualizacao);
-
-        // Atualiza o DTO conforme necessidade (exemplo fictício)
-        //atualizacao.setIrrfValorHCLiquido(valorRegimeTributacaoHC);
-        //atualizacao.setValorParteCredorRetiradoHC(valorParteCredorRetiradoHC);
-        //atualizacao.setValorRegimeTributacaoHC(valorRegimeTributacaoHC);
-        //atualizacao.setValorTributavelBase(valorTributavelBase);
-        //atualizacao.setValorNaoTributavelBase(valorNaoTributavelBase);
-
-        return atualizacao;
-    }
-
-    public CalculoRetornoDTO calcularAtualizacao(CalculoRequest req) {
+    public CalculoAtualizacaoDTO calcularAtualizacao(CalculoRequest req) {
         validateRequest(req);
-        var resultado = new CalculoRetornoDTO();
-        RequisitorioDTO dto = requisitorioRepository.findById(1335L).get().toMetadado();
-        resultado.setRequisitorioDTO(dto);
+        var atualizacao = new CalculoAtualizacaoDTO();
+        //RequisitorioDTO dto = requisitorioRepository.findById(1335L).get().toMetadado();
+        //resultado.setRequisitorioDTO(dto);
 
         // PERÍODOS base
         LocalDate dataFinalGraca = LocalDate.of(req.getAnoVencimento(),12,31);
         LocalDate dataInicialGraca = UtilCalculo.calculaDataIncioGraca(req.getAnoVencimento(), dataFinalGraca);
         LocalDate dataAtualizacao = req.getDataUltimaAtualizacao().plusMonths(1);
-        LocalDate dataHoje = LocalDate.now();
+        LocalDate dataHoje = Objects.isNull(req.getDataFimAtualizacao()) ? LocalDate.now() : req.getDataFimAtualizacao().plusMonths(1);
 
         LocalDate dataInicioAntesGraca = null;
         LocalDate dataFimAntesGraca = null;
@@ -395,34 +299,34 @@ public class CalculoPrecatorioService {
                 true,
                 true
         );
-        resultado.preencherIpcaAntes(antesGraca);
+        atualizacao.preencherIpcaAntes(antesGraca);
 
         PeriodoResultado duranteGraca = calcularPeriodoIPCA(
                 dataInicioDuranteGraca,
                 dataFimDuranteGraca,
-                resultado.getIpcaAntesGracaPrincipalTributavelCorrigido(),
-                resultado.getIpcaAntesGracaPrincipalNaoTributavelCorrigido(),
-                resultado.getIpcaAntesGracaValorJurosCorrigido(),
-                resultado.getIpcaAntesGracaCustasMultaCorrigido(),
-                resultado.getIpcaAntesGracaSelicCorrigido(),
+                atualizacao.getIpcaAntesGracaPrincipalTributavelCorrigido(),
+                atualizacao.getIpcaAntesGracaPrincipalNaoTributavelCorrigido(),
+                atualizacao.getIpcaAntesGracaValorJurosCorrigido(),
+                atualizacao.getIpcaAntesGracaCustasMultaCorrigido(),
+                atualizacao.getIpcaAntesGracaSelicCorrigido(),
                 false,
                 false
         );
-        resultado.preencherIpcaDurante(duranteGraca);
+        atualizacao.preencherIpcaDurante(duranteGraca);
 
 
         PeriodoResultado aposGraca = calcularPeriodoIPCA(
                 dataInicioPosGraca,
                 dataFimPosGraca,
-                resultado.getIpcaDuranteGracaPrincipalTributavelCorrigido(),
-                resultado.getIpcaDuranteGracaPrincipalNaoTributavelCorrigido(),
-                resultado.getIpcaDuranteGracaValorJurosCorrigido(),
-                resultado.getIpcaDuranteGracaCustasMultaCorrigido(),
-                resultado.getIpcaDuranteGracaSelicCorrigido(),
+                atualizacao.getIpcaDuranteGracaPrincipalTributavelCorrigido(),
+                atualizacao.getIpcaDuranteGracaPrincipalNaoTributavelCorrigido(),
+                atualizacao.getIpcaDuranteGracaValorJurosCorrigido(),
+                atualizacao.getIpcaDuranteGracaCustasMultaCorrigido(),
+                atualizacao.getIpcaDuranteGracaSelicCorrigido(),
                 true,
                 false
         );
-        resultado.setIpcaValorPrevidenciaCorrigido(
+        atualizacao.setIpcaValorPrevidenciaCorrigido(
                 UtilCalculo.escala(
                         req.getValorPrevidencia()
                                 .multiply(antesGraca.getIpcaFator())
@@ -430,7 +334,7 @@ public class CalculoPrecatorioService {
                                 .multiply(aposGraca.getIpcaFator())
                         ,2)
         );
-        resultado.preencherIpcaDepois(aposGraca);
+        atualizacao.preencherIpcaDepois(aposGraca);
 
         // calculo SELIC
         calcularPeriodoSelic(
@@ -441,50 +345,50 @@ public class CalculoPrecatorioService {
                 dataInicioPosGraca,
                 dataFimPosGraca,
                 req,
-                resultado
+                atualizacao
         );
 
-        resultado.setSelicValorPrevidenciaCorrigido(
+        atualizacao.setSelicValorPrevidenciaCorrigido(
                 UtilCalculo.escala(
                         req.getValorPrevidencia()
                                 .multiply(UM)
-                                .multiply(resultado.getSelicDuranteGracaFatorIPCA())
+                                .multiply(atualizacao.getSelicDuranteGracaFatorIPCA())
                                 .multiply(UM)
                         ,2)
         );
 
-        BigDecimal maiorValorIpca = resultado.getIpcaAntesGracaTotalAtualizado().max(resultado.getIpcaDuranteGracaTotalAtualizado())
-                .max(resultado.getIpcaPosGracaTotalAtualizado());
+        BigDecimal maiorValorIpca = atualizacao.getIpcaAntesGracaTotalAtualizado().max(atualizacao.getIpcaDuranteGracaTotalAtualizado())
+                .max(atualizacao.getIpcaPosGracaTotalAtualizado());
 
         boolean ipcaZero = maiorValorIpca.compareTo(BigDecimal.ZERO) == 0;
 
-        BigDecimal menor = ipcaZero ? resultado.getSelicPosGracaTotalAtualizado() : maiorValorIpca.min(resultado.getSelicPosGracaTotalAtualizado());
+        BigDecimal menor = ipcaZero ? atualizacao.getSelicPosGracaTotalAtualizado() : maiorValorIpca.min(atualizacao.getSelicPosGracaTotalAtualizado());
         String tipo = menor.equals(maiorValorIpca) ? "IPCA" : "SELIC";
 
-        resultado.setResultadoValorBrutoAtualizado(UtilCalculo.escala(menor, 2));
+        atualizacao.setResultadoValorBrutoAtualizado(UtilCalculo.escala(menor, 2));
 
         if(tipo.equals("IPCA")){
 
-            resultado.setResultadoValorPrincipalTributavelAtualizado(UtilCalculo.escala(resultado.getIpcaPosGracaPrincipalTributavelCorrigido(),2));
-            resultado.setResultadoValorPrincipalNaoTributavelAtualizado(UtilCalculo.escala(resultado.getIpcaPosGracaPrincipalNaoTributavelCorrigido(),2));
-            resultado.setResultadoValorJurosAtualizado(UtilCalculo.escala(resultado.getIpcaPosGracaValorJurosCorrigido(),2));
-            resultado.setResultadoValorMultaCustasOutrosAtualizado(UtilCalculo.escala(resultado.getIpcaPosGracaCustasMultaCorrigido(),2));
-            resultado.setResultadoValorSelicAtualizado(UtilCalculo.escala(resultado.getIpcaPosGracaSelicCorrigido(),2));
-            resultado.setResultadoValorBrutoAtualizado(UtilCalculo.escala(resultado.getIpcaPosGracaTotalAtualizado(),2));
-            resultado.setResultadoValorPrevidenciaAtualizado(UtilCalculo.escala(resultado.getIpcaValorPrevidenciaCorrigido(),2));
+            atualizacao.setResultadoValorPrincipalTributavelAtualizado(UtilCalculo.escala(atualizacao.getIpcaPosGracaPrincipalTributavelCorrigido(),2));
+            atualizacao.setResultadoValorPrincipalNaoTributavelAtualizado(UtilCalculo.escala(atualizacao.getIpcaPosGracaPrincipalNaoTributavelCorrigido(),2));
+            atualizacao.setResultadoValorJurosAtualizado(UtilCalculo.escala(atualizacao.getIpcaPosGracaValorJurosCorrigido(),2));
+            atualizacao.setResultadoValorMultaCustasOutrosAtualizado(UtilCalculo.escala(atualizacao.getIpcaPosGracaCustasMultaCorrigido(),2));
+            atualizacao.setResultadoValorSelicAtualizado(UtilCalculo.escala(atualizacao.getIpcaPosGracaSelicCorrigido(),2));
+            atualizacao.setResultadoValorBrutoAtualizado(UtilCalculo.escala(atualizacao.getIpcaPosGracaTotalAtualizado(),2));
+            atualizacao.setResultadoValorPrevidenciaAtualizado(UtilCalculo.escala(atualizacao.getIpcaValorPrevidenciaCorrigido(),2));
         }else{
-            resultado.setResultadoValorPrincipalTributavelAtualizado(UtilCalculo.escala(resultado.getSelicDuranteGracaPrincipalTributavelCorrigido(),2));
-            resultado.setResultadoValorPrincipalNaoTributavelAtualizado(UtilCalculo.escala(resultado.getSelicDuranteGracaPrincipalNaoTributavelCorrigido(),2));
-            resultado.setResultadoValorJurosAtualizado(UtilCalculo.escala(resultado.getSelicDuranteGracaValorJurosCorrigido(),2));
-            resultado.setResultadoValorMultaCustasOutrosAtualizado(UtilCalculo.escala(resultado.getSelicDuranteGracaCustasMultaCorrigido(),2));
-            resultado.setResultadoValorSelicAtualizado(UtilCalculo.escala(resultado.getSelicDuranteGracaSelicCorrigido(),2));
-            resultado.setResultadoValorBrutoAtualizado(UtilCalculo.escala(resultado.getSelicPosGracaTotalAtualizado(),2));
-            resultado.setResultadoValorPrevidenciaAtualizado(UtilCalculo.escala(resultado.getSelicValorPrevidenciaCorrigido(),2));
+            atualizacao.setResultadoValorPrincipalTributavelAtualizado(UtilCalculo.escala(atualizacao.getSelicDuranteGracaPrincipalTributavelCorrigido(),2));
+            atualizacao.setResultadoValorPrincipalNaoTributavelAtualizado(UtilCalculo.escala(atualizacao.getSelicDuranteGracaPrincipalNaoTributavelCorrigido(),2));
+            atualizacao.setResultadoValorJurosAtualizado(UtilCalculo.escala(atualizacao.getSelicDuranteGracaValorJurosCorrigido(),2));
+            atualizacao.setResultadoValorMultaCustasOutrosAtualizado(UtilCalculo.escala(atualizacao.getSelicDuranteGracaCustasMultaCorrigido(),2));
+            atualizacao.setResultadoValorSelicAtualizado(UtilCalculo.escala(atualizacao.getSelicDuranteGracaSelicCorrigido(),2));
+            atualizacao.setResultadoValorBrutoAtualizado(UtilCalculo.escala(atualizacao.getSelicPosGracaTotalAtualizado(),2));
+            atualizacao.setResultadoValorPrevidenciaAtualizado(UtilCalculo.escala(atualizacao.getSelicValorPrevidenciaCorrigido(),2));
         }
 
-        resultado.setTipoCalculoRetornado(tipo);
+        atualizacao.setTipoCalculoRetornado(tipo);
 
-        return resultado;
+        return atualizacao;
     }
 
     public BigDecimal calcularValorBasePrevidenciaCorrigido(
@@ -562,213 +466,6 @@ public class CalculoPrecatorioService {
             // se não é PRIORIDADE, retorna 100%
             return BigDecimal.valueOf(100);
         }
-    }
-
-
-
-    @Deprecated
-    public CalculoResponse calcularAntigo(CalculoRequest req) {
-        try {
-            validateRequest(req);
-            var resultado = new CalculoResponse();
-
-            // PERÍODOS base
-            YearMonth ultimaAtualizacaoYm = YearMonth.from(req.getDataUltimaAtualizacao());
-            YearMonth periodoInicio = ultimaAtualizacaoYm.plusMonths(1);
-
-            // --- Pré-EC113 (até nov/2021) ---
-            // calcular fatores/juros apenas uma vez (evita chamadas repetidas)
-            BigDecimal fatorCorrecao = bancoCentralService.multiplicarIPCAE(periodoInicio, EC113_DATA_CORTE);
-            BigDecimal percJurosPeriodo = bancoCentralService.somarPoupanca(periodoInicio, EC113_DATA_CORTE);
-
-            // --- Período de graça ---
-            LocalDate inscricao = UtilCalculo.obterDataInscricao(req.getAnoVencimento());
-            YearMonth inicioGraca = YearMonth.from(inscricao);
-            YearMonth candidateFimGraca = inicioGraca.plusMonths(18);
-            YearMonth fimGraca = candidateFimGraca.isBefore(EC113_DATA_CORTE) ? candidateFimGraca : EC113_DATA_CORTE;
-
-            // Define as datas para calculo
-            resultado.setDataInicial(periodoInicio);
-            resultado.setDataFinal(fimGraca);
-
-            BigDecimal percJurosPeriodoGraca = ZERO;
-            if (req.getAnoVencimento() <= 2022 && !inicioGraca.isAfter(fimGraca)) {
-                percJurosPeriodoGraca = bancoCentralService.somarPoupanca(inicioGraca, fimGraca);
-            }
-
-            BigDecimal percJurosFinal = percJurosPeriodo.subtract(percJurosPeriodoGraca);
-
-            // --- Aplicar fator de correção e calcular atualizações iniciais ---
-            BigDecimal principalTribAtual = UtilCalculo.calculaAtualizacaoJuros(req.getValorPrincipalTributavel(), fatorCorrecao);
-            BigDecimal principalNaoTribAtual = UtilCalculo.calculaAtualizacaoJuros(req.getValorPrincipalNaoTributavel(), fatorCorrecao);
-            BigDecimal jurosTribAtual = UtilCalculo.calculaAtualizacaoJuros(req.getValorJuros(), fatorCorrecao);
-            BigDecimal jurosNaoTribAtual = UtilCalculo.calculaAtualizacaoJuros(req.getValorJuros(), fatorCorrecao);
-
-            // Custas/Multas/Outros
-            BigDecimal somaCustas = UtilCalculo.manterValorZeroSeNulo(req.getCustas())
-                    .add(UtilCalculo.manterValorZeroSeNulo(req.getMulta()))
-                    .add(UtilCalculo.manterValorZeroSeNulo(req.getOutrosReembolsos()));
-
-            BigDecimal custasAtualizadas = UtilCalculo.calculaAtualizacaoJuros(somaCustas, fatorCorrecao);
-
-            BigDecimal totalPrincipalAtualizado = principalTribAtual.add(principalNaoTribAtual);
-            BigDecimal totalJurosAtualizado = jurosTribAtual.add(jurosNaoTribAtual);
-
-            String tipoCalculoUsado = periodoInicio.isAfter(EC113_DATA_CORTE) ? "SELIC" : "IPCA";
-
-            BigDecimal totalComJurosTributavelNoPeriodo = req.getTipoNaturezaRenda().equals("RRA") ?
-                    ZERO :
-                    percJurosFinal.multiply(principalTribAtual).divide(CEM, 10, RoundingMode.HALF_UP);
-
-            BigDecimal totalComJurosNaoTributavelNoPeriodo = req.getTipoNaturezaRenda().equals("RRA") ?
-                    totalPrincipalAtualizado.multiply(percJurosFinal).divide(CEM) :
-                    principalNaoTribAtual.multiply(percJurosFinal).divide(CEM);
-
-
-            BigDecimal totaisJurosTributavel = jurosTribAtual.add(totalComJurosTributavelNoPeriodo);
-            BigDecimal totaisJurosNaoTributavel = jurosNaoTribAtual.add(totalComJurosNaoTributavelNoPeriodo);
-            BigDecimal totaisJurosAplicado = totaisJurosTributavel.add(totaisJurosNaoTributavel);
-            BigDecimal totalAntesEc = totalPrincipalAtualizado.add(totaisJurosAplicado.add(custasAtualizadas))
-                    .setScale(ESCALA_DEFAULT, RoundingMode.HALF_UP);
-
-            // --- pós-EC113 (depois de nov/2021) ---
-            resultado = calcularAtualizacaoEC113(
-                    principalTribAtual,
-                    principalNaoTribAtual,
-                    custasAtualizadas,
-                    req.getDataUltimaAtualizacao(),
-                    req.getAnoVencimento(),
-                    inscricao,
-                    resultado,
-                    totaisJurosTributavel,
-                    totaisJurosNaoTributavel,
-                    req.getValorSelic(),
-                    req.getValorSelic()
-            );
-
-            // --- Preencher campos finais da resposta (com formatações de escala) ---
-            resultado.setNumeroProcesso(req.getNumeroProcesso());
-            resultado.setTipoJurosPrecatorio(tipoCalculoUsado);
-            resultado.setFatorCorrecaoMonetaria(fatorCorrecao.setScale(ESCALA_INDICE, RoundingMode.HALF_UP));
-            resultado.setPercJurosPeriodo(percJurosPeriodo.setScale(ESCALA_TAXA, RoundingMode.HALF_UP));
-            resultado.setPercJurosPeriodoDeGraca(percJurosPeriodoGraca.setScale(ESCALA_TAXA, RoundingMode.HALF_UP));
-            resultado.setPercJurosPrincipal(percJurosFinal.setScale(ESCALA_TAXA, RoundingMode.HALF_UP));
-
-            resultado.setPrincipalTributavelCorrigido(principalTribAtual);
-            resultado.setPrincipalNaoTributavelCorrigido(principalNaoTribAtual);
-
-            resultado.setJurosTributavelCorrigido(jurosTribAtual);
-            resultado.setJurosNaoTributavelCorrigido(jurosNaoTribAtual);
-
-            resultado.setJurosPeriodoTributavel(totalComJurosTributavelNoPeriodo.setScale(ESCALA_DEFAULT, RoundingMode.HALF_UP));
-            resultado.setJurosPeriodoNaoTributavel(totalComJurosNaoTributavelNoPeriodo.setScale(ESCALA_DEFAULT, RoundingMode.HALF_UP));
-
-            resultado.setTotaisJurosTributavel(totaisJurosTributavel.setScale(ESCALA_DEFAULT, RoundingMode.HALF_UP));
-            resultado.setTotaisJurosNaoTributavel(totaisJurosNaoTributavel.setScale(ESCALA_DEFAULT, RoundingMode.HALF_UP));
-
-            resultado.setPrincipalAtualizado(totalPrincipalAtualizado);
-            resultado.setJurosAplicados(totaisJurosAplicado.setScale(ESCALA_DEFAULT, RoundingMode.HALF_UP));
-
-            resultado.setCustasMultasOutrosAtualizados(custasAtualizadas.setScale(ESCALA_DEFAULT, RoundingMode.HALF_UP));
-
-            resultado.setTotalAtualizadaAntesEC113(totalAntesEc);
-            resultado.setTotaisPrecatorioAtualizado(resultado.getTotalAtualizadaPosEC113().add(resultado.getSelicValorSubtotal()));
-
-            return resultado;
-
-        } catch (IndexNotFoundException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new CalculationException("Erro no cálculo do precatório: " + e.getMessage(), e);
-        }
-    }
-    @Deprecated
-    private CalculoResponse calcularAtualizacaoEC113(
-            BigDecimal principalTributavel,
-            BigDecimal principalNaoTributavel,
-            BigDecimal custas,
-            LocalDate dataUltimaAtualizacao,
-            Integer anoVencimento,
-            LocalDate dataFinalPrimeiraAtualizacao,
-            CalculoResponse retorno,
-            BigDecimal totalJurosTributavel,
-            BigDecimal totalJurosNaoTributavel,
-            BigDecimal valorSelicPrincipal,
-            BigDecimal valorSelicJuros) {
-
-        // Datas (delegadas ao util)
-        LocalDate dataInicioAntesGraca = UtilCalculo.calcularDataInicioAntesGraca(anoVencimento, dataUltimaAtualizacao, dataFinalPrimeiraAtualizacao);
-        LocalDate dataFimAntesGraca = UtilCalculo.calcularDataFimAntesGraca(anoVencimento, dataUltimaAtualizacao, DATA_FINAL_CALCULO, dataFinalPrimeiraAtualizacao);
-
-        LocalDate dataInicioDuranteGraca = UtilCalculo.calcularDataInicioDuranteGraca(anoVencimento, dataUltimaAtualizacao, DATA_FINAL_CALCULO, dataFinalPrimeiraAtualizacao);
-        LocalDate dataFimDuranteGraca = UtilCalculo.calcularDataFinalDuranteGraca(anoVencimento, dataUltimaAtualizacao, DATA_FINAL_CALCULO, dataFinalPrimeiraAtualizacao);
-
-        LocalDate dataInicioPosGraca = UtilCalculo.calcularDataInicioPosGraca(anoVencimento, dataUltimaAtualizacao, DATA_FINAL_CALCULO, dataFimDuranteGraca);
-        LocalDate dataFimPosGraca = UtilCalculo.calcularDataFinalPosGraca(anoVencimento, DATA_FINAL_CALCULO, dataFimDuranteGraca, dataFimAntesGraca);
-
-        YearMonth inicioAntesGraca = YearMonth.from(dataInicioAntesGraca);
-        YearMonth fimAntesGraca = YearMonth.from(dataFimAntesGraca);
-
-        YearMonth inicioDuranteGraca = YearMonth.from(dataInicioDuranteGraca);
-        YearMonth fimDuranteGraca = YearMonth.from(dataFimDuranteGraca);
-
-        YearMonth inicioAposGraca = YearMonth.from(dataInicioPosGraca);
-        YearMonth fimApoGraca = YearMonth.from(dataFimPosGraca);
-
-        // set datas na resposta
-        retorno.setDataInicialAntesGraca(dataInicioAntesGraca);
-        retorno.setDataFinalAntesGraca(dataFimAntesGraca);
-
-        retorno.setDataInicialCorrecaoDuranteGraca(dataInicioDuranteGraca);
-        retorno.setDataFinalCorreccaoDuranteGraca(dataFimDuranteGraca);
-
-        retorno.setDataInicialPosGraca(dataInicioPosGraca);
-        retorno.setDataFinalPosGraca(dataFimPosGraca);
-
-        // SELIC antes da graça (soma aditiva)
-        BigDecimal selicAntesGraca = bancoCentralService.somarSelic(inicioAntesGraca, fimAntesGraca);
-        retorno.setSelicTaxaAntesGraca(selicAntesGraca.setScale(ESCALA_DEFAULT, RoundingMode.HALF_UP));
-
-        // IPCA durante a graça (multiplicativo)
-        BigDecimal ipcaDuranteGraca = bancoCentralService.multiplicarIPCAE(inicioDuranteGraca, fimDuranteGraca);
-
-        // SELIC pós graça
-        BigDecimal selicPosGraca = bancoCentralService.somarSelic(inicioAposGraca, fimApoGraca);
-
-        // aplicar IPCA sobre principais/juros/custas
-        BigDecimal selicTotalTributavel = UtilCalculo.calculaAtualizacaoJuros(principalTributavel.add(totalJurosTributavel), ipcaDuranteGraca);
-        BigDecimal selicTotalNaoTributavel = UtilCalculo.calculaAtualizacaoJuros(principalNaoTributavel, ipcaDuranteGraca);
-
-        // aplicar juros os valores
-        BigDecimal jurosAtualizadoIpca = UtilCalculo.calculaAtualizacaoJuros(totalJurosNaoTributavel, ipcaDuranteGraca);
-        BigDecimal custasAtualizadoIpca = UtilCalculo.calculaAtualizacaoJuros(custas, ipcaDuranteGraca);
-
-        BigDecimal totalAtualizadoEC113 = selicTotalTributavel
-                .add(selicTotalNaoTributavel)
-                .add(jurosAtualizadoIpca)
-                .add(custasAtualizadoIpca);
-
-        retorno.setTotalAtualizadaPosEC113(totalAtualizadoEC113.setScale(ESCALA_DEFAULT, RoundingMode.HALF_UP));
-
-        // SELIC total (fator agregado)
-        BigDecimal selicTotalFator = selicAntesGraca.add(selicPosGraca);
-
-        BigDecimal selicPrincipal = selicTotalTributavel.add(selicTotalNaoTributavel).multiply(selicTotalFator).divide(CEM);
-        BigDecimal selicJuros = jurosAtualizadoIpca.multiply(selicTotalFator).divide(CEM);
-        BigDecimal subtotalSelic = selicPrincipal.add(selicJuros);
-
-        // preencher campos selic na resposta
-        retorno.setSelicTaxa(selicPosGraca);
-        retorno.setSelicPrincipalTributavel(selicTotalTributavel.setScale(ESCALA_DEFAULT, RoundingMode.HALF_UP));
-        retorno.setSelicFatorIpcaDuranteGraca(ipcaDuranteGraca.setScale(7, RoundingMode.HALF_UP));
-        retorno.setSelicMultasCustasAtualizada(custasAtualizadoIpca.setScale(ESCALA_DEFAULT, RoundingMode.HALF_UP));
-        retorno.setSelicJurosAtualizadoIpca(jurosAtualizadoIpca.setScale(ESCALA_DEFAULT, RoundingMode.HALF_UP));
-        retorno.setSelicPrincipalNaoTributavel(selicTotalNaoTributavel.setScale(ESCALA_DEFAULT, RoundingMode.HALF_UP));
-        retorno.setSelicValorSubtotal(subtotalSelic.setScale(ESCALA_DEFAULT, RoundingMode.HALF_UP));
-        retorno.setSelicValorJuros(selicJuros.setScale(ESCALA_DEFAULT, RoundingMode.HALF_UP));
-        retorno.setSelicValorPrincipal(selicPrincipal.setScale(ESCALA_DEFAULT, RoundingMode.HALF_UP));
-
-        return retorno;
     }
 
     private void validateRequest(CalculoRequest req) {

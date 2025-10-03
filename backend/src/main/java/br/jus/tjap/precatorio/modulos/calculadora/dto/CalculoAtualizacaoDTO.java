@@ -12,7 +12,7 @@ import java.time.LocalDate;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class CalculoRetornoDTO {
+public class CalculoAtualizacaoDTO {
 
     private static final BigDecimal ZERO = new BigDecimal("0.00");
 
@@ -83,6 +83,8 @@ public class CalculoRetornoDTO {
     private BigDecimal resultadoValorSelicAtualizado = ZERO;
     private BigDecimal resultadoValorBrutoAtualizado = ZERO;
     private BigDecimal resultadoValorPrevidenciaAtualizado = ZERO;
+    private int resultadoNumeroMesesRRA = 0;
+    private String resultadoCnpjDevedor;
 
     // Calculo IRRF
     //private BigDecimal irrfValorCredor = ZERO;
