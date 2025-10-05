@@ -386,9 +386,29 @@ public class CalculoPrecatorioService {
             atualizacao.setResultadoValorPrevidenciaAtualizado(UtilCalculo.escala(atualizacao.getSelicValorPrevidenciaCorrigido(),2));
         }
 
+        atualizacao.setResultadoNumeroMesesRRA(calcularMesesPeriodo(req.getDataInicioRRA(), req.getDataFimRRA()));
+        atualizacao.setResultadoCnpjDevedor(req.getCnpjDevedor());
         atualizacao.setTipoCalculoRetornado(tipo);
 
         return atualizacao;
+    }
+
+    public static long calcularMesesPeriodo(LocalDate dataInicio, LocalDate dataFim) {
+        if (dataInicio == null || dataFim == null) {
+            return 0L;
+        }
+
+        // Equivalente a: DATE(YEAR(AO3); MONTH(AO3)+1; 1)
+        LocalDate proximoMesPrimeiroDia = dataFim.plusMonths(1).withDayOfMonth(1);
+
+        // DATEDIF(AN3; AO3; "m")
+        long mesesEntre = ChronoUnit.MONTHS.between(dataInicio.withDayOfMonth(1), dataFim.withDayOfMonth(1));
+
+        // DATEDIF(AN3; DATE(YEAR(AO3);MONTH(AO3)+1;1);"y")
+        long anosEntre = ChronoUnit.YEARS.between(dataInicio, proximoMesPrimeiroDia);
+
+        // Soma os componentes e adiciona +1 conforme a fórmula
+        return anosEntre + mesesEntre + 1;
     }
 
     public BigDecimal calcularValorBasePrevidenciaCorrigido(

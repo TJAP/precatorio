@@ -370,7 +370,7 @@ public class UtilCalculo {
 
     public static long contarMesesInclusivos(LocalDate dataInicio, LocalDate dataFim) {
         if (dataInicio == null || dataFim == null) {
-            throw new IllegalArgumentException("Datas não podem ser nulas");
+            return 0L;
         }
         if (dataFim.isBefore(dataInicio)) {
             throw new IllegalArgumentException("Data fim não pode ser anterior à data início");

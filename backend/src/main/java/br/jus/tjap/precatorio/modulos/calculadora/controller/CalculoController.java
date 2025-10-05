@@ -41,14 +41,19 @@ public class CalculoController {
 
         // para pagamento
         var pagRequest = new CalculoTributoRequest();
+        pagRequest.setPercentualDesagio(req.getPercentualDesagio());
+        pagRequest.setAcordoAdvogado(req.isAcordoAdvogado());
+        pagRequest.setAcordoCredor(req.isAcordoCredor());
+
         pagRequest.setValorPrincipalTributavelAtualizado(resp.getResultadoValorPrincipalTributavelAtualizado());
         pagRequest.setValorPrincipalNaoTributavelAtualizado(resp.getResultadoValorPrincipalNaoTributavelAtualizado());
         pagRequest.setValorJurosAtualizado(resp.getResultadoValorJurosAtualizado());
         pagRequest.setValorMultaCustaOutrosAtualizado(resp.getResultadoValorMultaCustasOutrosAtualizado());
         pagRequest.setValorSelicAtualizada(resp.getResultadoValorSelicAtualizado());
-
+        pagRequest.setValorTotalAtualizada(resp.getResultadoValorBrutoAtualizado());
         pagRequest.setValorPrevidenciaAtualizada(resp.getResultadoValorPrevidenciaAtualizado());
-        pagRequest.setNumeroMesesRRA(UtilCalculo.contarMesesInclusivos(req.getDataInicioRRA(), req.getDataFimRRA()));
+
+        pagRequest.setNumeroMesesRRA(resp.getResultadoNumeroMesesRRA());
         pagRequest.setTemPrioridade(req.isTemPrioridade());
         pagRequest.setPagamentoParcial(req.isPagamentoParcial());
         pagRequest.setValorPagamentoParcial(req.getValorPagamentoParcial());

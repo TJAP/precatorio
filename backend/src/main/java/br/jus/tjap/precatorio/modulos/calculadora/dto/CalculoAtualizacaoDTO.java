@@ -83,18 +83,8 @@ public class CalculoAtualizacaoDTO {
     private BigDecimal resultadoValorSelicAtualizado = ZERO;
     private BigDecimal resultadoValorBrutoAtualizado = ZERO;
     private BigDecimal resultadoValorPrevidenciaAtualizado = ZERO;
-    private int resultadoNumeroMesesRRA = 0;
+    private long resultadoNumeroMesesRRA = 0;
     private String resultadoCnpjDevedor;
-
-    // Calculo IRRF
-    //private BigDecimal irrfValorCredor = ZERO;
-    //private BigDecimal irrfValorPrevidenciaCredor = ZERO;
-    //private BigDecimal irrfValorHCLiquido = ZERO;
-    //private BigDecimal irrfValorSemHC = ZERO;
-    //private BigDecimal irrfValorPenhora = ZERO;
-    //private BigDecimal irrfValorCessao = ZERO;
-
-    //private BigDecimal valorLiquidoCredor = ZERO;
 
     private BigDecimal arredondar(BigDecimal valor) {
         if (valor == null) {

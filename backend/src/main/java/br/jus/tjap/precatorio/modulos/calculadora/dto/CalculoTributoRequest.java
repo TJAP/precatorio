@@ -33,7 +33,6 @@ public class CalculoTributoRequest {
     private String tributacaoAdvogado;
 
     private BigDecimal percentualDesagio;
-
     private boolean acordoAdvogado;
     private boolean acordoCredor;
 
