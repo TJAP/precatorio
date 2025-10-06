@@ -1,10 +1,11 @@
 package br.jus.tjap.precatorio.modulos.calculadora.dto;
 
 import br.jus.tjap.precatorio.modulos.calculadora.util.PagamentoUtil;
+import br.jus.tjap.precatorio.modulos.calculadora.util.UtilCalculo;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.math.BigDecimal;
 
 @Data
@@ -21,6 +22,21 @@ public class CalculoPagamentoDTO {
     private BigDecimal valorSelicAtualizado = BigDecimal.ZERO;
     private BigDecimal valorBrutoAtualizado = BigDecimal.ZERO;
     private BigDecimal valorPrevidenciaAtualizado = BigDecimal.ZERO;
+
+    @JsonIgnore
+    private BigDecimal valorPrincipalTributavelAtualizadoDizima = BigDecimal.ZERO;
+    @JsonIgnore
+    private BigDecimal valorPrincipalNaoTributavelAtualizadoDizima = BigDecimal.ZERO;
+    @JsonIgnore
+    private BigDecimal valorJurosAtualizadoDizima = BigDecimal.ZERO;
+    @JsonIgnore
+    private BigDecimal valorMultaCustasOutrosAtualizadoDizima = BigDecimal.ZERO;
+    @JsonIgnore
+    private BigDecimal valorSelicAtualizadoDizima = BigDecimal.ZERO;
+    @JsonIgnore
+    private BigDecimal valorBrutoAtualizadoDizima = BigDecimal.ZERO;
+    @JsonIgnore
+    private BigDecimal valorPrevidenciaAtualizadoDizima = BigDecimal.ZERO;
 
     private boolean temPrioridade = Boolean.FALSE;
     private BigDecimal valorBasePrioridade = BigDecimal.ZERO;
@@ -81,18 +97,41 @@ public class CalculoPagamentoDTO {
     private BigDecimal valorDesagioCredorBrutoAtualizado = BigDecimal.ZERO;
     private BigDecimal valorDesagioCredorAtualizado = BigDecimal.ZERO;
 
-    private BigDecimal baseTributavelCredor = BigDecimal.ZERO;
+    private String tributacaoAdvogado;
+    private String tipoVinculoCredor;
+    private String tipoTributacaoCredor;
 
-    private PagamentoUtil.ResultadoCalculo tipoCalculo;
+    private BigDecimal baseTributavelHonorarioValor = BigDecimal.ZERO;
+    private String baseTributavelHonorarioTipo;
+    private BigDecimal baseTributavelHonorarioImposto = BigDecimal.ZERO;
+
+    private String baseTributavelCredorTipoCalculo;
+    private BigDecimal baseTributavelCredorValor = BigDecimal.ZERO;
+    private String baseTributavelCredorTipo;
+    private BigDecimal baseTributavelCredorImposto = BigDecimal.ZERO;
+    private BigDecimal baseTributavelCredorPrevidencia = BigDecimal.ZERO;
+
+    private BigDecimal cessaoPenhoraPercentual = BigDecimal.ZERO;
+    private BigDecimal cessaoPenhoraValor = BigDecimal.ZERO;
+    private BigDecimal cessaoPenhoraValorBase = BigDecimal.ZERO;
+    private BigDecimal cessaoPenhoraValorFinal = BigDecimal.ZERO;
 
     public void preencherResultadoCalculo(CalculoTributoRequest req){
-        this.valorPrincipalTributavelAtualizado = req.getValorPrincipalTributavelAtualizado();
-        this.valorPrincipalNaoTributavelAtualizado = req.getValorPrincipalNaoTributavelAtualizado();
-        this.valorJurosAtualizado = req.getValorJurosAtualizado();
-        this.valorMultaCustasOutrosAtualizado = req.getValorMultaCustaOutrosAtualizado();
-        this.valorSelicAtualizado = req.getValorSelicAtualizada();
-        this.valorBrutoAtualizado = req.getValorTotalAtualizada();
-        this.valorPrevidenciaAtualizado = req.getValorPrevidenciaAtualizada();
+        this.valorPrincipalTributavelAtualizadoDizima = req.getValorPrincipalTributavelAtualizado();
+        this.valorPrincipalNaoTributavelAtualizadoDizima = req.getValorPrincipalNaoTributavelAtualizado();
+        this.valorJurosAtualizadoDizima = req.getValorJurosAtualizado();
+        this.valorMultaCustasOutrosAtualizadoDizima = req.getValorMultaCustaOutrosAtualizado();
+        this.valorSelicAtualizadoDizima = req.getValorSelicAtualizada();
+        this.valorBrutoAtualizadoDizima = req.getValorTotalAtualizada();
+        this.valorPrevidenciaAtualizadoDizima = req.getValorPrevidenciaAtualizada();
+
+        this.valorPrincipalTributavelAtualizado = UtilCalculo.escala(req.getValorPrincipalTributavelAtualizado(),2);
+        this.valorPrincipalNaoTributavelAtualizado = UtilCalculo.escala(req.getValorPrincipalNaoTributavelAtualizado(),2);
+        this.valorJurosAtualizado = UtilCalculo.escala(req.getValorJurosAtualizado(),2);
+        this.valorMultaCustasOutrosAtualizado = UtilCalculo.escala(req.getValorMultaCustaOutrosAtualizado(),2);
+        this.valorSelicAtualizado = UtilCalculo.escala(req.getValorSelicAtualizada(),2);
+        this.valorBrutoAtualizado = UtilCalculo.escala(req.getValorTotalAtualizada(),2);
+        this.valorPrevidenciaAtualizado = UtilCalculo.escala(req.getValorPrevidenciaAtualizada(),2);
     }
 
     public void preencherVariaveisDeCalculo(CalculoTributoRequest req){
@@ -106,6 +145,9 @@ public class CalculoPagamentoDTO {
         this.houveAcordoCredor = req.isAcordoCredor();
         this.percentualHonorario = req.getPercentualHonorario();
         this.valorPagoAdvogado =req.getValorPagoAdvogado();
+        this.tributacaoAdvogado = req.getTributacaoAdvogado();
+        this.tipoVinculoCredor = req.getTipoVinculoCredor();
+        this.tipoTributacaoCredor = req.getTipoTributacaoCredor();
     }
 
 }

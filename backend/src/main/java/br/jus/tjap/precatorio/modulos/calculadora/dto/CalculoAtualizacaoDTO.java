@@ -5,6 +5,7 @@ import br.jus.tjap.precatorio.modulos.requisitorio.dto.RequisitorioDTO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import net.minidev.json.annotate.JsonIgnore;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -83,6 +84,22 @@ public class CalculoAtualizacaoDTO {
     private BigDecimal resultadoValorSelicAtualizado = ZERO;
     private BigDecimal resultadoValorBrutoAtualizado = ZERO;
     private BigDecimal resultadoValorPrevidenciaAtualizado = ZERO;
+
+    @JsonIgnore
+    private BigDecimal resultadoValorPrincipalTributavelAtualizadoDizima = ZERO;
+    @JsonIgnore
+    private BigDecimal resultadoValorPrincipalNaoTributavelAtualizadoDizima = ZERO;
+    @JsonIgnore
+    private BigDecimal resultadoValorJurosAtualizadoDizima = ZERO;
+    @JsonIgnore
+    private BigDecimal resultadoValorMultaCustasOutrosAtualizadoDizima = ZERO;
+    @JsonIgnore
+    private BigDecimal resultadoValorSelicAtualizadoDizima = ZERO;
+    @JsonIgnore
+    private BigDecimal resultadoValorBrutoAtualizadoDizima = ZERO;
+    @JsonIgnore
+    private BigDecimal resultadoValorPrevidenciaAtualizadoDizima = ZERO;
+
     private long resultadoNumeroMesesRRA = 0;
     private String resultadoCnpjDevedor;
 

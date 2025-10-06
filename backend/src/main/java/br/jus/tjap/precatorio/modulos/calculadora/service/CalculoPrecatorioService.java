@@ -376,6 +376,15 @@ public class CalculoPrecatorioService {
             atualizacao.setResultadoValorSelicAtualizado(UtilCalculo.escala(atualizacao.getIpcaPosGracaSelicCorrigido(),2));
             atualizacao.setResultadoValorBrutoAtualizado(UtilCalculo.escala(atualizacao.getIpcaPosGracaTotalAtualizado(),2));
             atualizacao.setResultadoValorPrevidenciaAtualizado(UtilCalculo.escala(atualizacao.getIpcaValorPrevidenciaCorrigido(),2));
+
+            atualizacao.setResultadoValorPrincipalTributavelAtualizadoDizima(atualizacao.getIpcaPosGracaPrincipalTributavelCorrigido());
+            atualizacao.setResultadoValorPrincipalNaoTributavelAtualizadoDizima(atualizacao.getIpcaPosGracaPrincipalNaoTributavelCorrigido());
+            atualizacao.setResultadoValorJurosAtualizadoDizima(atualizacao.getIpcaPosGracaValorJurosCorrigido());
+            atualizacao.setResultadoValorMultaCustasOutrosAtualizadoDizima(atualizacao.getIpcaPosGracaCustasMultaCorrigido());
+            atualizacao.setResultadoValorSelicAtualizadoDizima(atualizacao.getIpcaPosGracaSelicCorrigido());
+            atualizacao.setResultadoValorBrutoAtualizadoDizima(atualizacao.getIpcaPosGracaTotalAtualizado());
+            atualizacao.setResultadoValorPrevidenciaAtualizadoDizima(atualizacao.getIpcaValorPrevidenciaCorrigido());
+
         }else{
             atualizacao.setResultadoValorPrincipalTributavelAtualizado(UtilCalculo.escala(atualizacao.getSelicDuranteGracaPrincipalTributavelCorrigido(),2));
             atualizacao.setResultadoValorPrincipalNaoTributavelAtualizado(UtilCalculo.escala(atualizacao.getSelicDuranteGracaPrincipalNaoTributavelCorrigido(),2));
@@ -384,6 +393,14 @@ public class CalculoPrecatorioService {
             atualizacao.setResultadoValorSelicAtualizado(UtilCalculo.escala(atualizacao.getSelicDuranteGracaSelicCorrigido(),2));
             atualizacao.setResultadoValorBrutoAtualizado(UtilCalculo.escala(atualizacao.getSelicPosGracaTotalAtualizado(),2));
             atualizacao.setResultadoValorPrevidenciaAtualizado(UtilCalculo.escala(atualizacao.getSelicValorPrevidenciaCorrigido(),2));
+
+            atualizacao.setResultadoValorPrincipalTributavelAtualizadoDizima(atualizacao.getSelicDuranteGracaPrincipalTributavelCorrigido());
+            atualizacao.setResultadoValorPrincipalNaoTributavelAtualizadoDizima(atualizacao.getSelicDuranteGracaPrincipalNaoTributavelCorrigido());
+            atualizacao.setResultadoValorJurosAtualizadoDizima(atualizacao.getSelicDuranteGracaValorJurosCorrigido());
+            atualizacao.setResultadoValorMultaCustasOutrosAtualizadoDizima(atualizacao.getSelicDuranteGracaCustasMultaCorrigido());
+            atualizacao.setResultadoValorSelicAtualizadoDizima(atualizacao.getSelicDuranteGracaSelicCorrigido());
+            atualizacao.setResultadoValorBrutoAtualizadoDizima(atualizacao.getSelicPosGracaTotalAtualizado());
+            atualizacao.setResultadoValorPrevidenciaAtualizadoDizima(atualizacao.getSelicValorPrevidenciaCorrigido());
         }
 
         atualizacao.setResultadoNumeroMesesRRA(calcularMesesPeriodo(req.getDataInicioRRA(), req.getDataFimRRA()));

@@ -45,13 +45,13 @@ public class CalculoController {
         pagRequest.setAcordoAdvogado(req.isAcordoAdvogado());
         pagRequest.setAcordoCredor(req.isAcordoCredor());
 
-        pagRequest.setValorPrincipalTributavelAtualizado(resp.getResultadoValorPrincipalTributavelAtualizado());
-        pagRequest.setValorPrincipalNaoTributavelAtualizado(resp.getResultadoValorPrincipalNaoTributavelAtualizado());
-        pagRequest.setValorJurosAtualizado(resp.getResultadoValorJurosAtualizado());
-        pagRequest.setValorMultaCustaOutrosAtualizado(resp.getResultadoValorMultaCustasOutrosAtualizado());
-        pagRequest.setValorSelicAtualizada(resp.getResultadoValorSelicAtualizado());
-        pagRequest.setValorTotalAtualizada(resp.getResultadoValorBrutoAtualizado());
-        pagRequest.setValorPrevidenciaAtualizada(resp.getResultadoValorPrevidenciaAtualizado());
+        pagRequest.setValorPrincipalTributavelAtualizado(resp.getResultadoValorPrincipalTributavelAtualizadoDizima());
+        pagRequest.setValorPrincipalNaoTributavelAtualizado(resp.getResultadoValorPrincipalNaoTributavelAtualizadoDizima());
+        pagRequest.setValorJurosAtualizado(resp.getResultadoValorJurosAtualizadoDizima());
+        pagRequest.setValorMultaCustaOutrosAtualizado(resp.getResultadoValorMultaCustasOutrosAtualizadoDizima());
+        pagRequest.setValorSelicAtualizada(resp.getResultadoValorSelicAtualizadoDizima());
+        pagRequest.setValorTotalAtualizada(resp.getResultadoValorBrutoAtualizadoDizima());
+        pagRequest.setValorPrevidenciaAtualizada(resp.getResultadoValorPrevidenciaAtualizadoDizima());
 
         pagRequest.setNumeroMesesRRA(resp.getResultadoNumeroMesesRRA());
         pagRequest.setTemPrioridade(req.isTemPrioridade());
@@ -67,6 +67,10 @@ public class CalculoController {
         pagRequest.setTipoTributacaoCredor(req.getTipoTributacaoCredor());
         pagRequest.setPercentualCessao(req.getPercentualCessao());
         pagRequest.setValorPenhora(req.getValorPenhora());
+
+        pagRequest.setTributacaoAdvogado(req.getTributacaoAdvogado());
+        pagRequest.setTipoTributacaoCredor(req.getTipoTributacaoCredor());
+        pagRequest.setTipoVinculoCredor(req.getTipoVinculoCredor());
 
         pagRequest.setCnpjDevedor(req.getCnpjDevedor());
 

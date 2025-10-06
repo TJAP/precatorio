@@ -28,6 +28,16 @@ public class UtilCalculo {
         return BigDecimal.ZERO; // se todos forem null ou zero
     }
 
+    public static BigDecimal maior(BigDecimal a, BigDecimal b) {
+        if (a == null) return b != null ? b : BigDecimal.ZERO;
+        if (b == null) return a;
+        return a.max(b);
+    }
+
+    public static BigDecimal pct(double valor) {
+        return BigDecimal.valueOf(valor).divide(BigDecimal.valueOf(100), 6, RoundingMode.HALF_UP);
+    }
+
     public static boolean isNotNullOrZero(BigDecimal valor) {
         return valor != null && valor.compareTo(BigDecimal.ZERO) != 0;
     }
