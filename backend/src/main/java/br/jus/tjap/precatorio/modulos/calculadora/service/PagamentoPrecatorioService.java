@@ -678,7 +678,9 @@ public class PagamentoPrecatorioService {
             saldoRemanescentePrevidencia = req.getValorPrevidenciaAtualizado();
         }
 
-        req.setSaldoRemanescentePercentual(UtilCalculo.escala(saldoRemanescentePercentual,2));
+        saldoRemanescentePercentual = saldoRemanescenteTotal.divide(req.getValorBrutoAtualizado(),12,RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(100));
+
+        req.setSaldoRemanescentePercentual(UtilCalculo.escala(saldoRemanescentePercentual,4));
         req.setSaldoRemanescentePrincipalTributavel(UtilCalculo.escala(saldoRemanescentePrincipalTributavel,2));
         req.setSaldoRemanescentePrincipalNaoTributavel(UtilCalculo.escala(saldoRemanescentePrincipalNaoTributavel,2));
         req.setSaldoRemanescenteJuros(UtilCalculo.escala(saldoRemanescenteJuros,2));

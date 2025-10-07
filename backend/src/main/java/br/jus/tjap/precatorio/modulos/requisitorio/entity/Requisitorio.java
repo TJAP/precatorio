@@ -319,6 +319,7 @@ public class Requisitorio implements Serializable {
         dto.setDsJustificativaInvalidade(this.dsJustificativaInvalidade);
         dto.setAtivo(this.ativo);
         dto.setMsgErroDistribuicao(this.msgErroDistribuicao);
+        dto.setEnteDevedorDTO(this.enteDevedor.toMetadado());
 
         return dto;
     }

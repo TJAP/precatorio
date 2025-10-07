@@ -1,11 +1,14 @@
 package br.jus.tjap.precatorio.modulos.calculadora.dto;
 
+import br.jus.tjap.precatorio.modulos.requisitorio.dto.RequisitorioDTO;
 import br.jus.tjap.precatorio.util.StringUtil;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.eclipse.angus.mail.imap.OlderTerm;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 
 @Data
@@ -86,6 +89,7 @@ public class CalculoResumoDTO {
 
     // saldo remanescente
     // valores atualizados
+    private BigDecimal remanescentePercentual;
     private BigDecimal remanescenteValorPrincipalTributavel;
     private BigDecimal remanescenteValorPrincipalNaoTributavel;
     private BigDecimal remanescenteValorJuros;
@@ -95,18 +99,29 @@ public class CalculoResumoDTO {
     private long remanescenteNumeroRRA;
     private BigDecimal remanescenteValorPrevidencia;
 
+    public CalculoResumoDTO(CalculoResumoDTO calculoResumoDTO) {
+    }
 
-    public void montarDocumentoCalculo(CalculoRequisitorioDTO req){
 
+    public CalculoResumoDTO montarDocumentoCalculo(CalculoRequisitorioDTO req){
+
+        var resumo = new CalculoResumoDTO();
+        var requisitorio = new RequisitorioDTO();
         // dados precatório
         //this.ordemPagamento = req.;
-        this.processoPrecatorio = req.getCalculoAtualizacaoDTO().getNumeroProcesso();;
-        this.devedorNome = req.getRequisitorioDTO().getEnteDevedorDTO().getNome();
-        this.devedorDocumento = req.getRequisitorioDTO().getEnteDevedorDTO().getCnpj();
-        this.devedorContaJudicial = req.getRequisitorioDTO().getEnteDevedorDTO().getNumeroConta();;
-        this.credorNome = req.getRequisitorioDTO().getNomeCredor();
-        this.credorDocumento = req.getRequisitorioDTO().getDocumentoCredor();
-        this.credorNascimento = req.getRequisitorioDTO().getNascimentoCredor();
+        this.processoPrecatorio = req.getCalculoAtualizacaoDTO().getNumeroProcesso();
+        //this.devedorNome = req.getRequisitorioDTO().getEnteDevedorDTO().getNome();
+        //this.devedorDocumento = req.getRequisitorioDTO().getEnteDevedorDTO().getCnpj();
+        //this.devedorContaJudicial = req.getRequisitorioDTO().getEnteDevedorDTO().getNumeroConta();
+        this.devedorNome = "Município de Macapá";
+        this.devedorDocumento = req.getRequest().getCnpjDevedor();
+        this.devedorContaJudicial = "00011122233";
+        //this.credorNome = req.getRequisitorioDTO().getNomeCredor();
+        this.credorNome = requisitorio.getNomeCredor();
+        this.credorDocumento = requisitorio.getDocumentoCredor();
+        this.credorNascimento = requisitorio.getNascimentoCredor();
+        //this.credorDocumento = req.getRequisitorioDTO().getDocumentoCredor();
+        //this.credorNascimento = req.getRequisitorioDTO().getNascimentoCredor();
 
         // dados do requisitório
         this.requisitorioValorPrincipalTributavel = req.getRequest().getValorPrincipalTributavel();
@@ -118,10 +133,11 @@ public class CalculoResumoDTO {
                 .add(req.getRequest().getValorPrincipalNaoTributavel())
                 .add(req.getRequest().getValorJuros())
                 .add(req.getRequest().getValorSelic())
-                .add(this.atualizacaoValorMultaCustOutros);
+                .add(this.requisitorioValorMultaCustOutros);
         this.requisitorioNumeroRRA = req.getCalculoAtualizacaoDTO().getResultadoNumeroMesesRRA();
         this.requisitorioUltimaAtualizacao = req.getRequest().getDataUltimaAtualizacao();
-        this.requisitorioTipoAcaoPrecatorio = req.getRequisitorioDTO().getDsTipoObrigacao();
+        //this.requisitorioTipoAcaoPrecatorio = req.getRequisitorioDTO().getDsTipoObrigacao();
+        this.requisitorioTipoAcaoPrecatorio = requisitorio.getDsTipoObrigacao();
         this.requisitorioValorPrevidencia = req.getRequest().getValorPrevidencia();
         this.requisitorioAnoVencimento = req.getRequest().getAnoVencimento();
 
@@ -161,30 +177,45 @@ public class CalculoResumoDTO {
         this.tributacaoCredorPrevidencia = req.getCalculoPagamentoDTO().getBaseTributavelCredorPrevidencia();
 
         // resumo do alvará
-        this.alvaraDevedorNome = req.;
-        this.alvaraIRRFCredor = req.;
-        this.alvaraOrgaoPrevidenciaNome = req.;
-        this.alvaraValorPrevidencia = req.;
-        this.alvaraValorHonorarioContratualLiquido = req.;
-        this.alvaraIRRFHonorario = req.;
-        this.alvaraValorPenhora = req.;
-        this.alvaraValorCessao = req.;
-        this.alvaraValorLiquidoCredor = req.;
-        this.alvaraValorTotalSomado = req.;
+        this.alvaraDevedorNome = this.devedorNome;
+        this.alvaraIRRFCredor = req.getCalculoPagamentoDTO().getBaseTributavelCredorImposto();;
+        this.alvaraOrgaoPrevidenciaNome = req.getRequest().getTipoVinculoCredor().equals("Com vinculo") ?
+                //req.getRequisitorioDTO().getEnteDevedorDTO().getComVinculo()
+                "MACAPAPREV" : req.getRequisitorioDTO().getEnteDevedorDTO().getSemVinculo();
+        this.alvaraValorPrevidencia = req.getCalculoPagamentoDTO().getBaseTributavelCredorPrevidencia();
+        this.alvaraValorHonorarioContratualLiquido = req.getCalculoPagamentoDTO().getValorHonorarioBrutoAtualizado().subtract(req.getCalculoPagamentoDTO().getBaseTributavelHonorarioImposto());
+        this.alvaraIRRFHonorario = req.getCalculoPagamentoDTO().getBaseTributavelHonorarioImposto();
+        this.alvaraValorPenhora = req.getRequest().getValorPenhora().compareTo(req.getCalculoPagamentoDTO().getPenhoraBaseValor())<0 ? req.getCalculoPagamentoDTO().getCessaoBaseValor() : req.getRequest().getValorPenhora();
+        //=D93*G93
+        this.alvaraValorCessao = req.getRequest().getPercentualCessao().multiply(req.getCalculoPagamentoDTO().getCessaoBaseValor()).divide(BigDecimal.valueOf(100),2, RoundingMode.HALF_UP);
+        //=IFERROR((M133-M136-M137-L147-L146);0)
+        this.alvaraValorLiquidoCredor = this.tributacaoHonorarioMontanteDesembolso
+                .subtract(this.tributacaoCredorImposto)
+                .subtract(this.tributacaoCredorPrevidencia)
+                .subtract(this.alvaraValorCessao)
+                .subtract(this.alvaraValorPenhora);
+        this.alvaraValorTotalSomado = this.alvaraIRRFCredor
+                .add(this.alvaraValorPrevidencia)
+                .add(this.alvaraValorHonorarioContratualLiquido)
+                .add(this.alvaraIRRFHonorario)
+                .add(this.alvaraValorPenhora)
+                .add(this.alvaraValorCessao)
+                .add(this.alvaraValorLiquidoCredor);
 
         // saldo remanescente
         // valores atualizados
-        this.remanescenteValorPrincipalTributavel = req.
-        this.remanescenteValorPrincipalNaoTributavel = req.
-        this.remanescenteValorJuros = req.
-        this.remanescenteValorMultaCustOutros = req.
-        this.remanescenteValorSelic = req.
-        this.remanescenteValorTotal = req.
-        this.emanescenteNumeroRRA = req.
-        this.remanescenteValorPrevidencia = req.
+        this.remanescentePercentual = req.getCalculoPagamentoDTO().getSaldoRemanescentePercentual();
+        this.remanescenteValorPrincipalTributavel = req.getCalculoPagamentoDTO().getSaldoRemanescentePrincipalTributavel();
+        this.remanescenteValorPrincipalNaoTributavel = req.getCalculoPagamentoDTO().getSaldoRemanescentePrincipalNaoTributavel();
+        this.remanescenteValorJuros = req.getCalculoPagamentoDTO().getSaldoRemanescenteJuros();
+        this.remanescenteValorMultaCustOutros = req.getCalculoPagamentoDTO().getSaldoRemanescenteMultasCustasOutros();
+        this.remanescenteValorSelic = req.getCalculoPagamentoDTO().getSaldoRemanescenteSelic();
+        this.remanescenteValorTotal = req.getCalculoPagamentoDTO().getSaldoRemanescenteTotal();
+        this.remanescenteNumeroRRA = req.getCalculoPagamentoDTO().getSaldoRemanescenteTotalRRA().longValue();
+        this.remanescenteValorPrevidencia = req.getCalculoPagamentoDTO().getSaldoRemanescentePrevidencia();
 
-        return resumo;
 
+        return this;
     }
 
 

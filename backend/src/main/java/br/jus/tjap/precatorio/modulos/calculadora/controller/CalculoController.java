@@ -82,6 +82,8 @@ public class CalculoController {
 
         resultado.setCalculoPagamentoDTO(pagamento);
 
+        resultado.setCalculoResumoDTO(new CalculoResumoDTO().montarDocumentoCalculo(resultado));
+
         return ResponseFactory.ok(resultado);
     }
 
