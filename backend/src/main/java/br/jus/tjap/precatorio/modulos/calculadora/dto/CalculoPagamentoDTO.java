@@ -111,10 +111,10 @@ public class CalculoPagamentoDTO {
     private BigDecimal baseTributavelCredorImposto = BigDecimal.ZERO;
     private BigDecimal baseTributavelCredorPrevidencia = BigDecimal.ZERO;
 
-    private BigDecimal cessaoPenhoraPercentual = BigDecimal.ZERO;
-    private BigDecimal cessaoPenhoraValor = BigDecimal.ZERO;
-    private BigDecimal cessaoPenhoraValorBase = BigDecimal.ZERO;
-    private BigDecimal cessaoPenhoraValorFinal = BigDecimal.ZERO;
+    private BigDecimal cessaoPercentual = BigDecimal.ZERO;
+    private BigDecimal cessaoBaseValor = BigDecimal.ZERO;
+    private BigDecimal penhoraValor = BigDecimal.ZERO;
+    private BigDecimal penhoraBaseValor = BigDecimal.ZERO;
 
     public void preencherResultadoCalculo(CalculoTributoRequest req){
         this.valorPrincipalTributavelAtualizadoDizima = req.getValorPrincipalTributavelAtualizado();
@@ -148,6 +148,8 @@ public class CalculoPagamentoDTO {
         this.tributacaoAdvogado = req.getTributacaoAdvogado();
         this.tipoVinculoCredor = req.getTipoVinculoCredor();
         this.tipoTributacaoCredor = req.getTipoTributacaoCredor();
+        this.cessaoPercentual = req.getPercentualCessao();
+        this.penhoraValor = req.getValorPenhora();
     }
 
 }

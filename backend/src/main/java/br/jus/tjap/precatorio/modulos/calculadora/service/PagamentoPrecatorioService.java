@@ -33,143 +33,27 @@ public class PagamentoPrecatorioService {
         this.enteDevedorRepository = enteDevedorRepository;
     }
 
-    private long calcularMeses(LocalDate inicio, LocalDate fim) {
-        if (inicio == null || fim == null) return 0L;
-        return (fim.getYear() - inicio.getYear()) * 12 + (fim.getMonthValue() - inicio.getMonthValue());
-    }
-
-    private BigDecimal calcularDesagio(CalculoTributoRequest req) {
-        if (req.getPercentualDesagio() == null) return BigDecimal.ZERO;
-        BigDecimal perc = req.getPercentualDesagio().divide(BigDecimal.valueOf(100));
-        return req.getValorPrincipalTributavelAtualizado().add(req.getValorPrincipalNaoTributavelAtualizado()).multiply(perc);
-    }
-
-    private BigDecimal calcularPrioridade(BigDecimal valorTotal, BigDecimal limitePrioridade) {
-        if (valorTotal.compareTo(limitePrioridade) > 0) {
-            return limitePrioridade; // só paga até o limite
-        }
-        return valorTotal; // valor menor que limite
-    }
-
-    private BigDecimal calcularPagamentoParcial(BigDecimal valorTotal, BigDecimal valorPagamentoParcial) {
-        if (valorPagamentoParcial == null || valorPagamentoParcial.compareTo(BigDecimal.ZERO) <= 0) {
-            return valorTotal; // sem parcial -> mantém valor cheio
-        }
-        return valorPagamentoParcial.min(valorTotal); // paga o que foi informado como parcial
-    }
-
-    public static BigDecimal calcularINSS(BigDecimal salario) {
-        BigDecimal desconto = BigDecimal.ZERO;
-
-        BigDecimal faixa1 = new BigDecimal("1412.00");
-        BigDecimal faixa2 = new BigDecimal("2666.68");
-        BigDecimal faixa3 = new BigDecimal("4000.03");
-        BigDecimal teto   = new BigDecimal("7786.02");
-
-        BigDecimal[] aliquotas = {
-                new BigDecimal("0.075"), // 7,5%
-                new BigDecimal("0.09"),  // 9%
-                new BigDecimal("0.12"),  // 12%
-                new BigDecimal("0.14")   // 14%
-        };
-
-        if (salario.compareTo(faixa1) <= 0) {
-            desconto = salario.multiply(aliquotas[0]);
-        } else {
-            // faixa 1
-            desconto = faixa1.multiply(aliquotas[0]);
-
-            if (salario.compareTo(faixa2) <= 0) {
-                desconto = desconto.add(salario.subtract(faixa1).multiply(aliquotas[1]));
-            } else {
-                desconto = desconto.add(faixa2.subtract(faixa1).multiply(aliquotas[1]));
-
-                if (salario.compareTo(faixa3) <= 0) {
-                    desconto = desconto.add(salario.subtract(faixa2).multiply(aliquotas[2]));
-                } else {
-                    desconto = desconto.add(faixa3.subtract(faixa2).multiply(aliquotas[2]));
-
-                    if (salario.compareTo(teto) <= 0) {
-                        desconto = desconto.add(salario.subtract(faixa3).multiply(aliquotas[3]));
-                    } else {
-                        desconto = desconto.add(teto.subtract(faixa3).multiply(aliquotas[3]));
-                    }
-                }
-            }
-        }
-
-        return desconto.setScale(2, RoundingMode.HALF_UP);
-    }
-
-    private BigDecimal calcularIR(BigDecimal base, long qtdMesesRRA) {
-        if (base.compareTo(BigDecimal.ZERO) <= 0) return BigDecimal.ZERO;
-
-        // busca faixa da tabela
-        TabelaIRRF faixa = tabelaIRRFRepository
-                .findAll().stream()
-                .filter(f -> base.compareTo(f.getValorFaixaInicial()) >= 0 &&
-                        base.compareTo(f.getValorFaixaFinal()) <= 0)
-                .findFirst()
-                .orElse(null);
-
-        if (faixa == null) return BigDecimal.ZERO;
-
-        // aplica IR = base * aliquota - dedução
-        BigDecimal imposto = base.multiply(faixa.getValorAliquota())
-                .subtract(faixa.getValorDeducao());
-
-        // Se RRA: multiplica pelo número de meses
-        if (qtdMesesRRA > 0) {
-            imposto = imposto.multiply(BigDecimal.valueOf(qtdMesesRRA));
-        }
-
-        return imposto.max(BigDecimal.ZERO);
-    }
-
     private BigDecimal calcularIRPFProgressivoAdvogado(CalculoPagamentoDTO req,BigDecimal baseCalculo) {
 
-        BigDecimal valorRetorno = BigDecimal.ZERO;
-
-        List<TabelaIRRF> tabelaProgressivaAdvogado = new ArrayList<>();
         List<TabelaIRRF> tabela = tabelaIRRFRepository.findAll();
-        // montar tabela progreccisa advogado
-        BigDecimal valorCalculoProgrecisaAdvogado = BigDecimal.ZERO;
 
-        if(req.getValorPrioridadePrevidenciaAtualizado() == null && req.getValorPrioridadePrevidenciaAtualizado().compareTo(BigDecimal.ZERO) != 0){
-            valorCalculoProgrecisaAdvogado = BigDecimal.valueOf(req.getNumeroMesesRRA());
-        } else {
-            valorCalculoProgrecisaAdvogado = req.getValorPrioridadePrevidenciaAtualizado();
-        }
+        for (TabelaIRRF faixa : tabela) {
+            if (baseCalculo.subtract(DESCONTO_SIMPLIFICADO).compareTo(faixa.getValorFaixaInicial()) >= 0 &&
+                    baseCalculo.subtract(DESCONTO_SIMPLIFICADO).compareTo(faixa.getValorFaixaFinal()) <= 0) {
 
-        for (TabelaIRRF faixa : tabela){
-            TabelaIRRF faixaAjustada = new TabelaIRRF();
-            faixaAjustada.setId(faixa.getId());
-            faixaAjustada.setValorAliquota(faixa.getValorAliquota());
-            faixaAjustada.setValorDeducao(faixa.getValorDeducao());
-
-            faixaAjustada.setValorFaixaInicial(faixa.getValorFaixaInicial().multiply(valorCalculoProgrecisaAdvogado));
-            faixaAjustada.setValorFaixaFinal(faixa.getValorFaixaFinal().multiply(valorCalculoProgrecisaAdvogado));
-
-            tabelaProgressivaAdvogado.add(faixaAjustada);
-        }
-
-        for (TabelaIRRF faixa : tabelaProgressivaAdvogado) {
-            if (baseCalculo.compareTo(faixa.getValorFaixaInicial()) >= 0 &&
-                    baseCalculo.compareTo(faixa.getValorFaixaFinal()) <= 0) {
-
-                return baseCalculo.multiply(faixa.getValorAliquota())
-                        .subtract(faixa.getValorDeducao())
-                        .setScale(2, RoundingMode.HALF_UP);
+                BigDecimal base = baseCalculo.subtract(DESCONTO_SIMPLIFICADO);
+                BigDecimal valor = base.multiply(faixa.getValorAliquota()).divide(BigDecimal.valueOf(100),2,RoundingMode.HALF_UP);
+                BigDecimal menos = valor.subtract(faixa.getValorDeducao());
+                return menos;
             }
         }
 
         // Caso acima do teto
         TabelaIRRF ultimaFaixa = tabela.getLast();
-        valorRetorno = baseCalculo.subtract(DESCONTO_SIMPLIFICADO)
+        return baseCalculo.subtract(DESCONTO_SIMPLIFICADO)
                 .multiply(ultimaFaixa.getValorAliquota()).divide(BigDecimal.valueOf(100),2, RoundingMode.HALF_UP)
                 .subtract(ultimaFaixa.getValorDeducao());
 
-        return valorRetorno;
     }
 
     private BigDecimal calcularIRPFProgressivoCredor(CalculoPagamentoDTO req,BigDecimal baseCalculo) {
@@ -678,14 +562,44 @@ public class PagamentoPrecatorioService {
 
     }
 
-    /*
-    p51 = valorPrioridadeBrutoAtualizado
-    =IF(AND(D69="SIM";J69="NÃO");0;
-IF(AND(P51<>0;J69="SIM");D53*D67;
-IF(AND(P51<>0;J69="NÃO");D53;
-IF(AND(P51=0;J69="SIM");D42*D67;
-IF(AND(P51=0;J69="NÃO");D42;"")))))
-     */
+    private void calculoCessaoPenhora(CalculoPagamentoDTO req){
+
+        BigDecimal baseValorCessao = BigDecimal.ZERO;
+        BigDecimal baseValorPenhora = BigDecimal.ZERO;
+        BigDecimal baseValorPenhoraMultiplo = BigDecimal.ZERO;
+        if(!req.isHouveAcordoAdvogado() && req.isHouveAcordoCredor() && UtilCalculo.isNotNullOrZero(req.getCessaoPercentual())){
+            baseValorCessao = req.getValorDesagioCredorBrutoAtualizado()
+                    .subtract(req.getBaseTributavelCredorImposto())
+                    .subtract(req.getBaseTributavelCredorPrevidencia());
+            baseValorPenhoraMultiplo = req.getCessaoPercentual().multiply(baseValorCessao);
+            baseValorPenhora = baseValorCessao.subtract(baseValorPenhoraMultiplo);
+        } else if(!req.isHouveAcordoAdvogado() && !req.isHouveAcordoCredor()){
+            baseValorCessao = req.getValorHonorarioBrutoAtualizado()
+                    .add(req.getValorCredorBrutoAtualizado())
+                    .subtract(req.getBaseTributavelHonorarioValor())
+                    .subtract(req.getBaseTributavelCredorImposto())
+                    .subtract(req.getBaseTributavelCredorPrevidencia());
+            baseValorPenhoraMultiplo = baseValorCessao.multiply(BigDecimal.valueOf(100)).divide(req.getCessaoPercentual(),2,RoundingMode.HALF_UP);
+            baseValorPenhora = baseValorCessao.subtract(baseValorPenhoraMultiplo);
+        }else if(req.isHouveAcordoAdvogado() && req.isHouveAcordoCredor()){
+            baseValorCessao = req.getValorDesagioHonorarioBrutoAtualizado()
+                    .add(req.getValorDesagioCredorBrutoAtualizado())
+                    .subtract(req.getBaseTributavelHonorarioValor())
+                    .subtract(req.getBaseTributavelCredorImposto())
+                    .subtract(req.getBaseTributavelCredorPrevidencia());
+            baseValorPenhoraMultiplo = req.getCessaoPercentual().multiply(baseValorCessao);
+            baseValorPenhora = baseValorCessao.subtract(baseValorPenhoraMultiplo);
+        }
+/*
+=IF(AND(D69="NÃO";J69="SIM");(L78-L88-L89-(D93*G93));
+IF(AND(D69="NÃO";J69="NÃO");(L63+F63-E85-L88-L89-(D93*G93));
+IF(AND(D69="SIM";J69="NÃO");0;
+IF(AND(D69="SIM";J69="SIM");(L78+F78-E85-L88-L89-(D93*G93));
+""))))
+ */
+        req.setCessaoBaseValor(UtilCalculo.escala(baseValorCessao,2));
+        req.setPenhoraValor(UtilCalculo.escala(baseValorPenhora,2));
+    }
 
 
     public CalculoPagamentoDTO calcularTributo(CalculoTributoRequest req) {
@@ -703,6 +617,8 @@ IF(AND(P51=0;J69="NÃO");D42;"")))))
         calculoAcordoDireto(resultado);
 
         calculoImposto(resultado);
+
+        calculoCessaoPenhora(resultado);
 
 
         // 0. Soma o bruto
