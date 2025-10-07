@@ -7,6 +7,7 @@ import br.jus.tjap.precatorio.modulos.calculadora.exception.CalculationException
 import br.jus.tjap.precatorio.modulos.calculadora.repository.IndicadorIndiceRepository;
 import br.jus.tjap.precatorio.modulos.calculadora.repository.TabelaIRRFRepository;
 import br.jus.tjap.precatorio.modulos.calculadora.util.UtilCalculo;
+import br.jus.tjap.precatorio.modulos.requisitorio.dto.RequisitorioDTO;
 import br.jus.tjap.precatorio.modulos.requisitorio.repository.RequisitorioRepository;
 import org.springframework.stereotype.Service;
 
@@ -229,8 +230,11 @@ public class CalculoPrecatorioService {
     public CalculoAtualizacaoDTO calcularAtualizacao(CalculoRequest req) {
         validateRequest(req);
         var atualizacao = new CalculoAtualizacaoDTO();
-        //RequisitorioDTO dto = requisitorioRepository.findById(1335L).get().toMetadado();
-        //resultado.setRequisitorioDTO(dto);
+        RequisitorioDTO requisitorioDTO = new RequisitorioDTO();
+        if(Objects.nonNull(req.getIdPrecatorio())){
+            requisitorioDTO = requisitorioRepository.findById(req.getIdPrecatorio()).get().toMetadado();
+            atualizacao.setRequisitorioDTO(requisitorioDTO);
+        }
 
         // PERÍODOS base
         LocalDate dataFinalGraca = LocalDate.of(req.getAnoVencimento(),12,31);
@@ -377,6 +381,14 @@ public class CalculoPrecatorioService {
             atualizacao.setResultadoValorBrutoAtualizado(UtilCalculo.escala(atualizacao.getIpcaPosGracaTotalAtualizado(),2));
             atualizacao.setResultadoValorPrevidenciaAtualizado(UtilCalculo.escala(atualizacao.getIpcaValorPrevidenciaCorrigido(),2));
 
+            atualizacao.setResultadoFatorAntesAtualizado(atualizacao.getIpcaAntesGracaFator());
+            atualizacao.setResultadoFatorDuranteAtualizado(atualizacao.getIpcaDuranteGracaFator());
+            atualizacao.setResultadoFatorDepoisAtualizado(atualizacao.getIpcaPosGracaFator());
+
+            atualizacao.setResultadoTaxaAntesAtualizado(atualizacao.getIpcaAntesGracaFatorJuros());
+            atualizacao.setResultadoTaxaDuranteAtualizado(atualizacao.getIpcaDuranteGracaFatorJuros());
+            atualizacao.setResultadoTaxaDepoisAtualizado(atualizacao.getIpcaPosGracaFatorJuros());
+
             atualizacao.setResultadoValorPrincipalTributavelAtualizadoDizima(atualizacao.getIpcaPosGracaPrincipalTributavelCorrigido());
             atualizacao.setResultadoValorPrincipalNaoTributavelAtualizadoDizima(atualizacao.getIpcaPosGracaPrincipalNaoTributavelCorrigido());
             atualizacao.setResultadoValorJurosAtualizadoDizima(atualizacao.getIpcaPosGracaValorJurosCorrigido());
@@ -393,6 +405,14 @@ public class CalculoPrecatorioService {
             atualizacao.setResultadoValorSelicAtualizado(UtilCalculo.escala(atualizacao.getSelicDuranteGracaSelicCorrigido(),2));
             atualizacao.setResultadoValorBrutoAtualizado(UtilCalculo.escala(atualizacao.getSelicPosGracaTotalAtualizado(),2));
             atualizacao.setResultadoValorPrevidenciaAtualizado(UtilCalculo.escala(atualizacao.getSelicValorPrevidenciaCorrigido(),2));
+
+            atualizacao.setResultadoFatorAntesAtualizado(BigDecimal.valueOf(1.0000000));
+            atualizacao.setResultadoFatorDuranteAtualizado(atualizacao.getSelicDuranteGracaFatorIPCA());
+            atualizacao.setResultadoFatorDepoisAtualizado(BigDecimal.valueOf(1.0000000));
+
+            atualizacao.setResultadoTaxaAntesAtualizado(atualizacao.getSelicAntesGracaTaxa());
+            atualizacao.setResultadoTaxaDuranteAtualizado(BigDecimal.ZERO);
+            atualizacao.setResultadoTaxaDepoisAtualizado(atualizacao.getSelicPosGracaTaxa());
 
             atualizacao.setResultadoValorPrincipalTributavelAtualizadoDizima(atualizacao.getSelicDuranteGracaPrincipalTributavelCorrigido());
             atualizacao.setResultadoValorPrincipalNaoTributavelAtualizadoDizima(atualizacao.getSelicDuranteGracaPrincipalNaoTributavelCorrigido());

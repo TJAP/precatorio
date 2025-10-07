@@ -57,6 +57,7 @@ public class CalculoPagamentoDTO {
     private BigDecimal valorPrioridadeSelicAtualizado = BigDecimal.ZERO;
     private BigDecimal valorPrioridadeBrutoAtualizado = BigDecimal.ZERO;
     private BigDecimal valorPrioridadePrevidenciaAtualizado = BigDecimal.ZERO;
+    private BigDecimal numeroPrioridadeRRA = BigDecimal.ZERO;
 
     private BigDecimal percentualHonorario = BigDecimal.ZERO;
     private BigDecimal valorPagoAdvogado = BigDecimal.ZERO;
@@ -115,6 +116,16 @@ public class CalculoPagamentoDTO {
     private BigDecimal cessaoBaseValor = BigDecimal.ZERO;
     private BigDecimal penhoraValor = BigDecimal.ZERO;
     private BigDecimal penhoraBaseValor = BigDecimal.ZERO;
+
+    private BigDecimal saldoRemanescentePercentual = BigDecimal.ZERO;
+    private BigDecimal saldoRemanescentePrincipalTributavel = BigDecimal.ZERO;
+    private BigDecimal saldoRemanescentePrincipalNaoTributavel = BigDecimal.ZERO;
+    private BigDecimal saldoRemanescenteJuros = BigDecimal.ZERO;
+    private BigDecimal saldoRemanescenteMultasCustasOutros = BigDecimal.ZERO;
+    private BigDecimal saldoRemanescenteSelic = BigDecimal.ZERO;
+    private BigDecimal saldoRemanescenteTotal = BigDecimal.ZERO;
+    private BigDecimal saldoRemanescenteTotalRRA = BigDecimal.ZERO;
+    private BigDecimal saldoRemanescentePrevidencia = BigDecimal.ZERO;
 
     public void preencherResultadoCalculo(CalculoTributoRequest req){
         this.valorPrincipalTributavelAtualizadoDizima = req.getValorPrincipalTributavelAtualizado();

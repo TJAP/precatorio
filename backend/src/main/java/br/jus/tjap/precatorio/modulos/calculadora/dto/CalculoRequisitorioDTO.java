@@ -12,8 +12,10 @@ import lombok.NoArgsConstructor;
 public class CalculoRequisitorioDTO {
 
     private Long idRequisitorio;
+    private CalculoRequest request;
     private RequisitorioDTO requisitorioDTO;
     private CalculoAtualizacaoDTO calculoAtualizacaoDTO;
     private CalculoPagamentoDTO calculoPagamentoDTO;
+    private CalculoResumoDTO calculoResumoDTO;
 
 }

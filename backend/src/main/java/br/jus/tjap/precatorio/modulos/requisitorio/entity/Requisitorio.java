@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 
 import br.jus.tjap.precatorio.modulos.requisitorio.dto.RelatorioJsRequestDTO;
 import br.jus.tjap.precatorio.modulos.requisitorio.dto.RequisitorioDTO;
+import br.jus.tjap.precatorio.modulos.tabelasbasicas.entity.EnteDevedor;
 import br.jus.tjap.precatorio.util.DateUtil;
 import br.jus.tjap.precatorio.util.StringUtil;
 import jakarta.persistence.*;
@@ -220,6 +221,10 @@ public class Requisitorio implements Serializable {
 
     @Column(name = "msg_erro_distribuicao")
     private String msgErroDistribuicao;
+
+    @JoinColumn(name = "id_ente_devedor")
+    @ManyToOne
+    private EnteDevedor enteDevedor;
 
     @Transient
     private String numeroPrecatorio;

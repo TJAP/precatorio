@@ -150,13 +150,23 @@ public class PagamentoPrecatorioService {
         BigDecimal valorFinalSelicAtualizado = BigDecimal.ZERO;
         BigDecimal valorFinalBrutoAtualizado = BigDecimal.ZERO;
         BigDecimal valorFinalPrevidenciaAtualizado = BigDecimal.ZERO;
+        BigDecimal numeroPrioridadeRRA = BigDecimal.valueOf(req.getNumeroMesesRRA());
 
+        /*
+            IF(AND(I46="SIM";D46<P40);D41*E46;
+            IF(N46="SIM";D41*Q46;0))
+         */
         var enteDevedor = enteDevedorRepository.findByCnpj(req.getNumeroCNPJCredor());
         if(req.isTemPrioridade()){
             valorBasePrioridade = enteDevedor.getLimitePrioridade();
             percentualPrioridade = valorBasePrioridade
                     .multiply(BigDecimal.valueOf(100))
                     .divide(req.getValorBrutoAtualizadoDizima(),12,RoundingMode.HALF_UP);
+
+            if(req.getValorPrioridadeBrutoAtualizado().compareTo(req.getValorBrutoAtualizado()) < 0){
+                numeroPrioridadeRRA = BigDecimal.valueOf(req.getNumeroMesesRRA())
+                        .multiply(percentualPrioridade);
+            }
         }
 
         if(req.isTemPagamentoParcial()){
@@ -164,7 +174,10 @@ public class PagamentoPrecatorioService {
             percentualPagamentoParcial = valorBasePagamentoParcial
                     .multiply(BigDecimal.valueOf(100))
                     .divide(req.getValorBrutoAtualizadoDizima(),12,RoundingMode.HALF_UP);
+            numeroPrioridadeRRA = BigDecimal.valueOf(req.getNumeroMesesRRA())
+                    .multiply(percentualPagamentoParcial);
         }
+        req.setNumeroPrioridadeRRA(numeroPrioridadeRRA);
 
         req.setValorBasePrioridade(valorBasePrioridade);
         req.setPercentualPrioridade(percentualPrioridade.setScale(4,RoundingMode.HALF_UP));
@@ -173,7 +186,7 @@ public class PagamentoPrecatorioService {
         req.setPercentualParcialPago(percentualPagamentoParcial.setScale(4,RoundingMode.HALF_UP));
 
         if(req.isTemPrioridade() && !req.isTemPagamentoParcial()){
-            req.setNumeroMesesRRA(0L);
+            req.setNumeroPrioridadeRRA(BigDecimal.ZERO);
             req.setHouvePrioridadeOuPagamentoParcial(true);
             valorFinalPrincipalTributavelAtualizado =
                     req.getValorPrincipalTributavelAtualizadoDizima().multiply(percentualPrioridade).divide(BigDecimal.valueOf(100),2,RoundingMode.HALF_UP);
@@ -190,7 +203,7 @@ public class PagamentoPrecatorioService {
             valorFinalBrutoAtualizado =
                     req.getValorBrutoAtualizadoDizima().multiply(percentualPrioridade).divide(BigDecimal.valueOf(100),2,RoundingMode.HALF_UP);
         } else if(req.isTemPagamentoParcial()){
-            req.setNumeroMesesRRA(0L);
+            req.setNumeroPrioridadeRRA(BigDecimal.ZERO);
             req.setHouvePrioridadeOuPagamentoParcial(true);
             valorFinalPrincipalTributavelAtualizado =
                     req.getValorPrincipalTributavelAtualizadoDizima().multiply(percentualPagamentoParcial).divide(BigDecimal.valueOf(100),2,RoundingMode.HALF_UP);
@@ -567,40 +580,114 @@ public class PagamentoPrecatorioService {
         BigDecimal baseValorCessao = BigDecimal.ZERO;
         BigDecimal baseValorPenhora = BigDecimal.ZERO;
         BigDecimal baseValorPenhoraMultiplo = BigDecimal.ZERO;
+
         if(!req.isHouveAcordoAdvogado() && req.isHouveAcordoCredor() && UtilCalculo.isNotNullOrZero(req.getCessaoPercentual())){
             baseValorCessao = req.getValorDesagioCredorBrutoAtualizado()
                     .subtract(req.getBaseTributavelCredorImposto())
                     .subtract(req.getBaseTributavelCredorPrevidencia());
-            baseValorPenhoraMultiplo = req.getCessaoPercentual().multiply(baseValorCessao);
-            baseValorPenhora = baseValorCessao.subtract(baseValorPenhoraMultiplo);
+            baseValorPenhora = req.getCessaoPercentual().multiply(baseValorCessao)
+                    .divide(BigDecimal.valueOf(100),2, RoundingMode.HALF_UP);
+
         } else if(!req.isHouveAcordoAdvogado() && !req.isHouveAcordoCredor()){
             baseValorCessao = req.getValorHonorarioBrutoAtualizado()
                     .add(req.getValorCredorBrutoAtualizado())
                     .subtract(req.getBaseTributavelHonorarioValor())
                     .subtract(req.getBaseTributavelCredorImposto())
                     .subtract(req.getBaseTributavelCredorPrevidencia());
-            baseValorPenhoraMultiplo = baseValorCessao.multiply(BigDecimal.valueOf(100)).divide(req.getCessaoPercentual(),2,RoundingMode.HALF_UP);
-            baseValorPenhora = baseValorCessao.subtract(baseValorPenhoraMultiplo);
+            baseValorPenhora = req.getCessaoPercentual().multiply(baseValorCessao)
+                    .divide(BigDecimal.valueOf(100),2, RoundingMode.HALF_UP);
+
         }else if(req.isHouveAcordoAdvogado() && req.isHouveAcordoCredor()){
             baseValorCessao = req.getValorDesagioHonorarioBrutoAtualizado()
                     .add(req.getValorDesagioCredorBrutoAtualizado())
                     .subtract(req.getBaseTributavelHonorarioValor())
                     .subtract(req.getBaseTributavelCredorImposto())
                     .subtract(req.getBaseTributavelCredorPrevidencia());
-            baseValorPenhoraMultiplo = req.getCessaoPercentual().multiply(baseValorCessao);
-            baseValorPenhora = baseValorCessao.subtract(baseValorPenhoraMultiplo);
+            baseValorPenhora = req.getCessaoPercentual().multiply(baseValorCessao)
+                    .divide(BigDecimal.valueOf(100),2, RoundingMode.HALF_UP);
         }
-/*
-=IF(AND(D69="NÃO";J69="SIM");(L78-L88-L89-(D93*G93));
-IF(AND(D69="NÃO";J69="NÃO");(L63+F63-E85-L88-L89-(D93*G93));
-IF(AND(D69="SIM";J69="NÃO");0;
-IF(AND(D69="SIM";J69="SIM");(L78+F78-E85-L88-L89-(D93*G93));
-""))))
- */
+
         req.setCessaoBaseValor(UtilCalculo.escala(baseValorCessao,2));
         req.setPenhoraValor(UtilCalculo.escala(baseValorPenhora,2));
     }
 
+    private void calculoSaldoRemanescente(CalculoPagamentoDTO req){
+
+        BigDecimal saldoRemanescentePercentual = BigDecimal.ZERO;
+        BigDecimal saldoRemanescentePrincipalTributavel = BigDecimal.ZERO;
+        BigDecimal saldoRemanescentePrincipalNaoTributavel = BigDecimal.ZERO;
+        BigDecimal saldoRemanescenteJuros = BigDecimal.ZERO;
+        BigDecimal saldoRemanescenteMultasCustasOutros = BigDecimal.ZERO;
+        BigDecimal saldoRemanescenteSelic = BigDecimal.ZERO;
+        BigDecimal saldoRemanescenteTotal = BigDecimal.ZERO;
+        BigDecimal saldoRemanescenteTotalRRA = BigDecimal.ZERO;
+        BigDecimal saldoRemanescentePrevidencia = BigDecimal.ZERO;
+
+
+        if(req.isTemPrioridade() &&
+                req.getValorPrioridadeBrutoAtualizado().compareTo(req.getValorBrutoAtualizado()) < 0 || req.isTemPagamentoParcial()){
+            saldoRemanescentePrincipalTributavel = req.getValorPrincipalTributavelAtualizado().subtract(
+                    req.getValorPrioridadePrincipalTributavelAtualizado()
+            );
+            saldoRemanescentePrincipalNaoTributavel = req.getValorPrincipalNaoTributavelAtualizado().subtract(
+                    req.getValorPrioridadePrincipalNaoTributavelAtualizado()
+            );
+            saldoRemanescenteJuros = req.getValorJurosAtualizado().subtract(
+                    req.getValorPrioridadeJurosAtualizado()
+            );
+            saldoRemanescenteMultasCustasOutros = req.getValorMultaCustasOutrosAtualizado().subtract(
+                    req.getValorPrioridadeMultaCustasOutrosAtualizado()
+            );
+            saldoRemanescenteSelic = req.getValorSelicAtualizado().subtract(
+                    req.getValorPrioridadeSelicAtualizado()
+            );
+            saldoRemanescenteTotal =
+                    saldoRemanescentePrincipalTributavel
+                            .add(saldoRemanescentePrincipalNaoTributavel)
+                            .add(saldoRemanescenteJuros)
+                            .add(saldoRemanescenteMultasCustasOutros)
+                            .add(saldoRemanescenteSelic);
+
+
+            saldoRemanescenteTotalRRA = BigDecimal.valueOf(req.getNumeroMesesRRA()).subtract(
+                    req.getNumeroPrioridadeRRA()
+            );
+            saldoRemanescentePrevidencia = req.getValorPrevidenciaAtualizado().subtract(
+                    req.getValorPrioridadePrevidenciaAtualizado()
+            );
+        } else if(!req.isHouveAcordoAdvogado() && req.isHouveAcordoCredor()){
+            saldoRemanescentePrincipalTributavel = req.getValorHonorarioPrincipalTributavelAtualizado();
+            saldoRemanescentePrincipalNaoTributavel = req.getValorHonorarioPrincipalNaoTributavelAtualizado();
+            saldoRemanescenteJuros = req.getValorHonorarioJurosAtualizado();
+            saldoRemanescenteMultasCustasOutros = req.getValorHonorarioMultaCustasOutrosAtualizado();
+            saldoRemanescenteSelic = req.getValorHonorarioSelicAtualizado();
+            saldoRemanescenteTotal = req.getValorHonorarioBrutoAtualizado();
+
+            saldoRemanescenteTotalRRA = BigDecimal.valueOf(req.getNumeroMesesRRA()).multiply(
+                    req.getPercentualParcialPago()
+            );
+        } else if(req.isHouveAcordoAdvogado() && !req.isHouveAcordoCredor()){
+            saldoRemanescentePrincipalTributavel = req.getValorCredorPrincipalTributavelAtualizado();
+            saldoRemanescentePrincipalNaoTributavel = req.getValorCredorPrincipalNaoTributavelAtualizado();
+            saldoRemanescenteJuros = req.getValorCredorJurosAtualizado();
+            saldoRemanescenteMultasCustasOutros = req.getValorCredorMultaCustasOutrosAtualizado();
+            saldoRemanescenteSelic = req.getValorCredorSelicAtualizado();
+            saldoRemanescenteTotal = req.getValorCredorBrutoAtualizado();
+
+            saldoRemanescenteTotalRRA = BigDecimal.valueOf(req.getNumeroMesesRRA());
+            saldoRemanescentePrevidencia = req.getValorPrevidenciaAtualizado();
+        }
+
+        req.setSaldoRemanescentePercentual(UtilCalculo.escala(saldoRemanescentePercentual,2));
+        req.setSaldoRemanescentePrincipalTributavel(UtilCalculo.escala(saldoRemanescentePrincipalTributavel,2));
+        req.setSaldoRemanescentePrincipalNaoTributavel(UtilCalculo.escala(saldoRemanescentePrincipalNaoTributavel,2));
+        req.setSaldoRemanescenteJuros(UtilCalculo.escala(saldoRemanescenteJuros,2));
+        req.setSaldoRemanescenteMultasCustasOutros(UtilCalculo.escala(saldoRemanescenteMultasCustasOutros,2));
+        req.setSaldoRemanescenteSelic(UtilCalculo.escala(saldoRemanescenteSelic,2));
+        req.setSaldoRemanescenteTotal(UtilCalculo.escala(saldoRemanescenteTotal,2));
+        req.setSaldoRemanescenteTotalRRA(UtilCalculo.escala(saldoRemanescenteTotalRRA,2));
+        req.setSaldoRemanescentePrevidencia(UtilCalculo.escala(saldoRemanescentePrevidencia,2));
+    }
 
     public CalculoPagamentoDTO calcularTributo(CalculoTributoRequest req) {
 
@@ -620,87 +707,8 @@ IF(AND(D69="SIM";J69="SIM");(L78+F78-E85-L88-L89-(D93*G93));
 
         calculoCessaoPenhora(resultado);
 
+        calculoSaldoRemanescente(resultado);
 
-        // 0. Soma o bruto
-
-/*
-
-        BigDecimal parteHonorario = totalBruto.multiply(req.getPercentualHonorario().divide(BigDecimal.valueOf(100))).add(req.getValorPagoAdvogado());
-
-        BigDecimal parteRestoCredor = totalBruto.subtract(parteHonorario);
-
-        BigDecimal percentualAdvogado = parteHonorario.divide(totalBruto,mc).multiply(BigDecimal.valueOf(100));
-
-        BigDecimal percentualCredor = parteRestoCredor.divide(totalBruto,mc).multiply(BigDecimal.valueOf(100));
-
-        resultado.setPercentualParteAdvogado(UtilCalculo.escala(percentualAdvogado,2));
-        resultado.setPercentualParteCredor(UtilCalculo.escala(percentualCredor,2));
-        resultado.setValorParteAdvogado(UtilCalculo.escala(parteHonorario,2));
-        resultado.setValorParteCredor(UtilCalculo.escala(parteRestoCredor,2));
-
-        resultado.setValorParteTributavelCredor(
-                UtilCalculo.escala(req.getValorPrincipalTributavelAtualizado().multiply(percentualCredor).divide(BigDecimal.valueOf(100),mc),2)
-        );
-        resultado.setValorParteNaoTributavelCredor(
-                UtilCalculo.escala(req.getValorPrincipalNaoTributavelAtualizado().multiply(percentualCredor).divide(BigDecimal.valueOf(100),mc),2)
-        );
-        resultado.setValorJurosCredor(
-                UtilCalculo.escala(req.getValorJurosAtualizado().multiply(percentualCredor).divide(BigDecimal.valueOf(100),mc),2)
-        );
-        resultado.setValorSelicCredor(
-                UtilCalculo.escala(req.getValorSelicAtualizada().multiply(percentualCredor).divide(BigDecimal.valueOf(100),mc),2)
-        );
-
-        // 1. Separar partes do credor e do advogado
-        BigDecimal parteAdvogado = req.getValorPrincipalTributavelAtualizado()
-                .multiply(req.getPercentualHonorario().divide(BigDecimal.valueOf(100))).add(req.getValorPagoAdvogado());
-        BigDecimal parteCredor = req.getValorPrincipalTributavelAtualizado()
-                .subtract(parteAdvogado);
-
-*/
-
-/*
-        resultado.setTipoCalculo(
-                PagamentoUtil.determinarResultado(
-                        new PagamentoUtil.DadosCalculoDTO(
-                                req.getTipoTributacaoCredor(),
-                                req.getTipoVinculoCredor(),
-                                req.getNumeroMesesRRA() > 0,
-                                req.getValorPrevidenciaAtualizada() != null
-                        )
-                )
-        );
-
-        // 2. Base de IR do credor
-        BigDecimal baseIrCredor;
-        if (true) {
-            baseIrCredor = parteCredor
-                    .add(req.getValorJurosAtualizado())
-                    .add(req.getValorSelicAtualizada());
-        } else {
-            baseIrCredor = parteCredor.subtract(req.getValorPrevidenciaAtualizada());
-        }
-
-        // 3. Se RRA: dividir por quantidade meses para aplicar faixa
-        BigDecimal valorParaFaixa = baseIrCredor;
-        if (req.getNumeroMesesRRA() > 0) {
-            valorParaFaixa = baseIrCredor.divide(
-                    BigDecimal.valueOf(req.getNumeroMesesRRA()),
-                    2, RoundingMode.HALF_UP);
-        }
-
-        // 4. Aplicar tabela IRRF para credor
-        BigDecimal irCredor = calcularIR(valorParaFaixa, req.getNumeroMesesRRA());
-
-        resultado.setBaseTributavelCredor(UtilCalculo.escala(irCredor,2));
-
-        // 5. Previdência do credor (simplesmente repassa)
-        BigDecimal previdenciaCredor = req.getValorPrevidenciaAtualizada();
-
-        // 6. Base IR do advogado
-        BigDecimal baseIrAdvogado = parteAdvogado; // salvo exceções
-        BigDecimal irAdvogado = calcularIR(baseIrAdvogado, 0);
-*/
         return resultado;
     }
 

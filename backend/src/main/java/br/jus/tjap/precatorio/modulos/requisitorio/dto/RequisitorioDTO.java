@@ -1,5 +1,6 @@
 package br.jus.tjap.precatorio.modulos.requisitorio.dto;
 
+import br.jus.tjap.precatorio.modulos.tabelasbasicas.dto.EnteDevedorDTO;
 import br.jus.tjap.precatorio.util.StringUtil;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
@@ -98,6 +99,8 @@ public class RequisitorioDTO {
     private String dsJustificativaInvalidade;
     private boolean ativo;
     private String msgErroDistribuicao;
+
+    private EnteDevedorDTO enteDevedorDTO;
 
 
     public String getNumeroProcessoPJE(){

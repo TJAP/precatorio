@@ -15,6 +15,7 @@ import java.time.LocalDate;
 public class CalculoRequest {
 
     private String numeroProcesso;
+    private Long idPrecatorio;
     private String cnpjDevedor;
     private LocalDate dataUltimaAtualizacao;
     private LocalDate dataFimAtualizacao;

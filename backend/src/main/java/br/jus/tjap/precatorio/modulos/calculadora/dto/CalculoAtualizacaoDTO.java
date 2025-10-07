@@ -2,10 +2,10 @@ package br.jus.tjap.precatorio.modulos.calculadora.dto;
 
 import br.jus.tjap.precatorio.modulos.calculadora.util.UtilCalculo;
 import br.jus.tjap.precatorio.modulos.requisitorio.dto.RequisitorioDTO;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import net.minidev.json.annotate.JsonIgnore;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -21,6 +21,11 @@ public class CalculoAtualizacaoDTO {
     private String numeroProcesso;
     private String tipoCalculoRetornado;
     private RequisitorioDTO requisitorioDTO;
+
+    @JsonIgnore
+    private LocalDate dataUltimaAtualizacao;
+    @JsonIgnore
+    private LocalDate dataFimAtualizacao;
 
     private LocalDate dataAntesGracaDataInicio;
     private LocalDate dataAntesGracaDataFim;
@@ -84,6 +89,13 @@ public class CalculoAtualizacaoDTO {
     private BigDecimal resultadoValorSelicAtualizado = ZERO;
     private BigDecimal resultadoValorBrutoAtualizado = ZERO;
     private BigDecimal resultadoValorPrevidenciaAtualizado = ZERO;
+
+    private BigDecimal resultadoFatorAntesAtualizado = ZERO;
+    private BigDecimal resultadoFatorDuranteAtualizado = ZERO;
+    private BigDecimal resultadoFatorDepoisAtualizado = ZERO;
+    private BigDecimal resultadoTaxaAntesAtualizado = ZERO;
+    private BigDecimal resultadoTaxaDuranteAtualizado = ZERO;
+    private BigDecimal resultadoTaxaDepoisAtualizado = ZERO;
 
     @JsonIgnore
     private BigDecimal resultadoValorPrincipalTributavelAtualizadoDizima = ZERO;

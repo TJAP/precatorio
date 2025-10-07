@@ -32,11 +32,15 @@ public class CalculoController {
             operationId = "calcularCorrecaoMonetaria")
     public ResponseEntity<Response<CalculoRequisitorioDTO>> calcularCorrecaoMonetaria(@RequestBody CalculoRequest req) {
         var resultado = new CalculoRequisitorioDTO();
+        resultado.setRequest(req);
         CalculoAtualizacaoDTO resp = calculoJurosService.calcularAtualizacao(req);
         // para atualização
         resp.preencherIpcaAntesComEscala();
         resp.preencherIpcaDuranteComEscala();
         resp.preencherIpcaDepoisComEscala();
+
+        resp.setDataUltimaAtualizacao(req.getDataUltimaAtualizacao());
+        resp.setDataFimAtualizacao(req.getDataFimAtualizacao());
         resultado.setCalculoAtualizacaoDTO(resp);
 
         // para pagamento
