@@ -58,6 +58,23 @@ public class PagamentoPrecatorioService {
 
     private BigDecimal calcularIRPFProgressivoCredor(CalculoPagamentoDTO req,BigDecimal baseCalculo) {
 
+        /*
+        =IFERROR(
+        IF(L87="PF - Tabela Progressiva";IF(L86-MAX(L89;F191)<=D186;0;
+        IF(AND(L86-MAX(L89;F191)>=C187;L86-MAX(L89;F191)<=D187);(L86-MAX(L89;F191))*E187-F187;
+        IF(AND(L86-MAX(L89;F191)>=C188;L86-MAX(L89;F191)<=D188);(L86-MAX(L89;F191))*E188-F188;
+        IF(AND(L86-MAX(L89;F191)>=C189;L86-MAX(L89;F191)<=D189);(L86-MAX(L89;F191))*E189-F189;
+        IF(L86-MAX(L89;F191)>=C190;(L86-MAX(L89;F191))*E190-F190;"")))));
+
+        IF(L87="RRA";IF((L86-L89-E85)<=D196;0;IF(AND((L86-L89-E85)>=C197;(L86-L89-E85)<=D197);(L86-L89-E85)*E197-F197;
+        IF(AND((L86-L89-E85)>=C198;(L86-L89-E85)<=D198);(L86-L89-E85)*E198-F198;
+        IF(AND((L86-L89-E85)>=C199;(L86-L89-E85)<=D199);(L86-L89-E85)*E199-F199;
+        IF((L86-L89-E85)>=C200;(L86-L89-E85)*E200-F200)))));
+
+        IF(L87="PJ - Cessão M.O";L86*1%;
+        IF(L87="PJ - Serviços";L86*1,5%;
+        IF(L87="Isento";"Isento";0)))));0)
+         */
         List<TabelaIRRF> tabela = tabelaIRRFRepository.findAll();
         List<TabelaIRRF> tabelaProgressivaCredor = new ArrayList<>();
         BigDecimal valorCalculoProgressivo = BigDecimal.ZERO;

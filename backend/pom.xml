@@ -165,7 +165,12 @@
 			<artifactId>commons-codec</artifactId>
 			<version>1.16.0</version> <!-- ou a versão mais recente -->
 		</dependency>
-	</dependencies>
+        <dependency>
+            <groupId>net.sf.jasperreports</groupId>
+            <artifactId>jasperreports</artifactId>
+            <version>6.21.0</version>
+        </dependency>
+    </dependencies>
 
 	<build>
 		<finalName>precatorio</finalName>

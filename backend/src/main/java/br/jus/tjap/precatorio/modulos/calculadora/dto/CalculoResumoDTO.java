@@ -1,5 +1,6 @@
 package br.jus.tjap.precatorio.modulos.calculadora.dto;
 
+import br.jus.tjap.precatorio.modulos.calculadora.util.UtilCalculo;
 import br.jus.tjap.precatorio.modulos.requisitorio.dto.RequisitorioDTO;
 import br.jus.tjap.precatorio.util.StringUtil;
 import lombok.AllArgsConstructor;
@@ -185,22 +186,24 @@ public class CalculoResumoDTO {
         this.alvaraValorPrevidencia = req.getCalculoPagamentoDTO().getBaseTributavelCredorPrevidencia();
         this.alvaraValorHonorarioContratualLiquido = req.getCalculoPagamentoDTO().getValorHonorarioBrutoAtualizado().subtract(req.getCalculoPagamentoDTO().getBaseTributavelHonorarioImposto());
         this.alvaraIRRFHonorario = req.getCalculoPagamentoDTO().getBaseTributavelHonorarioImposto();
-        this.alvaraValorPenhora = req.getRequest().getValorPenhora().compareTo(req.getCalculoPagamentoDTO().getPenhoraBaseValor())<0 ? req.getCalculoPagamentoDTO().getCessaoBaseValor() : req.getRequest().getValorPenhora();
+        //=IF(D94>G94;G93;D94)
+        this.alvaraValorPenhora = req.getRequest().getValorPenhora().compareTo(req.getCalculoPagamentoDTO().getPenhoraBaseValor())>0 ? req.getCalculoPagamentoDTO().getCessaoBaseValor() : req.getRequest().getValorPenhora();
         //=D93*G93
         this.alvaraValorCessao = req.getRequest().getPercentualCessao().multiply(req.getCalculoPagamentoDTO().getCessaoBaseValor()).divide(BigDecimal.valueOf(100),2, RoundingMode.HALF_UP);
         //=IFERROR((M133-M136-M137-L147-L146);0)
-        this.alvaraValorLiquidoCredor = this.tributacaoHonorarioMontanteDesembolso
+        //=IFERROR((M133-M136-M137-L147-L146);0)
+        this.alvaraValorLiquidoCredor = UtilCalculo.escala(this.tributacaoCredorMontanteDesembolso
                 .subtract(this.tributacaoCredorImposto)
                 .subtract(this.tributacaoCredorPrevidencia)
                 .subtract(this.alvaraValorCessao)
-                .subtract(this.alvaraValorPenhora);
-        this.alvaraValorTotalSomado = this.alvaraIRRFCredor
+                .subtract(this.alvaraValorPenhora),2);
+        this.alvaraValorTotalSomado = UtilCalculo.escala(this.alvaraIRRFCredor
                 .add(this.alvaraValorPrevidencia)
                 .add(this.alvaraValorHonorarioContratualLiquido)
                 .add(this.alvaraIRRFHonorario)
                 .add(this.alvaraValorPenhora)
                 .add(this.alvaraValorCessao)
-                .add(this.alvaraValorLiquidoCredor);
+                .add(this.alvaraValorLiquidoCredor),2);
 
         // saldo remanescente
         // valores atualizados

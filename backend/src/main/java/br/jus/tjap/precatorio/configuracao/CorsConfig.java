@@ -20,6 +20,7 @@ public class CorsConfig {
         // Origens liberadas
         configuration.setAllowedOrigins(List.of(
                 "http://localhost:4200",
+                "http://localhost:4201",
                 "https://precatorio.tjap.jus.br",
                 "https://cluster.tjap.jus.br")
         );

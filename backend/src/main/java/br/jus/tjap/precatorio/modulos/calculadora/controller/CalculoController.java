@@ -4,13 +4,17 @@ import br.jus.tjap.precatorio.modulos.calculadora.dto.*;
 import br.jus.tjap.precatorio.modulos.calculadora.service.CalculoPrecatorioService;
 import br.jus.tjap.precatorio.modulos.calculadora.service.PagamentoPrecatorioService;
 import br.jus.tjap.precatorio.modulos.calculadora.util.UtilCalculo;
+import br.jus.tjap.precatorio.relatorio.service.RelatorioService;
 import br.jus.tjap.precatorio.util.ApiVersions;
 import br.jus.tjap.precatorio.util.Response;
 import br.jus.tjap.precatorio.util.ResponseFactory;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import net.sf.jasperreports.engine.JRException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping(ApiVersions.V1 + "/calculos")
@@ -19,10 +23,15 @@ public class CalculoController {
 
     private final CalculoPrecatorioService calculoJurosService;
     private final PagamentoPrecatorioService pagamentoPrecatorioService;
+    private final RelatorioService relatorioService;
 
-    public CalculoController(CalculoPrecatorioService calculoJurosService,PagamentoPrecatorioService pagamentoPrecatorioService) {
+    public CalculoController(
+            CalculoPrecatorioService calculoJurosService,
+            PagamentoPrecatorioService pagamentoPrecatorioService,
+            RelatorioService relatorioService) {
         this.calculoJurosService = calculoJurosService;
         this.pagamentoPrecatorioService =pagamentoPrecatorioService;
+        this.relatorioService = relatorioService;
     }
 
     @PostMapping("/precatorios/calculo")
@@ -30,7 +39,7 @@ public class CalculoController {
             summary = "Calcula atualização monetária",
             description = "Retorna o extrato de calculo",
             operationId = "calcularCorrecaoMonetaria")
-    public ResponseEntity<Response<CalculoRequisitorioDTO>> calcularCorrecaoMonetaria(@RequestBody CalculoRequest req) {
+    public ResponseEntity<Response<CalculoRequisitorioDTO>> calcularCorrecaoMonetaria(@RequestBody CalculoRequest req) throws JRException {
         var resultado = new CalculoRequisitorioDTO();
         resultado.setRequest(req);
         CalculoAtualizacaoDTO resp = calculoJurosService.calcularAtualizacao(req);
@@ -84,6 +93,14 @@ public class CalculoController {
 
         resultado.setCalculoResumoDTO(new CalculoResumoDTO().montarDocumentoCalculo(resultado));
 
+        Map<String, Object> parametros = null;
+/*
+        byte[] pdf = relatorioService.gerarRelatorioPdf(
+                "template",
+                resultado.getCalculoResumoDTO(),
+                parametros
+        );
+*/
         return ResponseFactory.ok(resultado);
     }
 
