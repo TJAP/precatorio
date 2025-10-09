@@ -3,6 +3,7 @@ package br.jus.tjap.precatorio.modulos.requisitorio.dto;
 import br.jus.tjap.precatorio.modulos.tabelasbasicas.dto.EnteDevedorDTO;
 import br.jus.tjap.precatorio.util.StringUtil;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.Column;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -87,6 +88,7 @@ public class RequisitorioDTO {
     private Integer idPeAssinador;
     private Integer codOrgaoJulgadorPje;
     private Integer codOrgaoJulgadorTucujuris;
+    private BigDecimal vlSelic;
     @JsonIgnore
     private byte[] arquivoPdf;
     private Long idPrecatorioTucujuris;
@@ -100,7 +102,18 @@ public class RequisitorioDTO {
     private boolean ativo;
     private String msgErroDistribuicao;
 
+    private LocalDate dtInicioRRA;
+    private LocalDate dtFimRRA;
+    private Integer anoVencimento;
+
     private EnteDevedorDTO enteDevedorDTO;
+
+    // para requestCalculo
+    private String tipoVinculoCredor;
+    private String tipoTributacaoCredor;
+    private String tipoTributacaoAdvogado;
+
+
 
 
     public String getNumeroProcessoPJE(){

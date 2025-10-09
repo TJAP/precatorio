@@ -5,7 +5,10 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Locale;
+import java.util.Objects;
 
+import br.jus.tjap.precatorio.modulos.calculadora.util.PagamentoUtil;
 import br.jus.tjap.precatorio.modulos.requisitorio.dto.RelatorioJsRequestDTO;
 import br.jus.tjap.precatorio.modulos.requisitorio.dto.RequisitorioDTO;
 import br.jus.tjap.precatorio.modulos.tabelasbasicas.entity.EnteDevedor;
@@ -179,6 +182,9 @@ public class Requisitorio implements Serializable {
     @Column(name = "vl__sessao_credito")
     private BigDecimal vlSessaoCredito;
 
+    @Column(name = "vl_selic")
+    private BigDecimal vlSelic;
+
     // pagamento administrativo
     @Column(name = "in_pagamento_administrativo")
     private Boolean pagamentoAdministrativo;
@@ -221,6 +227,15 @@ public class Requisitorio implements Serializable {
 
     @Column(name = "msg_erro_distribuicao")
     private String msgErroDistribuicao;
+
+    @Column(name = "dt_inicio_rra")
+    private LocalDate dtInicioRRA;
+
+    @Column(name = "dt_fim_rra")
+    private LocalDate dtFimRRA;
+
+    @Column(name = "ano_vencimento")
+    private Integer anoVencimento;
 
     @JoinColumn(name = "id_ente_devedor")
     @ManyToOne
@@ -320,6 +335,14 @@ public class Requisitorio implements Serializable {
         dto.setAtivo(this.ativo);
         dto.setMsgErroDistribuicao(this.msgErroDistribuicao);
         dto.setEnteDevedorDTO(this.enteDevedor.toMetadado());
+
+        dto.setTipoTributacaoCredor(deParaTributacaoCredor(
+                this.documentoCredor,
+                this.dsTipoObrigacao.contains("Indenização") ? "INDENIZACAO" : "",
+                this.numeroMesesRendimentoAcumulado > 0
+        ));
+        dto.setTipoTributacaoAdvogado(deParaTributacaoAdvogado(this.idTipoTributacaoAdvCredor));
+        dto.setTipoVinculoCredor(deParaTipoVinculoCredor(this.situacaoFuncionalCredor));
 
         return dto;
     }
@@ -429,6 +452,82 @@ public class Requisitorio implements Serializable {
 
         return relatorio;
     }
+
+    private String deParaTipoVinculoCredor(String tipoVinculo){
+        var resultado = "Sem vinculo";
+
+        if(Objects.isNull(tipoVinculo)){
+            return resultado;
+        }
+
+        if(tipoVinculo.equalsIgnoreCase("Efetivo")){
+            resultado = "Com vinculo";
+        }
+
+        return resultado;
+    }
+
+    private String deParaTributacaoAdvogado(String tipoTributacaoAdv){
+        var resultado = "PF";
+
+        if(Objects.isNull(tipoTributacaoAdv)){
+            return resultado;
+        }
+
+        if(tipoTributacaoAdv.equalsIgnoreCase("Pessoa Física")){
+            resultado = "PF";
+        } else  if(tipoTributacaoAdv.equalsIgnoreCase("Pessoa Jurídica")){
+            resultado = "PJ";
+        } else  if(tipoTributacaoAdv.equalsIgnoreCase("Pessoa Jurídica Simples Nacional")){
+            resultado = "SN";
+        }
+
+        return resultado;
+    }
+
+    private String deParaTributacaoCredor(String documentoCredor, String vinculoNorm, boolean rraNoRequisitorio){
+        var tipoPessoa = "CNPJ";
+
+        if(Objects.isNull(documentoCredor)){
+            throw new RuntimeException("Documento não informado no requisitório");
+        }
+
+        if(StringUtil.removerFormatacaoNumeroDocumento(documentoCredor).length() <= 12 ){
+            tipoPessoa = "CPF";
+        }
+
+        var vinculoNorm = "";
+
+        if(tipoPessoa.equalsIgnoreCase("CNPJ")){
+
+        }
+
+
+        return determinarTributacaoIR(tipoPessoa, );
+    }
+
+    private String determinarTributacaoIR(String tipoPessoa, String vinculoNorm, boolean rraNoRequisitorio) {
+        if ("PF".equals(tipoPessoa)) {
+            if (vinculoNorm.contains("INDENIZACAO") || vinculoNorm.contains("INDENIZACAO".toUpperCase(Locale.ROOT))) {
+                return "Isento"; // CPF indenização -> isento
+            }
+            if (rraNoRequisitorio) {
+                return "RRA";
+            } else {
+                return "PF";
+            }
+        } else { // CNPJ
+            if (vinculoNorm.contains("PJ CESSAO") || vinculoNorm.contains("PJCESSAO") || vinculoNorm.contains("PJ CESSAO M O")) {
+                return "PJ-Cessao"; // 1%
+            } else if (vinculoNorm.contains("SERVICOS") || vinculoNorm.contains("SERVICO")) {
+                return "PJ-Servicos"; // 1.5%
+            } else {
+                // PJ-Outros, Simples Nacional, Indenização (PJ) -> ISENTO
+                return "Isento";
+            }
+        }
+    }
+
 
 }
 

@@ -4,6 +4,8 @@ import br.jus.tjap.precatorio.modulos.calculadora.dto.*;
 import br.jus.tjap.precatorio.modulos.calculadora.service.CalculoPrecatorioService;
 import br.jus.tjap.precatorio.modulos.calculadora.service.PagamentoPrecatorioService;
 import br.jus.tjap.precatorio.modulos.calculadora.util.UtilCalculo;
+import br.jus.tjap.precatorio.modulos.requisitorio.RequisitorioService;
+import br.jus.tjap.precatorio.modulos.requisitorio.repository.RequisitorioRepository;
 import br.jus.tjap.precatorio.relatorio.service.RelatorioService;
 import br.jus.tjap.precatorio.util.ApiVersions;
 import br.jus.tjap.precatorio.util.Response;
@@ -21,6 +23,7 @@ import java.util.Map;
 @Tag(name = "Calculadora", description = "Operações relacionadas a calculos")
 public class CalculoController {
 
+    private final RequisitorioService requisitorioService;
     private final CalculoPrecatorioService calculoJurosService;
     private final PagamentoPrecatorioService pagamentoPrecatorioService;
     private final RelatorioService relatorioService;
@@ -28,10 +31,12 @@ public class CalculoController {
     public CalculoController(
             CalculoPrecatorioService calculoJurosService,
             PagamentoPrecatorioService pagamentoPrecatorioService,
-            RelatorioService relatorioService) {
+            RelatorioService relatorioService,
+            RequisitorioService requisitorioService) {
         this.calculoJurosService = calculoJurosService;
         this.pagamentoPrecatorioService =pagamentoPrecatorioService;
         this.relatorioService = relatorioService;
+        this.requisitorioService = requisitorioService;
     }
 
     @PostMapping("/precatorios/calculo")
@@ -112,6 +117,24 @@ public class CalculoController {
     public ResponseEntity<Response<CalculoPagamentoDTO>> calcularTributos(@RequestBody CalculoTributoRequest req) {
         CalculoPagamentoDTO resp = pagamentoPrecatorioService.calcularTributo(req);
         return ResponseFactory.ok(resp);
+    }
+
+    private CalculoRequisitorioDTO montaCalculo(Long idRequisitorio){
+
+        var requisitorio = requisitorioService.buscaPorId(idRequisitorio);
+
+        var resultado = new CalculoRequisitorioDTO();
+        var pagRequest = new CalculoTributoRequest();
+        var req  = new CalculoRequest();
+
+        req.setNumeroProcesso(req.getNumeroProcesso());
+        req.setDataFimAtualizacao(requisitorio.getDtUltimaAtualizacaoPlanilha());
+        req.setCnpjDevedor(req.getCnpjDevedor());
+        req.set
+
+        resultado.setRequest(req);
+        resultado.setRequisitorioDTO(requisitorio);
+
     }
 
 
