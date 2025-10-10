@@ -354,6 +354,7 @@ public class Requisitorio implements Serializable {
 
         dto.setProcessoDeducaos(this.processoDeducaos.stream().map(ProcessoDeducao::toDto).toList());
         dto.setPrioridades(this.prioridades.stream().map(Prioridade::toDTO).toList());
+        dto.setAnoVencimento(Objects.isNull(this.anoVencimento) ? 2021 : this.anoVencimento);
         return dto;
     }
 

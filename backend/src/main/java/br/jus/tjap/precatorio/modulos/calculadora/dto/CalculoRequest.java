@@ -23,31 +23,31 @@ public class CalculoRequest {
     private LocalDate dataInicioRRA;
     private LocalDate dataFimRRA;
     // Data do período de graça é calculada conforme regra - não enviada
-    private BigDecimal valorPrincipalTributavel;
-    private BigDecimal valorPrincipalNaoTributavel;
-    private BigDecimal valorJuros;
-    private BigDecimal valorSelic;
-    private BigDecimal valorPrevidencia;
-    private BigDecimal custas;
-    private BigDecimal multa;
-    private BigDecimal outrosReembolsos;
+    private BigDecimal valorPrincipalTributavel = BigDecimal.ZERO;
+    private BigDecimal valorPrincipalNaoTributavel = BigDecimal.ZERO;
+    private BigDecimal valorJuros = BigDecimal.ZERO;
+    private BigDecimal valorSelic = BigDecimal.ZERO;
+    private BigDecimal valorPrevidencia = BigDecimal.ZERO;
+    private BigDecimal custas = BigDecimal.ZERO;
+    private BigDecimal multa = BigDecimal.ZERO;
+    private BigDecimal outrosReembolsos = BigDecimal.ZERO;
 
     private boolean temPrioridade;
     private boolean pagamentoParcial;
-    private BigDecimal valorPagamentoParcial;
+    private BigDecimal valorPagamentoParcial = BigDecimal.ZERO;
 
-    private BigDecimal percentualHonorario;
-    private BigDecimal valorPagoAdvogado;
+    private BigDecimal percentualHonorario = BigDecimal.ZERO;
+    private BigDecimal valorPagoAdvogado = BigDecimal.ZERO;
     private String tributacaoAdvogado;
 
-    private BigDecimal percentualDesagio;
+    private BigDecimal percentualDesagio = BigDecimal.ZERO;
     private boolean acordoAdvogado;
     private boolean acordoCredor;
 
     private String tipoVinculoCredor;
     private String tipoTributacaoCredor;
 
-    private BigDecimal percentualCessao;
-    private BigDecimal valorPenhora;
+    private BigDecimal percentualCessao = BigDecimal.ZERO;
+    private BigDecimal valorPenhora = BigDecimal.ZERO;
 
 }

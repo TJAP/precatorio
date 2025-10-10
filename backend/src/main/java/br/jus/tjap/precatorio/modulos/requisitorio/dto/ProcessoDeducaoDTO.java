@@ -21,5 +21,5 @@ public class ProcessoDeducaoDTO {
     private String nomePessoaDestino;
     private String documentoPessoaDestino;
     private String numeroDocumentoRequisicaoDeducao;
-    private Map<String, Object> dadosDeducao;
+    private String dadosDeducao;
 }

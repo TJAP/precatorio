@@ -2,7 +2,6 @@ package br.jus.tjap.precatorio.modulos.requisitorio.entity;
 
 import br.jus.tjap.precatorio.modulos.requisitorio.dto.ProcessoDeducaoDTO;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.vladmihalcea.hibernate.type.json.JsonType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -49,7 +48,7 @@ public class ProcessoDeducao implements Serializable {
     private String numeroDocumentoRequisicaoDeducao;
 
     @Column(name = "dados_deducao", columnDefinition = "jsonb")
-    private Map<String, Object> dadosDeducao;
+    private String dadosDeducao;
 
     public ProcessoDeducaoDTO toDto(){
         ProcessoDeducaoDTO resultado = new ProcessoDeducaoDTO();

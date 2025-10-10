@@ -107,22 +107,15 @@ public class CalculoResumoDTO {
     public CalculoResumoDTO montarDocumentoCalculo(CalculoRequisitorioDTO req){
 
         var resumo = new CalculoResumoDTO();
-        var requisitorio = new RequisitorioDTO();
-        // dados precatório
-        //this.ordemPagamento = req.;
+        var requisitorio = req.getRequisitorioDTO();
+        this.idPrecatorio = requisitorio.getId();
         this.processoPrecatorio = req.getCalculoAtualizacaoDTO().getNumeroProcesso();
-        //this.devedorNome = req.getRequisitorioDTO().getEnteDevedorDTO().getNome();
-        //this.devedorDocumento = req.getRequisitorioDTO().getEnteDevedorDTO().getCnpj();
-        //this.devedorContaJudicial = req.getRequisitorioDTO().getEnteDevedorDTO().getNumeroConta();
-        this.devedorNome = "Município de Macapá";
-        this.devedorDocumento = req.getRequest().getCnpjDevedor();
-        this.devedorContaJudicial = "00011122233";
-        //this.credorNome = req.getRequisitorioDTO().getNomeCredor();
+        this.devedorNome = req.getRequisitorioDTO().getEnteDevedorDTO().getNome();
+        this.devedorDocumento = req.getRequisitorioDTO().getEnteDevedorDTO().getCnpj();
+        this.devedorContaJudicial = req.getRequisitorioDTO().getEnteDevedorDTO().getNumeroConta();
         this.credorNome = requisitorio.getNomeCredor();
         this.credorDocumento = requisitorio.getDocumentoCredor();
         this.credorNascimento = requisitorio.getNascimentoCredor();
-        //this.credorDocumento = req.getRequisitorioDTO().getDocumentoCredor();
-        //this.credorNascimento = req.getRequisitorioDTO().getNascimentoCredor();
 
         // dados do requisitório
         this.requisitorioValorPrincipalTributavel = req.getRequest().getValorPrincipalTributavel();
@@ -137,8 +130,7 @@ public class CalculoResumoDTO {
                 .add(this.requisitorioValorMultaCustOutros);
         this.requisitorioNumeroRRA = req.getCalculoAtualizacaoDTO().getResultadoNumeroMesesRRA();
         this.requisitorioUltimaAtualizacao = req.getRequest().getDataUltimaAtualizacao();
-        //this.requisitorioTipoAcaoPrecatorio = req.getRequisitorioDTO().getDsTipoObrigacao();
-        this.requisitorioTipoAcaoPrecatorio = requisitorio.getDsTipoObrigacao();
+        this.requisitorioTipoAcaoPrecatorio = req.getRequisitorioDTO().getDsTipoObrigacao();
         this.requisitorioValorPrevidencia = req.getRequest().getValorPrevidencia();
         this.requisitorioAnoVencimento = req.getRequest().getAnoVencimento();
 
@@ -181,8 +173,8 @@ public class CalculoResumoDTO {
         this.alvaraDevedorNome = this.devedorNome;
         this.alvaraIRRFCredor = req.getCalculoPagamentoDTO().getBaseTributavelCredorImposto();;
         this.alvaraOrgaoPrevidenciaNome = req.getRequest().getTipoVinculoCredor().equals("Com vinculo") ?
-                //req.getRequisitorioDTO().getEnteDevedorDTO().getComVinculo()
-                "MACAPAPREV" : req.getRequisitorioDTO().getEnteDevedorDTO().getSemVinculo();
+                req.getRequisitorioDTO().getEnteDevedorDTO().getComVinculo()
+                 : req.getRequisitorioDTO().getEnteDevedorDTO().getSemVinculo();
         this.alvaraValorPrevidencia = req.getCalculoPagamentoDTO().getBaseTributavelCredorPrevidencia();
         this.alvaraValorHonorarioContratualLiquido = req.getCalculoPagamentoDTO().getValorHonorarioBrutoAtualizado().subtract(req.getCalculoPagamentoDTO().getBaseTributavelHonorarioImposto());
         this.alvaraIRRFHonorario = req.getCalculoPagamentoDTO().getBaseTributavelHonorarioImposto();
