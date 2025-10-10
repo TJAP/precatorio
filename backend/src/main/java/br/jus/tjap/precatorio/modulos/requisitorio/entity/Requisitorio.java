@@ -5,6 +5,8 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 
@@ -241,6 +243,12 @@ public class Requisitorio implements Serializable {
     @ManyToOne
     private EnteDevedor enteDevedor;
 
+    @OneToMany(mappedBy = "requisitorio", fetch = FetchType.LAZY)
+    private List<Prioridade> prioridades = new ArrayList<>();
+
+    @Transient
+    private List<ProcessoDeducao> processoDeducaos = new ArrayList<>();
+
     @Transient
     private String numeroPrecatorio;
 
@@ -336,14 +344,16 @@ public class Requisitorio implements Serializable {
         dto.setMsgErroDistribuicao(this.msgErroDistribuicao);
         dto.setEnteDevedorDTO(this.enteDevedor.toMetadado());
 
-        dto.setTipoTributacaoCredor(deParaTributacaoCredor(
-                this.documentoCredor,
-                this.dsTipoObrigacao.contains("Indenização") ? "INDENIZACAO" : "",
-                this.numeroMesesRendimentoAcumulado > 0
-        ));
         dto.setTipoTributacaoAdvogado(deParaTributacaoAdvogado(this.idTipoTributacaoAdvCredor));
         dto.setTipoVinculoCredor(deParaTipoVinculoCredor(this.situacaoFuncionalCredor));
+        dto.setTipoTributacaoCredor(deParaTributacaoCredor(
+                this.documentoCredor,
+                this.dsTipoObrigacao.contains("Indenização") ? "INDENIZACAO" : this.dsTipoObrigacao,
+                this.numeroMesesRendimentoAcumulado > 0
+        ));
 
+        dto.setProcessoDeducaos(this.processoDeducaos.stream().map(ProcessoDeducao::toDto).toList());
+        dto.setPrioridades(this.prioridades.stream().map(Prioridade::toDTO).toList());
         return dto;
     }
 
@@ -496,14 +506,15 @@ public class Requisitorio implements Serializable {
             tipoPessoa = "CPF";
         }
 
-        var vinculoNorm = "";
-
         if(tipoPessoa.equalsIgnoreCase("CNPJ")){
-
+            if(vinculoNorm.toUpperCase().contains("EXECUÇÃO de OBRAS")){
+                vinculoNorm = "PJCESSAO";
+            }else if(vinculoNorm.toUpperCase().contains("SERVIÇOS")){
+                vinculoNorm = "SERVICOS";
+            }
         }
 
-
-        return determinarTributacaoIR(tipoPessoa, );
+        return determinarTributacaoIR(tipoPessoa, vinculoNorm, rraNoRequisitorio);
     }
 
     private String determinarTributacaoIR(String tipoPessoa, String vinculoNorm, boolean rraNoRequisitorio) {

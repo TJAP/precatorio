@@ -1,5 +1,6 @@
 package br.jus.tjap.precatorio.modulos.requisitorio.dto;
 
+import br.jus.tjap.precatorio.modulos.requisitorio.entity.ProcessoDeducao;
 import br.jus.tjap.precatorio.modulos.tabelasbasicas.dto.EnteDevedorDTO;
 import br.jus.tjap.precatorio.util.StringUtil;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -11,6 +12,8 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -107,11 +110,15 @@ public class RequisitorioDTO {
     private Integer anoVencimento;
 
     private EnteDevedorDTO enteDevedorDTO;
+    private List<ProcessoDeducaoDTO> processoDeducaos = new ArrayList<>();
+    private List<PrioridadeDTO> prioridades = new ArrayList<>();
 
     // para requestCalculo
     private String tipoVinculoCredor;
     private String tipoTributacaoCredor;
     private String tipoTributacaoAdvogado;
+
+
 
 
 
