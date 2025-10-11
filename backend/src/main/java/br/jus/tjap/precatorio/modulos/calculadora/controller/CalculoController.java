@@ -4,6 +4,7 @@ import br.jus.tjap.precatorio.modulos.calculadora.dto.*;
 import br.jus.tjap.precatorio.modulos.calculadora.service.CalculoPrecatorioService;
 import br.jus.tjap.precatorio.modulos.calculadora.service.PagamentoPrecatorioService;
 import br.jus.tjap.precatorio.modulos.calculadora.util.UtilCalculo;
+import br.jus.tjap.precatorio.modulos.requisitorio.dto.DadosDeducaoDTO;
 import br.jus.tjap.precatorio.modulos.requisitorio.service.RequisitorioService;
 import br.jus.tjap.precatorio.modulos.requisitorio.service.ProcessoDeducaoService;
 import br.jus.tjap.precatorio.relatorio.service.RelatorioService;
@@ -11,6 +12,8 @@ import br.jus.tjap.precatorio.relatorio.service.ReportJsService;
 import br.jus.tjap.precatorio.util.ApiVersions;
 import br.jus.tjap.precatorio.util.Response;
 import br.jus.tjap.precatorio.util.ResponseFactory;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import net.sf.jasperreports.engine.JRException;
@@ -133,18 +136,20 @@ public class CalculoController {
             summary = "Calcula atualização monetária e pagamento",
             description = "Retorna o extrato de calculo em PDF",
             operationId = "calcularCorrecaoMonetariaPDF")
-    public byte[] gerarPDFCalculo(@PathVariable Long id) throws JRException {
+    public byte[] gerarPDFCalculo(@PathVariable Long id) throws JRException, JsonProcessingException {
+        ResumoCalculoDocumentoDTO documentoDTO = new ResumoCalculoDocumentoDTO();
         CalculoRequisitorioDTO resultado = montaCalculo(id);
-        var calculo = montaCalculo(id);
-        return reportJsService.getRelatorioResumosCalculo(calculo.getCalculoResumoDTO());
+        var relatorio = documentoDTO.montarResumoDocumento(resultado);
+        return reportJsService.getRelatorioResumosCalculo(relatorio);
     }
 
-    private CalculoRequisitorioDTO montaCalculo(Long idRequisitorio){
+    private CalculoRequisitorioDTO montaCalculo(Long idRequisitorio) throws JsonProcessingException {
 
         var requisitorio = requisitorioService.buscaPorId(idRequisitorio);
         var processosDeducoes = processoDeducaoService.listaProcessoDeducaoPorProcessoOrigem(requisitorio.getIdProcesso());
-        var acordos = requisitorioService.listarAcordoPOrProcesso(requisitorio.getNumProcessoTucujuris());
+        var acordos = requisitorioService.listarAcordoPorProcesso(requisitorio.getNumProcessoTucujuris());
         requisitorio.setProcessoDeducaos(processosDeducoes);
+        requisitorio.setAcordoDiretos(acordos);
 
         var requisitorioDTO = requisitorio.toMetadado();
 
@@ -216,11 +221,13 @@ public class CalculoController {
         req.setPercentualCessao(BigDecimal.ZERO);
         req.setValorPenhora(BigDecimal.ZERO);
         if(!processosDeducoes.isEmpty()){
-
+            ObjectMapper mapper = new ObjectMapper();
             for(var deducao : processosDeducoes){
+                var dados = mapper.readValue(deducao.getDadosDeducao(), DadosDeducaoDTO.class);
                 if(deducao.getTipoDeducao() == 1){
-                    BigDecimal valor_penhora = BigDecimal.ZERO;
-                    req.setValorPenhora(UtilCalculo.manterValorZeroSeNulo(valor_penhora));
+                    req.setValorPenhora(UtilCalculo.manterValorZeroSeNulo(dados.getValor()));
+                } else if(deducao.getTipoDeducao() == 2){
+                    req.setPercentualCessao(dados.getValor());
                 }
             }
 

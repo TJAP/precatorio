@@ -16,6 +16,8 @@ import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.Normalizer;
 import java.text.NumberFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -23,6 +25,10 @@ import java.util.regex.Pattern;
 public class StringUtil {
 
     public static final int DEFAULT_BUFFER_SIZE = 8192;
+
+    public static String formataDataDMY(LocalDate data){
+        return data.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+    }
 
     public static String escapeHtml(String str){
         str = str.replaceAll("\\<[^>]*>","");
@@ -45,6 +51,9 @@ public class StringUtil {
         }
     }
     public static String formataNumeroProcesso(String numeroProc){
+        if(Objects.isNull(numeroProc)){
+            return "Sem numero";
+        }
         String numero = numeroProc.substring(0,7);
         String digito = numeroProc.substring(7,9);
         String ano = numeroProc.substring(9,13);

@@ -250,6 +250,9 @@ public class Requisitorio implements Serializable {
     private List<ProcessoDeducao> processoDeducaos = new ArrayList<>();
 
     @Transient
+    private List<AcordoDireto> acordoDiretos = new ArrayList<>();
+
+    @Transient
     private String numeroPrecatorio;
 
     @Transient
@@ -354,6 +357,7 @@ public class Requisitorio implements Serializable {
 
         dto.setProcessoDeducaos(this.processoDeducaos.stream().map(ProcessoDeducao::toDto).toList());
         dto.setPrioridades(this.prioridades.stream().map(Prioridade::toDTO).toList());
+        dto.setAcordos(this.acordoDiretos.stream().map(AcordoDireto::toDTO).toList());
         dto.setAnoVencimento(Objects.isNull(this.anoVencimento) ? 2021 : this.anoVencimento);
         return dto;
     }

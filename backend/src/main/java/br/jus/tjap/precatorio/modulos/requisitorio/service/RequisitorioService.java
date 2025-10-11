@@ -26,9 +26,8 @@ public class RequisitorioService {
         return requisitorio.orElseThrow();
     }
 
-    public List<AcordoDiretoDTO> listarAcordoPOrProcesso(String numeroProcesso){
-        var acordos = acordoDiretoRepository.findAllByNUmeroProcesso(numeroProcesso);
-        return acordos.stream().map(AcordoDireto::toDTO).toList();
+    public List<AcordoDireto> listarAcordoPorProcesso(String numeroProcesso){
+        return acordoDiretoRepository.findAllByNUmeroProcesso(numeroProcesso);
     }
 
 }

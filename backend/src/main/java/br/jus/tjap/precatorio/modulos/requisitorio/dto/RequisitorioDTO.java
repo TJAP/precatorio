@@ -112,6 +112,7 @@ public class RequisitorioDTO {
     private EnteDevedorDTO enteDevedorDTO;
     private List<ProcessoDeducaoDTO> processoDeducaos = new ArrayList<>();
     private List<PrioridadeDTO> prioridades = new ArrayList<>();
+    private List<AcordoDiretoDTO> acordos = new ArrayList<>();
 
     // para requestCalculo
     private String tipoVinculoCredor;
