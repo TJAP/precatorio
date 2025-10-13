@@ -330,7 +330,7 @@ public class Requisitorio implements Serializable {
                 mesesAcumulados = this.numeroMesesRendimentoAcumulado;
             }
         } else {
-            mesesAcumulados = Math.toIntExact(DateUtil.calcularMesesPeriodo(this.dtInicioRRA, this.dtFimRRA));
+            mesesAcumulados = Math.toIntExact(DateUtil.calcularMesesPeriodo(this.dtInicioRRA, this.dtFimRRA))-1;
         }
 
         dto.setNumeroMesesRendimentoAcumulado(mesesAcumulados);
@@ -512,17 +512,17 @@ public class Requisitorio implements Serializable {
     }
 
     private String deParaTributacaoCredor(String documentoCredor, String vinculoNorm, boolean rraNoRequisitorio){
-        var tipoPessoa = "CNPJ";
+        var tipoPessoa = "PJ";
 
         if(Objects.isNull(documentoCredor)){
             throw new RuntimeException("Documento não informado no requisitório");
         }
 
         if(StringUtil.removerFormatacaoNumeroDocumento(documentoCredor).length() <= 12 ){
-            tipoPessoa = "CPF";
+            tipoPessoa = "PF";
         }
 
-        if(tipoPessoa.equalsIgnoreCase("CNPJ")){
+        if(tipoPessoa.equalsIgnoreCase("PJ")){
             if(vinculoNorm.toUpperCase().contains("EXECUÇÃO de OBRAS")){
                 vinculoNorm = "PJCESSAO";
             }else if(vinculoNorm.toUpperCase().contains("SERVIÇOS")){

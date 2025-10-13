@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.20.6.final using JasperReports Library version 6.20.6-5c96b6aa8a39ac1dc6b6bea4b81168e16dd39231  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="recibo" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="ad42e0b1-dcda-4be3-a943-514230b81651">
+	<parameter name="icoBrasaoAp" class="java.io.InputStream"/>
+	<parameter name="processoPrecatorio" class="java.lang.String"/>
+	<parameter name="devedorDocumento" class="java.lang.String"/>
+	<parameter name="devedorNome" class="java.lang.String"/>
+	<parameter name="devedorContaJudicial" class="java.lang.String"/>
+	<parameter name="credorDocumento" class="java.lang.String"/>
+	<parameter name="credorNome" class="java.lang.String"/>
+	<parameter name="credorNascimento" class="java.lang.String"/>
+	<parameter name="idadeCredor" class="java.lang.Integer"/>
+	<parameter name="requisitorioUltimaAtualizacao" class="java.lang.String"/>
+	<parameter name="requisitorioValorPrincipalTributavel" class="java.lang.String"/>
+	<parameter name="atualizacaoValorTotal" class="java.lang.String"/>
+	<title>
+		<band height="80">
+			<staticText>
+				<reportElement x="0" y="65" width="555" height="15" uuid="4b103cea-a637-479e-873c-c0721df341ef"/>
+				<textElement textAlignment="Center">
+					<font size="13" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Poder Judiciário - Tribunal de Justiça]]></text>
+			</staticText>
+		</band>
+	</title>
+	<detail>
+		<band height="400">
+			<textField>
+				<reportElement x="0" y="0" width="400" height="15" uuid="19fa680f-470c-4c75-8f2e-dcce72970aa0"/>
+				<textFieldExpression><![CDATA["Número do Precatório: " + $P{processoPrecatorio}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="20" width="300" height="15" uuid="4dc87436-50fa-464f-992d-18cf8079dd11"/>
+				<textFieldExpression><![CDATA["Devedor: " + $P{devedorNome} + " - CNPJ: " + $P{devedorDocumento}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="40" width="300" height="15" uuid="a762b8ea-00ef-46cf-acf6-e163f202b145"/>
+				<textFieldExpression><![CDATA["Credor: " + $P{credorNome} + " - CPF: " + $P{credorDocumento}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="60" width="300" height="15" uuid="ef9d692d-488d-48de-b3dd-3a290e51d8c7"/>
+				<textFieldExpression><![CDATA["Idade: " + $P{idadeCredor}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="80" width="500" height="15" uuid="a9f871e8-b451-4cf4-b243-6e75d3c20da2"/>
+				<textFieldExpression><![CDATA["Data-base: " + $P{requisitorioUltimaAtualizacao}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="100" width="500" height="15" uuid="c92dd7aa-a43d-486d-b208-311ae9769bd7"/>
+				<textFieldExpression><![CDATA["Valor Principal Tributável: " + $P{requisitorioValorPrincipalTributavel}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="120" width="500" height="15" uuid="40feb5a6-9a6c-4610-8fa8-680ffe97b8f0"/>
+				<textFieldExpression><![CDATA["Atualização Valor Total: " + $P{atualizacaoValorTotal}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

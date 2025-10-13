@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Base64;
 import java.util.Map;
 import java.util.Objects;
 
@@ -136,11 +137,14 @@ public class CalculoController {
             summary = "Calcula atualização monetária e pagamento",
             description = "Retorna o extrato de calculo em PDF",
             operationId = "calcularCorrecaoMonetariaPDF")
-    public byte[] gerarPDFCalculo(@PathVariable Long id) throws JRException, JsonProcessingException {
+    public ResponseEntity<Response<String>> gerarPDFCalculo(@PathVariable Long id) throws JRException, JsonProcessingException {
         ResumoCalculoDocumentoDTO documentoDTO = new ResumoCalculoDocumentoDTO();
         CalculoRequisitorioDTO resultado = montaCalculo(id);
         var relatorio = documentoDTO.montarResumoDocumento(resultado);
-        return reportJsService.getRelatorioResumosCalculo(relatorio);
+        //Map<String, Object> parametros = new java.util.HashMap<>(Map.of());
+        //parametros.put("TITULO_RELATORIO", "Calculo resumido");
+        //byte[] pdf = relatorioService.gerarComprovantePrecatorio(relatorio,parametros);
+        return ResponseFactory.ok(Base64.getEncoder().encodeToString(reportJsService.getRelatorioResumosCalculo(relatorio)));
     }
 
     private CalculoRequisitorioDTO montaCalculo(Long idRequisitorio) throws JsonProcessingException {

@@ -25,11 +25,21 @@ public class ResumoCalculoDocumentoDTO {
     private String devedorNome;
     private String devedorDocumento;
     private String devedorContaJudicial;
+
     private String credorNome;
     private String credorDocumento;
-    private String advCredorNome;
     private String credorNascimento;
     private int idadeCredor;
+    private String credorBanco;
+    private String credorAgencia;
+    private String credorConta;
+    private String credorDV;
+
+    private String advCredorNome;
+    private String advCredorBanco;
+    private String advCredorAgencia;
+    private String advCredorConta;
+    private String advCredorDV;
 
     private String temPrioridade = "Não";
     private String temAcordo = "Não";
@@ -127,6 +137,15 @@ public class ResumoCalculoDocumentoDTO {
         doc.setCredorNome(resumo.getRequisitorioDTO().getNomeCredor());
         doc.setCredorDocumento(resumo.getRequisitorioDTO().getDocumentoCredor());
         doc.setCredorNascimento(StringUtil.formataDataDMY(resumo.getRequisitorioDTO().getNascimentoCredor()));
+        // TODO - Verificar o banco do usuário
+        doc.setCredorBanco(resumo.getRequisitorioDTO().getNomeBancoCredor());
+        doc.setCredorAgencia(resumo.getRequisitorioDTO().getAgenciaCredor());
+        doc.setCredorConta(resumo.getRequisitorioDTO().getContaCorrenteCredor());
+        doc.setCredorDV("0");
+        doc.setAdvCredorBanco(resumo.getRequisitorioDTO().getNomeBancoAdvCredor());
+        doc.setAdvCredorAgencia(resumo.getRequisitorioDTO().getAgenciaAdvCredor());
+        doc.setAdvCredorConta(resumo.getRequisitorioDTO().getContaCorrenteAdvCredor());
+        doc.setAdvCredorDV("0");
         doc.setIdadeCredor(Period.between(Objects.isNull(resumo.getRequisitorioDTO().getNascimentoCredor())? LocalDate.now().minusYears(1) : resumo.getRequisitorioDTO().getNascimentoCredor(), LocalDate.now()).getYears());
         doc.setRequisitorioValorPrincipalTributavel(RelatorioUtil.formatarValorMoeda(resumo.getRequest().getValorPrincipalTributavel()));
         doc.setRequisitorioValorPrincipalNaoTributavel(RelatorioUtil.formatarValorMoeda(resumo.getRequest().getValorPrincipalNaoTributavel()));

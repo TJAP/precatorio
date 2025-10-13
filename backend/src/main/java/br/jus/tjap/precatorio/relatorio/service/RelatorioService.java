@@ -1,7 +1,9 @@
 package br.jus.tjap.precatorio.relatorio.service;
 
+import br.jus.tjap.precatorio.modulos.calculadora.dto.ResumoCalculoDocumentoDTO;
 import net.sf.jasperreports.engine.*;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
 import java.io.InputStream;
@@ -66,7 +68,7 @@ public class RelatorioService {
         }
 
         // Caminho padrão dos relatórios
-        String caminho = String.format("/reports/%s.jrxml", nomeTemplate);
+        String caminho = String.format("/relatorios/%s.jrxml", nomeTemplate);
         InputStream relatorioStream = getClass().getResourceAsStream(caminho);
         if (relatorioStream == null) {
             throw new IllegalStateException("Arquivo do relatório não encontrado no classpath: " + caminho);
@@ -86,5 +88,23 @@ public class RelatorioService {
 
         // Exporta para PDF
         return JasperExportManager.exportReportToPdf(jasperPrint);
+    }
+
+    public byte[] gerarComprovantePrecatorio(ResumoCalculoDocumentoDTO dto, Map<String, Object> parametros) {
+        try {
+            InputStream jrxmlStream = new ClassPathResource("relatorios/calculo_precatorio.jrxml").getInputStream();
+
+            JasperReport jasperReport = JasperCompileManager.compileReport(jrxmlStream);
+
+            // Usa o próprio DTO como datasource (singleton list)
+            JRBeanCollectionDataSource dataSource = new JRBeanCollectionDataSource(List.of(dto));
+
+            JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, parametros, dataSource);
+
+            return JasperExportManager.exportReportToPdf(jasperPrint);
+
+        } catch (Exception e) {
+            throw new RuntimeException("Erro ao gerar relatório: " + e.getMessage(), e);
+        }
     }
 }
