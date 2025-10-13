@@ -11,6 +11,7 @@ import java.util.Locale;
 import java.util.Objects;
 
 import br.jus.tjap.precatorio.modulos.calculadora.util.PagamentoUtil;
+import br.jus.tjap.precatorio.modulos.calculadora.util.UtilCalculo;
 import br.jus.tjap.precatorio.modulos.requisitorio.dto.RelatorioJsRequestDTO;
 import br.jus.tjap.precatorio.modulos.requisitorio.dto.RequisitorioDTO;
 import br.jus.tjap.precatorio.modulos.tabelasbasicas.entity.EnteDevedor;
@@ -322,7 +323,17 @@ public class Requisitorio implements Serializable {
         dto.setDtUltimaAtualizacaoPlanilha(this.dtUltimaAtualizacaoPlanilha);
         dto.setRetencaoImposto(this.retencaoImposto);
         dto.setVlRetencaoImposto(this.vlRetencaoImposto);
-        dto.setNumeroMesesRendimentoAcumulado(this.numeroMesesRendimentoAcumulado);
+
+        var mesesAcumulados = 0;
+        if(Objects.isNull(this.dtInicioRRA) && Objects.isNull(this.dtFimRRA)){
+            if(Objects.nonNull(this.numeroMesesRendimentoAcumulado)){
+                mesesAcumulados = this.numeroMesesRendimentoAcumulado;
+            }
+        } else {
+            mesesAcumulados = Math.toIntExact(DateUtil.calcularMesesPeriodo(this.dtInicioRRA, this.dtFimRRA));
+        }
+
+        dto.setNumeroMesesRendimentoAcumulado(mesesAcumulados);
         dto.setPagamentoPrevidenciario(this.pagamentoPrevidenciario);
         dto.setVlPrevidencia(this.vlPrevidencia);
         dto.setOrgaoPrevidencia(this.orgaoPrevidencia);
@@ -352,7 +363,7 @@ public class Requisitorio implements Serializable {
         dto.setTipoTributacaoCredor(deParaTributacaoCredor(
                 this.documentoCredor,
                 this.dsTipoObrigacao.contains("Indenização") ? "INDENIZACAO" : this.dsTipoObrigacao,
-                this.numeroMesesRendimentoAcumulado > 0
+                mesesAcumulados > 0
         ));
 
         dto.setProcessoDeducaos(this.processoDeducaos.stream().map(ProcessoDeducao::toDto).toList());

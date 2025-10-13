@@ -6,6 +6,7 @@ import java.text.DateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.time.temporal.ChronoUnit;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -22,6 +23,29 @@ public class DateUtil {
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
     static final Locale BRAZIL = new Locale("pt","BR");
+
+    public static boolean estaEntreADataAtual(LocalDate ini, LocalDate fim) {
+        LocalDate hoje = LocalDate.now();
+        return (hoje.isAfter(ini) && hoje.isBefore(fim));
+    }
+
+    public static long calcularMesesPeriodo(LocalDate dataInicio, LocalDate dataFim) {
+        if (dataInicio == null || dataFim == null) {
+            return 0L;
+        }
+
+        // Equivalente a: DATE(YEAR(AO3); MONTH(AO3)+1; 1)
+        LocalDate proximoMesPrimeiroDia = dataFim.plusMonths(1).withDayOfMonth(1);
+
+        // DATEDIF(AN3; AO3; "m")
+        long mesesEntre = ChronoUnit.MONTHS.between(dataInicio.withDayOfMonth(1), dataFim.withDayOfMonth(1));
+
+        // DATEDIF(AN3; DATE(YEAR(AO3);MONTH(AO3)+1;1);"y")
+        long anosEntre = ChronoUnit.YEARS.between(dataInicio, proximoMesPrimeiroDia);
+
+        // Soma os componentes e adiciona +1 conforme a fórmula
+        return anosEntre + mesesEntre + 1;
+    }
 
     public static String getDataHojeFormatada(){
         return DateFormat.getDateInstance(DateFormat.LONG,BRAZIL).format(new Date());

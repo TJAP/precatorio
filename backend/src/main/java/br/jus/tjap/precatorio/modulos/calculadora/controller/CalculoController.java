@@ -233,9 +233,6 @@ public class CalculoController {
 
         }
 
-
-
-
         resultado.setRequest(req);
         resultado.setRequisitorioDTO(requisitorioDTO);
 
