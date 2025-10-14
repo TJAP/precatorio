@@ -22,5 +22,7 @@ public class CalculoRequisitorioDTO {
     //@JsonIgnore
     private CalculoPagamentoDTO calculoPagamentoDTO;
     private CalculoResumoDTO calculoResumoDTO;
+    private ResumoCalculoDocumentoDTO dadosDocumentoCalculo;
+    private String base64DocumentoCalculo;
 
 }

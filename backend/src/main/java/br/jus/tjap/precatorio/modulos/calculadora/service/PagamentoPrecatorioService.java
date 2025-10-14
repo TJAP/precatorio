@@ -35,13 +35,33 @@ public class PagamentoPrecatorioService {
 
     private BigDecimal calcularIRPFProgressivoAdvogado(CalculoPagamentoDTO req,BigDecimal baseCalculo) {
 
+        /*
+        IF(E86="PF - Tabela Progressiva";
+            IF((E85-F191)<=D186;0;
+            IF(AND((E85-F191)>=C187;(E85-F191)<=D187);
+                    (E85-F191)*E187-F187;
+            IF(AND((E85-F191)>=C188;
+                (E85-F191)<=D188);
+                    (E85-F191)*E188-F188;
+            IF(AND((E85-F191)>=C189;
+                (E85-F191)<=D189);
+                    (E85-F191)*E189-F189;
+            IF((E85-F191)>=C190;
+                (E85-F191)*E190-F190)))));
+        IF(E86="PJ - Serviços";
+            E85*1,5%;
+            IF(E86="Simples Nacional";"Isento";0)))
+         */
         List<TabelaIRRF> tabela = tabelaIRRFRepository.findAll();
 
-        for (TabelaIRRF faixa : tabela) {
-            if (baseCalculo.subtract(DESCONTO_SIMPLIFICADO).compareTo(faixa.getValorFaixaInicial()) >= 0 &&
-                    baseCalculo.subtract(DESCONTO_SIMPLIFICADO).compareTo(faixa.getValorFaixaFinal()) <= 0) {
+        BigDecimal base = baseCalculo.subtract(DESCONTO_SIMPLIFICADO);
 
-                BigDecimal base = baseCalculo.subtract(DESCONTO_SIMPLIFICADO);
+        if (base.compareTo(BigDecimal.ZERO) <= 0) {
+            return BigDecimal.ZERO;
+        }
+
+        for (TabelaIRRF faixa : tabela) {
+            if (faixa.dentroDaFaixa(base)) {
                 BigDecimal valor = base.multiply(faixa.getValorAliquota()).divide(BigDecimal.valueOf(100),2,RoundingMode.HALF_UP);
                 BigDecimal menos = valor.subtract(faixa.getValorDeducao());
                 return menos;
@@ -50,7 +70,7 @@ public class PagamentoPrecatorioService {
 
         // Caso acima do teto
         TabelaIRRF ultimaFaixa = tabela.getLast();
-        return baseCalculo.subtract(DESCONTO_SIMPLIFICADO)
+        return base
                 .multiply(ultimaFaixa.getValorAliquota()).divide(BigDecimal.valueOf(100),2, RoundingMode.HALF_UP)
                 .subtract(ultimaFaixa.getValorDeducao());
 

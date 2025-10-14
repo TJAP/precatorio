@@ -203,7 +203,13 @@ public class ResumoCalculoDocumentoDTO {
         doc.setAlvaraValorPrevidencia(RelatorioUtil.formatarValorMoeda(resumo.getCalculoResumoDTO().getAlvaraValorPrevidencia()));
         doc.setAlvaraValorHonorarioContratualLiquido(RelatorioUtil.formatarValorMoeda(resumo.getCalculoResumoDTO().getAlvaraValorHonorarioContratualLiquido()));
         doc.setAlvaraIRRFHonorario(RelatorioUtil.formatarValorMoeda(resumo.getCalculoResumoDTO().getAlvaraIRRFHonorario()));
-        doc.setAlvaraValorPenhora(RelatorioUtil.formatarValorMoeda(resumo.getCalculoResumoDTO().getAlvaraValorPenhora()));
+
+        doc.setAlvaraValorPenhora(RelatorioUtil.formatarValorMoeda(resumo.getRequest().getValorPenhora()));
+
+        if(resumo.getRequest().getValorPenhora().compareTo(resumo.getCalculoPagamentoDTO().getPenhoraValor()) > 0){
+            doc.setAlvaraValorPenhora(RelatorioUtil.formatarValorMoeda(resumo.getCalculoPagamentoDTO().getCessaoBaseValor()));
+        }
+
         doc.setAlvaraValorCessao(RelatorioUtil.formatarValorMoeda(resumo.getCalculoResumoDTO().getAlvaraValorCessao()));
         doc.setAlvaraValorLiquidoCredor(RelatorioUtil.formatarValorMoeda(resumo.getCalculoResumoDTO().getAlvaraValorLiquidoCredor()));
         doc.setAlvaraValorTotalSomado(RelatorioUtil.formatarValorMoeda(resumo.getCalculoResumoDTO().getAlvaraValorTotalSomado()));
@@ -225,7 +231,7 @@ public class ResumoCalculoDocumentoDTO {
             doc.setTemAcordo("Sim");
         }
 
-        if(Objects.nonNull(resumo.getRequest().getPercentualCessao())){
+        if(UtilCalculo.isNotNullOrZero(resumo.getRequest().getPercentualCessao())){
            doc.setTemCessaoCredito("Sim");
         }
 

@@ -316,6 +316,7 @@ public class Requisitorio implements Serializable {
         dto.setIndiceAtualizacao(this.indiceAtualizacao);
         dto.setIdTaxaJurosAplicadas(this.idTaxaJurosAplicadas);
         dto.setVlJurosAplicado(this.vlJurosAplicado);
+        dto.setVlSelic(this.vlSelic);
         dto.setDevolucaoCusta(this.devolucaoCusta);
         dto.setVlDevolucaoCusta(this.vlDevolucaoCusta);
         dto.setPagamentoMulta(this.pagamentoMulta);
@@ -370,6 +371,8 @@ public class Requisitorio implements Serializable {
         dto.setPrioridades(this.prioridades.stream().map(Prioridade::toDTO).toList());
         dto.setAcordos(this.acordoDiretos.stream().map(AcordoDireto::toDTO).toList());
         dto.setAnoVencimento(Objects.isNull(this.anoVencimento) ? 2021 : this.anoVencimento);
+        dto.setDtInicioRRA(this.dtInicioRRA);
+        dto.setDtFimRRA(this.dtFimRRA);
         return dto;
     }
 
@@ -486,6 +489,10 @@ public class Requisitorio implements Serializable {
             return resultado;
         }
 
+        if(this.situacaoFuncionalCredor.equalsIgnoreCase("Com vinculo")){
+            return "Com vinculo";
+        }
+
         if(tipoVinculo.equalsIgnoreCase("Efetivo")){
             resultado = "Com vinculo";
         }
@@ -554,7 +561,6 @@ public class Requisitorio implements Serializable {
             }
         }
     }
-
 
 }
 

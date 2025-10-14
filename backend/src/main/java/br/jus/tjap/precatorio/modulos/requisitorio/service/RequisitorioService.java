@@ -5,6 +5,7 @@ import br.jus.tjap.precatorio.modulos.requisitorio.entity.AcordoDireto;
 import br.jus.tjap.precatorio.modulos.requisitorio.entity.Requisitorio;
 import br.jus.tjap.precatorio.modulos.requisitorio.repository.AcordoDiretoRepository;
 import br.jus.tjap.precatorio.modulos.requisitorio.repository.RequisitorioRepository;
+import br.jus.tjap.precatorio.util.StringUtil;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -23,6 +24,12 @@ public class RequisitorioService {
 
     public Requisitorio buscaPorId(Long id){
         var requisitorio = requisitorioRepository.findById(id);
+        return requisitorio.orElseThrow();
+    }
+
+    public Requisitorio buscaPorNumeroProcesso(String numeroProcesso){
+        numeroProcesso = StringUtil.removerFormatacaoNumeroDocumento(numeroProcesso);
+        var requisitorio = requisitorioRepository.buscarPorNumeroProcesso(numeroProcesso);
         return requisitorio.orElseThrow();
     }
 

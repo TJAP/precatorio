@@ -1,5 +1,6 @@
 package br.jus.tjap.precatorio.modulos.calculadora.dto;
 
+import br.jus.tjap.precatorio.modulos.calculadora.util.RelatorioUtil;
 import br.jus.tjap.precatorio.modulos.calculadora.util.UtilCalculo;
 import br.jus.tjap.precatorio.modulos.requisitorio.dto.RequisitorioDTO;
 import br.jus.tjap.precatorio.util.StringUtil;
@@ -157,17 +158,31 @@ public class CalculoResumoDTO {
         this.atualizacaoAcordoDireto = req.getRequest().isAcordoAdvogado() && req.getRequest().isAcordoCredor() ? req.getRequest().getPercentualDesagio().toString() : "NÃO";
 
         // tributação
+        boolean acordoAdvogado =req.getRequest().isAcordoAdvogado();
+        boolean acordoCredor =req.getRequest().isAcordoCredor();
         this.tributacaoHonorarioPercentual = req.getCalculoPagamentoDTO().getPercentualHonorario();
         this.tributacaoHonorarioMontanteDesembolso = req.getCalculoPagamentoDTO().getValorHonorarioBrutoAtualizado();
-        this.tributacaoHonorarioBaseTributacao = req.getCalculoPagamentoDTO().getValorHonorarioBrutoAtualizado();
+        this.tributacaoHonorarioBaseTributacao = req.getCalculoPagamentoDTO().getBaseTributavelHonorarioValor();
         this.tributacaoHonorarioTipoTributacao = req.getCalculoPagamentoDTO().getBaseTributavelHonorarioTipo();
         this.tributacaoHonorarioImposto = req.getCalculoPagamentoDTO().getBaseTributavelHonorarioImposto();
         this.tributacaoCredorPercentual = req.getCalculoPagamentoDTO().getPercentualParteCredor();
         this.tributacaoCredorMontanteDesembolso = req.getCalculoPagamentoDTO().getValorCredorBrutoAtualizado();
-        this.tributacaoCredorBaseTributacao = req.getCalculoPagamentoDTO().getValorCredorPrincipalTributavelAtualizado();
+        this.tributacaoCredorBaseTributacao = req.getCalculoPagamentoDTO().getBaseTributavelCredorValor();
         this.tributacaoCredorTipoTributacao = req.getCalculoPagamentoDTO().getTipoTributacaoCredor();
         this.tributacaoCredorImposto = req.getCalculoPagamentoDTO().getBaseTributavelCredorImposto();
         this.tributacaoCredorPrevidencia = req.getCalculoPagamentoDTO().getBaseTributavelCredorPrevidencia();
+
+        if(acordoAdvogado){
+            this.tributacaoHonorarioMontanteDesembolso = req.getCalculoPagamentoDTO().getValorDesagioHonorarioBrutoAtualizado();
+        } else if(!acordoAdvogado && acordoCredor){
+            this.tributacaoHonorarioMontanteDesembolso = BigDecimal.ZERO;
+        }
+
+        if(acordoCredor){
+            this.tributacaoCredorMontanteDesembolso = req.getCalculoPagamentoDTO().getValorDesagioCredorBrutoAtualizado();
+        } else if(acordoAdvogado && !acordoCredor){
+            this.tributacaoCredorMontanteDesembolso = BigDecimal.ZERO;
+        }
 
         // resumo do alvará
         this.alvaraDevedorNome = this.devedorNome;
@@ -176,12 +191,18 @@ public class CalculoResumoDTO {
                 req.getRequisitorioDTO().getEnteDevedorDTO().getComVinculo()
                  : req.getRequisitorioDTO().getEnteDevedorDTO().getSemVinculo();
         this.alvaraValorPrevidencia = req.getCalculoPagamentoDTO().getBaseTributavelCredorPrevidencia();
-        this.alvaraValorHonorarioContratualLiquido = req.getCalculoPagamentoDTO().getValorHonorarioBrutoAtualizado().subtract(req.getCalculoPagamentoDTO().getBaseTributavelHonorarioImposto());
+        this.alvaraValorHonorarioContratualLiquido = this.tributacaoHonorarioMontanteDesembolso.subtract(this.tributacaoHonorarioImposto);
         this.alvaraIRRFHonorario = req.getCalculoPagamentoDTO().getBaseTributavelHonorarioImposto();
         //=IF(D94>G94;G93;D94)
-        this.alvaraValorPenhora = req.getRequest().getValorPenhora().compareTo(req.getCalculoPagamentoDTO().getPenhoraBaseValor())>0 ? req.getCalculoPagamentoDTO().getCessaoBaseValor() : req.getRequest().getValorPenhora();
+        this.alvaraValorPenhora = req.getRequest().getValorPenhora();
+
+        if(req.getRequest().getValorPenhora().compareTo(req.getCalculoPagamentoDTO().getPenhoraValor()) > 0){
+            this.alvaraValorPenhora = req.getCalculoPagamentoDTO().getCessaoBaseValor();
+        }
+
         //=D93*G93
-        this.alvaraValorCessao = req.getRequest().getPercentualCessao().multiply(req.getCalculoPagamentoDTO().getCessaoBaseValor()).divide(BigDecimal.valueOf(100),2, RoundingMode.HALF_UP);
+        this.alvaraValorCessao =
+                req.getCalculoPagamentoDTO().getCessaoPercentual().multiply(req.getCalculoPagamentoDTO().getCessaoBaseValor()).divide(BigDecimal.valueOf(100),2, RoundingMode.HALF_UP);
         //=IFERROR((M133-M136-M137-L147-L146);0)
         //=IFERROR((M133-M136-M137-L147-L146);0)
         this.alvaraValorLiquidoCredor = UtilCalculo.escala(this.tributacaoCredorMontanteDesembolso

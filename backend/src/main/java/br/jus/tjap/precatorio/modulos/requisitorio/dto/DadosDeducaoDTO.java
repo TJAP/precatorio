@@ -24,5 +24,6 @@ public class DadosDeducaoDTO {
     private String observacao;
     private String descricao;
     private LocalDate data_nascimento_pessoa_destino;
+    private BigDecimal porcentagemCessao;
 
 }

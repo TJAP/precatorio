@@ -36,6 +36,11 @@ public class TabelaIRRF implements Serializable {
     @Column(name = "deducao")
     private BigDecimal valorDeducao;
 
+    public boolean dentroDaFaixa(BigDecimal base) {
+        return base.compareTo(this.valorFaixaInicial) >= 0 &&
+                (this.valorFaixaFinal == null || base.compareTo(this.valorFaixaFinal) <= 0);
+    }
+
     public TabelaIRRFDTO toCalculoCorrigido(BigDecimal totalMeses){
         var tabela = new TabelaIRRFDTO();
 
