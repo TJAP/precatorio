@@ -157,6 +157,9 @@ public class Requisitorio implements Serializable {
     @Column(name = "dt_base_ultima_atualizacao")
     private LocalDate dtUltimaAtualizacaoPlanilha;
 
+    @Column(name = "dt_base_final_atualizacao")
+    private LocalDate dtFimAtualizacaoPlanilha;
+
     // imposto de renda
     @Column(name = "in_retencao_ir")
     private Boolean retencaoImposto;

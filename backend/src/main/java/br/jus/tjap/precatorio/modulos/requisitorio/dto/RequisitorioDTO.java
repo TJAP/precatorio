@@ -75,6 +75,7 @@ public class RequisitorioDTO {
     private boolean pagamentoMulta;
     private BigDecimal vlPagamentoMulta;
     private LocalDate dtUltimaAtualizacaoPlanilha;
+    private LocalDate dtFimAtualizacaoPlanilha;
     private Integer numeroMesesRendimentoAcumulado;
     private Boolean pagamentoPrevidenciario;
     private BigDecimal vlPrevidencia;
@@ -118,11 +119,6 @@ public class RequisitorioDTO {
     private String tipoVinculoCredor;
     private String tipoTributacaoCredor;
     private String tipoTributacaoAdvogado;
-
-
-
-
-
 
     public String getNumeroProcessoPJE(){
         return StringUtil.formataNumeroProcesso(getIdProcesso());

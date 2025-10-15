@@ -5,6 +5,8 @@ import br.jus.tjap.precatorio.modulos.calculadora.service.CalculoPrecatorioServi
 import br.jus.tjap.precatorio.modulos.calculadora.service.PagamentoPrecatorioService;
 import br.jus.tjap.precatorio.modulos.calculadora.util.UtilCalculo;
 import br.jus.tjap.precatorio.modulos.requisitorio.dto.DadosDeducaoDTO;
+import br.jus.tjap.precatorio.modulos.requisitorio.dto.RequisitorioDTO;
+import br.jus.tjap.precatorio.modulos.requisitorio.entity.Requisitorio;
 import br.jus.tjap.precatorio.modulos.requisitorio.service.RequisitorioService;
 import br.jus.tjap.precatorio.modulos.requisitorio.service.ProcessoDeducaoService;
 import br.jus.tjap.precatorio.relatorio.service.RelatorioService;
@@ -30,6 +32,8 @@ import java.util.Objects;
 @RequestMapping(ApiVersions.V1 + "/calculos")
 @Tag(name = "Calculadora", description = "Operações relacionadas a calculos")
 public class CalculoController {
+
+    Log
 
     private final RequisitorioService requisitorioService;
     private final CalculoPrecatorioService calculoJurosService;
@@ -57,28 +61,70 @@ public class CalculoController {
             summary = "Calcula atualização monetária e pagamento",
             description = "Retorna o extrato de calculo em PDF",
             operationId = "calcularCorrecaoMonetariaPDF")
-    public ResponseEntity<Response<CalculoRequisitorioDTO>> gerarPDFCalculo(@PathVariable Long id) throws JRException, JsonProcessingException {
+    public ResponseEntity<Response<CalculoRequisitorioDTO>> gerarPDFCalculo(@PathVariable Long id) {
         ResumoCalculoDocumentoDTO documentoDTO = new ResumoCalculoDocumentoDTO();
-        CalculoRequisitorioDTO resultado = montaCalculo(id);
+        CalculoRequisitorioDTO resultado = montaCalculoAtualizacao(id);
         var relatorio = documentoDTO.montarResumoDocumento(resultado);
         resultado.setDadosDocumentoCalculo(relatorio);
         resultado.setBase64DocumentoCalculo(Base64.getEncoder().encodeToString(reportJsService.getRelatorioResumosCalculo(relatorio)));
         return ResponseFactory.ok(resultado);
     }
 
-    @GetMapping("/precatorios/processo/{numeroProcesso}")
+    @GetMapping("/precatorios/processo/{id}")
     @Operation(
             summary = "Retorna a requisição do calculo por processo",
             description = "Retorna a requisição do calculo por processo",
             operationId = "gerarRequisicaoCalculoPorProcesso")
-    public ResponseEntity<Response<CalculoRequest>> gerarRequisicaoCalculoPorProcesso(@PathVariable String numeroProcesso) throws JsonProcessingException {
-        var requisitorio = requisitorioService.buscaPorNumeroProcesso(numeroProcesso);
+    public ResponseEntity<Response<CalculoRequest>> gerarRequisicaoCalculoPorProcesso(@PathVariable Long id) {
+        var requisitorio = requisitorioService.buscaPorId(id);
         var processosDeducoes = processoDeducaoService.listaProcessoDeducaoPorProcessoOrigem(requisitorio.getIdProcesso());
         var acordos = requisitorioService.listarAcordoPorProcesso(requisitorio.getNumProcessoTucujuris());
         requisitorio.setProcessoDeducaos(processosDeducoes);
         requisitorio.setAcordoDiretos(acordos);
-
         var requisitorioDTO = requisitorio.toMetadado();
+        return ResponseFactory.ok(montaRequest(requisitorioDTO));
+    }
+
+    @PostMapping("/precatorios/processo")
+    @Operation(
+            summary = "Salva a requisição do calculo por processo",
+            description = "Retorna a requisição do calculo por processo",
+            operationId = "gerarRequisicaoCalculoPorProcesso")
+    public ResponseEntity<Response<CalculoRequisitorioDTO>> salvarRequisicaoEhRetornaPDF(@RequestBody CalculoRequest req) {
+
+        CalculoRequisitorioDTO calculo = new CalculoRequisitorioDTO();
+        ResumoCalculoDocumentoDTO documentoDTO = new ResumoCalculoDocumentoDTO();
+
+        if(req.getIdPrecatorio() == null){
+            throw new RuntimeException("Informe o numero do precatorio");
+        }
+
+        Requisitorio requisitorio = requisitorioService.buscaPorId(req.getIdPrecatorio());
+        requisitorio.setDtUltimaAtualizacaoPlanilha(req.getDataUltimaAtualizacao());
+        requisitorio.setDtFimAtualizacaoPlanilha(req.getDataFimAtualizacao());
+        requisitorio.setAnoVencimento(req.getAnoVencimento());
+        requisitorio.setDtInicioRRA(req.getDataInicioRRA());
+        requisitorio.setDtFimRRA(req.getDataFimRRA());
+        requisitorio.setVlPrincipalTributavelCorrigido(req.getValorPrincipalTributavel());
+        requisitorio.setVlPrincipalNaoTributavelCorrigido(req.getValorPrincipalNaoTributavel());
+        requisitorio.setVlJurosAplicado(req.getValorJuros());
+        requisitorio.setVlSelic(req.getValorSelic());
+        requisitorio.setVlPrevidencia(req.getValorPrevidencia());
+        requisitorio.setVlDevolucaoCusta(req.getCustas());
+        requisitorio.setVlPagamentoMulta(req.getMulta());
+
+        Requisitorio requi = requisitorioService.salvar(requisitorio);
+
+        calculo = montaCalculoAtualizacao(requi.getId());
+        var relatorio = documentoDTO.montarResumoDocumento(calculo);
+        calculo.setDadosDocumentoCalculo(relatorio);
+
+        calculo.setBase64DocumentoCalculo(Base64.getEncoder().encodeToString(reportJsService.getRelatorioResumosCalculo(relatorio)));
+
+        return ResponseFactory.ok(calculo);
+    }
+
+    private CalculoRequest montaRequest(RequisitorioDTO requisitorioDTO){
 
         var req  = new CalculoRequest();
 
@@ -93,9 +139,9 @@ public class CalculoController {
         req.setTipoVinculoCredor(requisitorioDTO.getTipoVinculoCredor());
 
         // verifica se tem acordo
-        if(!acordos.isEmpty()){
-            req.setPercentualDesagio(acordos.getFirst().getPercentualDesagio());
-            for(var acordo : acordos){
+        if(!requisitorioDTO.getAcordos().isEmpty()){
+            req.setPercentualDesagio(requisitorioDTO.getAcordos().getFirst().getPercentualDesagio());
+            for(var acordo : requisitorioDTO.getAcordos()){
                 if(acordo.getTipoParte().equalsIgnoreCase("Credor Principal")){
                     req.setAcordoCredor(Boolean.TRUE);
 
@@ -148,10 +194,15 @@ public class CalculoController {
 
         req.setPercentualCessao(BigDecimal.ZERO);
         req.setValorPenhora(BigDecimal.ZERO);
-        if(!processosDeducoes.isEmpty()){
+        if(!requisitorioDTO.getProcessoDeducaos().isEmpty()){
             ObjectMapper mapper = new ObjectMapper();
-            for(var deducao : processosDeducoes){
-                var dados = mapper.readValue(deducao.getDadosDeducao(), DadosDeducaoDTO.class);
+            for(var deducao : requisitorioDTO.getProcessoDeducaos()){
+                DadosDeducaoDTO dados = null;
+                try {
+                    dados = mapper.readValue(deducao.getDadosDeducao(), DadosDeducaoDTO.class);
+                } catch (JsonProcessingException e) {
+                    throw new RuntimeException(e);
+                }
                 if(deducao.getTipoDeducao() == 1){
                     req.setValorPenhora(UtilCalculo.manterValorZeroSeNulo(dados.getValor()));
                 } else if(deducao.getTipoDeducao() == 2){
@@ -161,10 +212,10 @@ public class CalculoController {
 
         }
 
-        return ResponseFactory.ok(req);
+        return req;
     }
 
-    private CalculoRequisitorioDTO montaCalculo(Long idRequisitorio) throws JsonProcessingException {
+    private CalculoRequisitorioDTO montaCalculoAtualizacao(Long idRequisitorio) {
 
         var requisitorio = requisitorioService.buscaPorId(idRequisitorio);
         var processosDeducoes = processoDeducaoService.listaProcessoDeducaoPorProcessoOrigem(requisitorio.getIdProcesso());
@@ -175,84 +226,8 @@ public class CalculoController {
         var requisitorioDTO = requisitorio.toMetadado();
 
         var resultado = new CalculoRequisitorioDTO();
-        var req  = new CalculoRequest();
-
-        req.setPercentualHonorario(UtilCalculo.manterValorZeroSeNulo(requisitorioDTO.getVlPercentualHonorarioAdvCredor()));
-        req.setPercentualDesagio(BigDecimal.ZERO);
-        req.setAcordoAdvogado(Boolean.FALSE);
-        req.setAcordoCredor(Boolean.FALSE);
-        req.setTipoTributacaoCredor(requisitorioDTO.getTipoTributacaoCredor());
-        req.setTributacaoAdvogado(requisitorioDTO.getTipoTributacaoAdvogado());
-        req.setTipoVinculoCredor(requisitorioDTO.getTipoVinculoCredor());
-
-        // verifica se tem acordo
-        if(!acordos.isEmpty()){
-            req.setPercentualDesagio(acordos.getFirst().getPercentualDesagio());
-            for(var acordo : acordos){
-                if(acordo.getTipoParte().equalsIgnoreCase("Credor Principal")){
-                    req.setAcordoCredor(Boolean.TRUE);
-
-                    if(Objects.nonNull(acordo.getTipoTributacao())){
-                        if(Objects.nonNull(req.getDataInicioRRA())){
-                            req.setTipoTributacaoCredor("RRA");
-                        } else {
-                        req.setTipoTributacaoCredor(
-                                acordo.getTipoTributacao().equalsIgnoreCase("Pessoa Jurídica - Simples") ? "SN" : "PF"
-                        );
-                        }
-                    }
-
-                } else if(acordo.getTipoParte().equalsIgnoreCase("Honorários Contratuais")){
-                    if(Objects.nonNull(acordo.getPercentualHonorario())){
-                        req.setPercentualHonorario(UtilCalculo.manterValorZeroSeNulo(acordo.getPercentualHonorario()));
-                    }
-
-                    if(Objects.nonNull(acordo.getTipoTributacao())){
-                        req.setTributacaoAdvogado(
-                                acordo.getTipoTributacao().equalsIgnoreCase("Pessoa Jurídica - Simples") ? "SN" : "PF"
-                        );
-                    }
-                    req.setAcordoAdvogado(Boolean.TRUE);
-                }
-            }
-        }
-
-        req.setNumeroProcesso(requisitorioDTO.getIdProcesso());
-        req.setDataUltimaAtualizacao(requisitorioDTO.getDtUltimaAtualizacaoPlanilha());
-        req.setCnpjDevedor(requisitorioDTO.getDocumentoDevedor());
-        req.setDataFimAtualizacao(LocalDate.of(2025,8,30));
-        req.setAnoVencimento(requisitorioDTO.getAnoVencimento());
-        req.setDataInicioRRA(requisitorioDTO.getDtInicioRRA());
-        req.setDataFimRRA(requisitorioDTO.getDtFimRRA());
-        req.setValorPrincipalTributavel(UtilCalculo.manterValorZeroSeNulo(requisitorioDTO.getVlPrincipalTributavelCorrigido()));
-        req.setValorPrincipalNaoTributavel(UtilCalculo.manterValorZeroSeNulo(requisitorioDTO.getVlPrincipalNaoTributavelCorrigido()));
-        req.setValorJuros(UtilCalculo.manterValorZeroSeNulo(requisitorioDTO.getVlJurosAplicado()));
-        req.setValorSelic(UtilCalculo.manterValorZeroSeNulo(requisitorioDTO.getVlSelic()));
-        req.setValorPrevidencia(UtilCalculo.manterValorZeroSeNulo(requisitorioDTO.getVlPrevidencia()));
-        req.setCustas(UtilCalculo.manterValorZeroSeNulo(requisitorioDTO.getVlDevolucaoCusta()));
-        req.setMulta(UtilCalculo.manterValorZeroSeNulo(requisitorioDTO.getVlPagamentoMulta()));
-        req.setOutrosReembolsos(BigDecimal.ZERO);
-        req.setTemPrioridade(!requisitorioDTO.getPrioridades().isEmpty());
-        // TODO: verifica de onde retirar essa informação
-        req.setPagamentoParcial(Boolean.FALSE);
-        req.setValorPagamentoParcial(BigDecimal.ZERO);
-
-        req.setValorPagoAdvogado(BigDecimal.ZERO);
-
-        req.setPercentualCessao(BigDecimal.ZERO);
-        req.setValorPenhora(BigDecimal.ZERO);
-        if(!processosDeducoes.isEmpty()){
-            ObjectMapper mapper = new ObjectMapper();
-            for(var deducao : processosDeducoes){
-                var dados = mapper.readValue(deducao.getDadosDeducao(), DadosDeducaoDTO.class);
-                if(deducao.getTipoDeducao() == 1){
-                    req.setValorPenhora(UtilCalculo.manterValorZeroSeNulo(dados.getValor()));
-                } else if(deducao.getTipoDeducao() == 2){
-                    req.setPercentualCessao(dados.getPorcentagemCessao());
-                }
-            }
-
-        }
+        resultado.setIdRequisitorio(idRequisitorio);
+        var req  = montaRequest(requisitorioDTO);
 
         resultado.setRequest(req);
         resultado.setRequisitorioDTO(requisitorioDTO);
@@ -313,8 +288,6 @@ public class CalculoController {
         pagRequest.setCnpjDevedor(req.getCnpjDevedor());
         return pagRequest;
     }
-
-
 
 }
 

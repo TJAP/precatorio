@@ -37,4 +37,8 @@ public class RequisitorioService {
         return acordoDiretoRepository.findAllByNUmeroProcesso(numeroProcesso);
     }
 
+    public Requisitorio salvar(Requisitorio requisitorio){
+        return requisitorioRepository.save(requisitorio);
+    }
+
 }

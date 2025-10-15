@@ -61,7 +61,7 @@ public class ReportJsService {
         }
     }
 
-    public byte[] getRelatorio(String nomeRelatorio, Object dto) {
+    public byte[] getRelatorio(String nomeRelatorio, ResumoCalculoDocumentoDTO dto) {
 
         var mapper = new ObjectMapper();
 
