@@ -19,6 +19,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import net.sf.jasperreports.engine.JRException;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -32,8 +34,6 @@ import java.util.Objects;
 @RequestMapping(ApiVersions.V1 + "/calculos")
 @Tag(name = "Calculadora", description = "Operações relacionadas a calculos")
 public class CalculoController {
-
-    Log
 
     private final RequisitorioService requisitorioService;
     private final CalculoPrecatorioService calculoJurosService;
@@ -54,6 +54,25 @@ public class CalculoController {
         this.requisitorioService = requisitorioService;
         this.processoDeducaoService = processoDeducaoService;
         this.reportJsService = reportJsService;
+    }
+
+    @GetMapping("/precatorios/calculo/pdf/{id}")
+    @Operation(
+            summary = "Calcula atualização monetária e pagamento",
+            description = "Retorna o extrato de calculo em PDF",
+            operationId = "calcularCorrecaoMonetariaPDF")
+    public ResponseEntity<byte[]> gerarPDFCalculoPOrIdPrecatorio(@PathVariable Long id) {
+        ResumoCalculoDocumentoDTO documentoDTO = new ResumoCalculoDocumentoDTO();
+        CalculoRequisitorioDTO resultado = montaCalculoAtualizacao(id);
+        var relatorio = documentoDTO.montarResumoDocumento(resultado);
+        resultado.setDadosDocumentoCalculo(relatorio);
+        resultado.setBase64DocumentoCalculo(Base64.getEncoder().encodeToString(reportJsService.getRelatorioResumosCalculo(relatorio)));
+        byte[] conteudo = reportJsService.getRelatorioResumosCalculo(relatorio);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=calculo-processo-\"" + resultado.getRequisitorioDTO().getIdProcesso() + "\"")
+                .contentType(MediaType.APPLICATION_PDF)
+                .contentLength(conteudo.length)
+                .body(conteudo);
     }
 
     @GetMapping("/precatorios/calculo/{id}")
@@ -90,7 +109,7 @@ public class CalculoController {
             summary = "Salva a requisição do calculo por processo",
             description = "Retorna a requisição do calculo por processo",
             operationId = "gerarRequisicaoCalculoPorProcesso")
-    public ResponseEntity<Response<CalculoRequisitorioDTO>> salvarRequisicaoEhRetornaPDF(@RequestBody CalculoRequest req) {
+    public ResponseEntity<Response<RequisitorioDTO>> salvarRequisicaoPelaRequest(@RequestBody CalculoRequest req) {
 
         CalculoRequisitorioDTO calculo = new CalculoRequisitorioDTO();
         ResumoCalculoDocumentoDTO documentoDTO = new ResumoCalculoDocumentoDTO();
@@ -114,14 +133,14 @@ public class CalculoController {
         requisitorio.setVlPagamentoMulta(req.getMulta());
 
         Requisitorio requi = requisitorioService.salvar(requisitorio);
-
+/*
         calculo = montaCalculoAtualizacao(requi.getId());
         var relatorio = documentoDTO.montarResumoDocumento(calculo);
         calculo.setDadosDocumentoCalculo(relatorio);
 
         calculo.setBase64DocumentoCalculo(Base64.getEncoder().encodeToString(reportJsService.getRelatorioResumosCalculo(relatorio)));
-
-        return ResponseFactory.ok(calculo);
+*/
+        return ResponseFactory.ok(requi.toMetadado());
     }
 
     private CalculoRequest montaRequest(RequisitorioDTO requisitorioDTO){
@@ -206,7 +225,9 @@ public class CalculoController {
                 if(deducao.getTipoDeducao() == 1){
                     req.setValorPenhora(UtilCalculo.manterValorZeroSeNulo(dados.getValor()));
                 } else if(deducao.getTipoDeducao() == 2){
-                    req.setPercentualCessao(dados.getPorcentagemCessao());
+                    if(!UtilCalculo.isNotNullOrZero(dados.getPorcentagemCessao())){
+                        req.setPercentualCessao(dados.getPorcentagemCessao());
+                    }
                 }
             }
 
