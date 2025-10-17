@@ -17,6 +17,6 @@ public class RelatorioUtil {
             DecimalFormat valorFormatado = new DecimalFormat(mascaraFormatacao, formatador);
             return valorFormatado.format(valor);
         }
-        return StringUtils.EMPTY;
+        return "R$ 0,00";//StringUtils.EMPTY;
     }
 }

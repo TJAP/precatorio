@@ -92,7 +92,7 @@ public class RelatorioService {
 
     public byte[] gerarComprovantePrecatorio(ResumoCalculoDocumentoDTO dto, Map<String, Object> parametros) {
         try {
-            InputStream jrxmlStream = new ClassPathResource("relatorios/calculo_precatorio.jrxml").getInputStream();
+            InputStream jrxmlStream = new ClassPathResource("relatorios/resumo_calculo.jrxml").getInputStream();
 
             JasperReport jasperReport = JasperCompileManager.compileReport(jrxmlStream);
 

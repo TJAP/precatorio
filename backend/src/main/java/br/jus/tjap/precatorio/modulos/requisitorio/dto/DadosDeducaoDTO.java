@@ -1,5 +1,7 @@
 package br.jus.tjap.precatorio.modulos.requisitorio.dto;
 
+import br.jus.tjap.precatorio.util.FlexibleLocalDateDeserializer;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -19,11 +21,14 @@ public class DadosDeducaoDTO {
     private Object valor;
     private Object valorDeducao;
     private String tributacao_irrf;
-    private String percentual_honorarios;
+    private Object percentual_honorarios;
     private Object outros_valores_honorarios;
     private String observacao;
     private String descricao;
+
+    @JsonDeserialize(using = FlexibleLocalDateDeserializer.class)
     private LocalDate data_nascimento_pessoa_destino;
+
     private Object porcentagemCessao;
 
     // defesa contra tipos diferentes de bigdecimal vindos da requisição
@@ -125,6 +130,32 @@ public class DadosDeducaoDTO {
         }
 
         throw new IllegalArgumentException("Tipo inválido para porcentagemCessao: " + porcentagemCessao.getClass());
+    }
+
+
+    public BigDecimal getPercentual_honorarios() {
+        if (percentual_honorarios == null) {
+            return BigDecimal.ZERO;
+        }
+
+        if (percentual_honorarios instanceof BigDecimal) {
+            return (BigDecimal) percentual_honorarios;
+        }
+
+        if (percentual_honorarios instanceof Number) {
+            return BigDecimal.valueOf(((Number) percentual_honorarios).doubleValue());
+        }
+
+        if (percentual_honorarios instanceof String) {
+            String valor = ((String) percentual_honorarios).trim().replace(",", ".");
+            try {
+                return new BigDecimal(valor);
+            } catch (NumberFormatException e) {
+                throw new IllegalArgumentException("Valor inválido para percentual_honorarios: " + valor, e);
+            }
+        }
+
+        throw new IllegalArgumentException("Tipo inválido para percentual_honorarios: " + percentual_honorarios.getClass());
     }
 }
 

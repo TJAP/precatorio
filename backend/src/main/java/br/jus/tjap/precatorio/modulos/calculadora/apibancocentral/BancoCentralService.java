@@ -103,16 +103,16 @@ public class BancoCentralService {
     // ==== CARGA DE ÍNDICES ====
     private Map<YearMonth, BigDecimal> buscarIndice(Long tipoIndice, YearMonth inicio, YearMonth fim) {
         String cacheKey = tipoIndice + "-" + inicio + "-" + fim;
-        if (cacheIndices.containsKey(cacheKey)) {
+        /*if (cacheIndices.containsKey(cacheKey)) {
             return cacheIndices.get(cacheKey);
-        }
+        }*/
 
         Map<YearMonth, BigDecimal> map = new HashMap<>();
-        var indiceBancoCentral = buscarSerie(tipoIndice, inicio.atDay(1), fim.atDay(1));
+        var indiceBancoCentral = buscarSerieBanco(tipoIndice, inicio.atDay(1), fim.atDay(1));
         for (BancoCentralService.BancoCentralResponse indice : indiceBancoCentral) {
             YearMonth ym = YearMonth.from(DateUtil.parseStringParaLocalDate(indice.getData()));
             map.put(ym, tipoIndice.equals(CODIGO_IPCAE) ?
-                    indice.getValor().divide(BigDecimal.valueOf(100)).add(UM)
+                        indice.getValor().divide(BigDecimal.valueOf(100)).add(UM)
                     : (tipoIndice.equals(CODIGO_IPCA) ?
                         indice.getValor().divide(BigDecimal.valueOf(100)).add(UM)
                     : indice.getValor()));

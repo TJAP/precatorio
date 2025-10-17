@@ -3,7 +3,9 @@ package br.jus.tjap.precatorio.modulos.calculadora.service;
 import br.jus.tjap.precatorio.modulos.calculadora.dto.CalculoRequisitorioDTO;
 import br.jus.tjap.precatorio.modulos.calculadora.dto.CalculoTributoRequest;
 import br.jus.tjap.precatorio.modulos.calculadora.dto.CalculoPagamentoDTO;
+import br.jus.tjap.precatorio.modulos.calculadora.entity.Pagamento;
 import br.jus.tjap.precatorio.modulos.calculadora.entity.TabelaIRRF;
+import br.jus.tjap.precatorio.modulos.calculadora.repository.PagamentoRepository;
 import br.jus.tjap.precatorio.modulos.calculadora.repository.TabelaIRRFRepository;
 import br.jus.tjap.precatorio.modulos.calculadora.util.UtilCalculo;
 import br.jus.tjap.precatorio.modulos.tabelasbasicas.repository.EnteDevedorRepository;
@@ -23,35 +25,22 @@ public class PagamentoPrecatorioService {
 
     private final TabelaIRRFRepository tabelaIRRFRepository;
     private final EnteDevedorRepository enteDevedorRepository;
+    private final PagamentoRepository pagamentoRepository;
 
     private final BigDecimal DESCONTO_SIMPLIFICADO = BigDecimal.valueOf(607.2);
 
     public PagamentoPrecatorioService(
             TabelaIRRFRepository tabelaIRRFRepository,
-            EnteDevedorRepository enteDevedorRepository) {
+            EnteDevedorRepository enteDevedorRepository,
+            PagamentoRepository pagamentoRepository) {
         this.tabelaIRRFRepository = tabelaIRRFRepository;
         this.enteDevedorRepository = enteDevedorRepository;
+        this.pagamentoRepository = pagamentoRepository;
     }
 
     private BigDecimal calcularIRPFProgressivoAdvogado(CalculoPagamentoDTO req,BigDecimal baseCalculo) {
 
-        /*
-        IF(E86="PF - Tabela Progressiva";
-            IF((E85-F191)<=D186;0;
-            IF(AND((E85-F191)>=C187;(E85-F191)<=D187);
-                    (E85-F191)*E187-F187;
-            IF(AND((E85-F191)>=C188;
-                (E85-F191)<=D188);
-                    (E85-F191)*E188-F188;
-            IF(AND((E85-F191)>=C189;
-                (E85-F191)<=D189);
-                    (E85-F191)*E189-F189;
-            IF((E85-F191)>=C190;
-                (E85-F191)*E190-F190)))));
-        IF(E86="PJ - Serviços";
-            E85*1,5%;
-            IF(E86="Simples Nacional";"Isento";0)))
-         */
+
         List<TabelaIRRF> tabela = tabelaIRRFRepository.findAll();
 
         BigDecimal base = baseCalculo.subtract(DESCONTO_SIMPLIFICADO);
@@ -78,28 +67,11 @@ public class PagamentoPrecatorioService {
 
     private BigDecimal calcularIRPFProgressivoCredor(CalculoPagamentoDTO req,BigDecimal baseCalculo) {
 
-        /*
-        =IFERROR(
-        IF(L87="PF - Tabela Progressiva";IF(L86-MAX(L89;F191)<=D186;0;
-        IF(AND(L86-MAX(L89;F191)>=C187;L86-MAX(L89;F191)<=D187);(L86-MAX(L89;F191))*E187-F187;
-        IF(AND(L86-MAX(L89;F191)>=C188;L86-MAX(L89;F191)<=D188);(L86-MAX(L89;F191))*E188-F188;
-        IF(AND(L86-MAX(L89;F191)>=C189;L86-MAX(L89;F191)<=D189);(L86-MAX(L89;F191))*E189-F189;
-        IF(L86-MAX(L89;F191)>=C190;(L86-MAX(L89;F191))*E190-F190;"")))));
-
-        IF(L87="RRA";IF((L86-L89-E85)<=D196;0;IF(AND((L86-L89-E85)>=C197;(L86-L89-E85)<=D197);(L86-L89-E85)*E197-F197;
-        IF(AND((L86-L89-E85)>=C198;(L86-L89-E85)<=D198);(L86-L89-E85)*E198-F198;
-        IF(AND((L86-L89-E85)>=C199;(L86-L89-E85)<=D199);(L86-L89-E85)*E199-F199;
-        IF((L86-L89-E85)>=C200;(L86-L89-E85)*E200-F200)))));
-
-        IF(L87="PJ - Cessão M.O";L86*1%;
-        IF(L87="PJ - Serviços";L86*1,5%;
-        IF(L87="Isento";"Isento";0)))));0)
-         */
         List<TabelaIRRF> tabela = tabelaIRRFRepository.findAll();
         List<TabelaIRRF> tabelaProgressivaCredor = new ArrayList<>();
         BigDecimal valorCalculoProgressivo = BigDecimal.ZERO;
 
-        if(!req.isTemPrioridade()){
+        if(!req.isTemPrioridade() && req.getNumeroMesesRRA() > 0){
             valorCalculoProgressivo = BigDecimal.valueOf(req.getNumeroMesesRRA());
         } else {
             valorCalculoProgressivo = req.getValorPrioridadePrevidenciaAtualizado();
@@ -110,9 +82,16 @@ public class PagamentoPrecatorioService {
             faixaAjustada.setId(faixa.getId());
             faixaAjustada.setValorAliquota(faixa.getValorAliquota());
 
+            if(req.getNumeroMesesRRA() > 0){
+
             faixaAjustada.setValorFaixaInicial(faixa.getValorFaixaInicial().multiply(valorCalculoProgressivo));
             faixaAjustada.setValorFaixaFinal(faixa.getValorFaixaFinal().multiply(valorCalculoProgressivo));
             faixaAjustada.setValorDeducao(faixa.getValorDeducao().multiply(valorCalculoProgressivo));
+            } else {
+                faixaAjustada.setValorFaixaInicial(faixa.getValorFaixaInicial());
+                faixaAjustada.setValorFaixaFinal(faixa.getValorFaixaFinal());
+                faixaAjustada.setValorDeducao(faixa.getValorDeducao());
+            }
 
             tabelaProgressivaCredor.add(faixaAjustada);
         }
@@ -751,6 +730,18 @@ public class PagamentoPrecatorioService {
         return resultado;
     }
 
+    public BigDecimal somarPagamentosLancados(Long idPrecatorio){
+        var pagamentos = pagamentoRepository.findPagamentoPorIdPrecatorioTucujuris(idPrecatorio);
+        if(pagamentos.isPresent()){
+            var valor = BigDecimal.ZERO;
+            for(Pagamento pag : pagamentos.get()){
+                valor = valor.add(pag.getValorPagamento());
+            }
+            return valor;
+        } else {
+            return BigDecimal.ZERO;
+        }
+    }
 
 }
 

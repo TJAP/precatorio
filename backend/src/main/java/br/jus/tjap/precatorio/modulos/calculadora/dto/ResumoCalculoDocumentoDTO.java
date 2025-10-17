@@ -55,6 +55,7 @@ public class ResumoCalculoDocumentoDTO {
     private String requisitorioValorMulta;
     private String requisitorioValorCust;
     private String requisitorioValorOutros;
+    private String requisitorioCustaMuoltaOutros;
     private String requisitorioValorSelic;
     private String requisitorioValorTotal;
     private String requisitorioUltimaAtualizacao;
@@ -126,6 +127,9 @@ public class ResumoCalculoDocumentoDTO {
     private long remanescenteNumeroRRA;
     private String remanescenteValorPrevidencia;
 
+    private String dataCorrente;
+    private String usuarioCalculo;
+
     public ResumoCalculoDocumentoDTO montarResumoDocumento(CalculoRequisitorioDTO resumo){
         ResumoCalculoDocumentoDTO doc = new ResumoCalculoDocumentoDTO();
 
@@ -136,6 +140,9 @@ public class ResumoCalculoDocumentoDTO {
         doc.setDevedorContaJudicial(resumo.getRequisitorioDTO().getEnteDevedorDTO().getNumeroConta());
         doc.setCredorNome(resumo.getRequisitorioDTO().getNomeCredor());
         doc.setCredorDocumento(resumo.getRequisitorioDTO().getDocumentoCredor());
+        if(resumo.getRequisitorioDTO().getNascimentoCredor() == null){
+            throw new RuntimeException("Credor sem data de nascimento");
+        }
         doc.setCredorNascimento(StringUtil.formataDataDMY(resumo.getRequisitorioDTO().getNascimentoCredor()));
         // TODO - Verificar o banco do usuário
         doc.setCredorBanco(resumo.getRequisitorioDTO().getNomeBancoCredor());
@@ -153,6 +160,11 @@ public class ResumoCalculoDocumentoDTO {
         doc.setRequisitorioValorMulta(RelatorioUtil.formatarValorMoeda(resumo.getRequest().getMulta()));
         doc.setRequisitorioValorCust(RelatorioUtil.formatarValorMoeda(resumo.getRequest().getCustas()));
         doc.setRequisitorioValorOutros(RelatorioUtil.formatarValorMoeda(resumo.getRequest().getOutrosReembolsos()));
+        doc.setRequisitorioCustaMuoltaOutros(RelatorioUtil.formatarValorMoeda(
+                resumo.getRequest().getMulta()
+                        .add(resumo.getRequest().getCustas())
+                        .add(resumo.getRequest().getOutrosReembolsos())
+        ));
         doc.setRequisitorioValorSelic(RelatorioUtil.formatarValorMoeda(resumo.getRequest().getValorSelic()));
         doc.setRequisitorioValorTotal(RelatorioUtil.formatarValorMoeda(
                 resumo.getRequest().getValorPrincipalTributavel()
@@ -184,7 +196,7 @@ public class ResumoCalculoDocumentoDTO {
         doc.setAtualizacaoNumeroRRA(resumo.getCalculoAtualizacaoDTO().getResultadoNumeroMesesRRA());
         doc.setAtualizacaoValorPrevidencia(RelatorioUtil.formatarValorMoeda(resumo.getCalculoAtualizacaoDTO().getResultadoValorPrevidenciaAtualizado()));
         doc.setAtualizacaoValorLimitePrioridade(RelatorioUtil.formatarValorMoeda(resumo.getCalculoPagamentoDTO().getValorBasePrioridade()));
-        doc.setAtualizacaoLimitacaoPagamento(Objects.isNull(resumo.getCalculoPagamentoDTO().getValorBaseParcialPago())? "Não" : "Sim");
+        doc.setAtualizacaoLimitacaoPagamento(resumo.getRequest().isPagamentoParcial() ? StringUtil.formatarValorMoeda(resumo.getRequest().getValorPagamentoParcial()) : "NÃO");
         doc.setAtualizacaoAcordoDireto(resumo.getCalculoResumoDTO().getAtualizacaoAcordoDireto());
         doc.setTributacaoHonorarioPercentual(resumo.getCalculoResumoDTO().getTributacaoHonorarioPercentual().toString());
         doc.setTributacaoHonorarioMontanteDesembolso(RelatorioUtil.formatarValorMoeda(resumo.getCalculoResumoDTO().getTributacaoHonorarioMontanteDesembolso()));
@@ -199,7 +211,10 @@ public class ResumoCalculoDocumentoDTO {
         doc.setTributacaoCredorPrevidencia(RelatorioUtil.formatarValorMoeda(resumo.getCalculoResumoDTO().getTributacaoCredorPrevidencia()));
         doc.setAlvaraDevedorNome(resumo.getCalculoResumoDTO().getAlvaraDevedorNome());
         doc.setAlvaraIRRFCredor(RelatorioUtil.formatarValorMoeda(resumo.getCalculoResumoDTO().getAlvaraIRRFCredor()));
-        doc.setAlvaraOrgaoPrevidenciaNome(resumo.getCalculoResumoDTO().getAlvaraOrgaoPrevidenciaNome());
+        doc.setAlvaraOrgaoPrevidenciaNome(
+                UtilCalculo.isNotNullOrZero(resumo.getCalculoResumoDTO().getTributacaoCredorPrevidencia()) ?
+                resumo.getCalculoResumoDTO().getAlvaraOrgaoPrevidenciaNome() : "Sem previdência"
+        );
         doc.setAlvaraValorPrevidencia(RelatorioUtil.formatarValorMoeda(resumo.getCalculoResumoDTO().getAlvaraValorPrevidencia()));
         doc.setAlvaraValorHonorarioContratualLiquido(RelatorioUtil.formatarValorMoeda(resumo.getCalculoResumoDTO().getAlvaraValorHonorarioContratualLiquido()));
         doc.setAlvaraIRRFHonorario(RelatorioUtil.formatarValorMoeda(resumo.getCalculoResumoDTO().getAlvaraIRRFHonorario()));
@@ -241,6 +256,9 @@ public class ResumoCalculoDocumentoDTO {
         doc.setDesagioCredorValorBase(RelatorioUtil.formatarValorMoeda(resumo.getCalculoPagamentoDTO().getValorDesagioCredorAtualizado()));
 
         doc.setAdvCredorNome(resumo.getRequisitorioDTO().getNomeCredorAdv());
+
+        doc.setDataCorrente(StringUtil.formataDataDMY(LocalDate.now()));
+        doc.setUsuarioCalculo("Não implementado (em fase de homologação)");
         return doc;
     }
 }

@@ -20,7 +20,6 @@ public class CalculoAtualizacaoDTO {
     private Long idPrecatorio;
     private String numeroProcesso;
     private String tipoCalculoRetornado;
-    private RequisitorioDTO requisitorioDTO;
 
     @JsonIgnore
     private LocalDate dataUltimaAtualizacao;

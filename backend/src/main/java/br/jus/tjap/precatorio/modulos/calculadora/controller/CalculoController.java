@@ -15,7 +15,10 @@ import br.jus.tjap.precatorio.util.ApiVersions;
 import br.jus.tjap.precatorio.util.Response;
 import br.jus.tjap.precatorio.util.ResponseFactory;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import net.sf.jasperreports.engine.JRException;
@@ -67,9 +70,11 @@ public class CalculoController {
         var relatorio = documentoDTO.montarResumoDocumento(resultado);
         resultado.setDadosDocumentoCalculo(relatorio);
         resultado.setBase64DocumentoCalculo(Base64.getEncoder().encodeToString(reportJsService.getRelatorioResumosCalculo(relatorio)));
-        byte[] conteudo = reportJsService.getRelatorioResumosCalculo(relatorio);
+        //byte[] conteudo = reportJsService.getRelatorioResumosCalculo(relatorio);
+        Map<String, Object> parametros = null;
+        byte[] conteudo = relatorioService.gerarComprovantePrecatorio(resultado.getDadosDocumentoCalculo(),parametros);
         return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=calculo-processo-\"" + resultado.getRequisitorioDTO().getIdProcesso() + "\"")
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=calculo-processo-" + resultado.getRequisitorioDTO().getIdProcesso() + ".pdf")
                 .contentType(MediaType.APPLICATION_PDF)
                 .contentLength(conteudo.length)
                 .body(conteudo);
@@ -133,13 +138,6 @@ public class CalculoController {
         requisitorio.setVlPagamentoMulta(req.getMulta());
 
         Requisitorio requi = requisitorioService.salvar(requisitorio);
-/*
-        calculo = montaCalculoAtualizacao(requi.getId());
-        var relatorio = documentoDTO.montarResumoDocumento(calculo);
-        calculo.setDadosDocumentoCalculo(relatorio);
-
-        calculo.setBase64DocumentoCalculo(Base64.getEncoder().encodeToString(reportJsService.getRelatorioResumosCalculo(relatorio)));
-*/
         return ResponseFactory.ok(requi.toMetadado());
     }
 
@@ -148,6 +146,8 @@ public class CalculoController {
         var req  = new CalculoRequest();
 
         req.setIdPrecatorio(requisitorioDTO.getId());
+
+        var pagamentoEfetuado = pagamentoPrecatorioService.somarPagamentosLancados(requisitorioDTO.getIdPrecatorioTucujuris());
 
         req.setPercentualHonorario(UtilCalculo.manterValorZeroSeNulo(requisitorioDTO.getVlPercentualHonorarioAdvCredor()));
         req.setPercentualDesagio(BigDecimal.ZERO);
@@ -206,8 +206,15 @@ public class CalculoController {
         req.setOutrosReembolsos(BigDecimal.ZERO);
         req.setTemPrioridade(!requisitorioDTO.getPrioridades().isEmpty());
         // TODO: verifica de onde retirar essa informação
+
+
         req.setPagamentoParcial(Boolean.FALSE);
         req.setValorPagamentoParcial(BigDecimal.ZERO);
+
+        if(UtilCalculo.isNotNullOrZero(pagamentoEfetuado)){
+            req.setPagamentoParcial(Boolean.TRUE);
+            req.setValorPagamentoParcial(pagamentoEfetuado);
+        }
 
         req.setValorPagoAdvogado(BigDecimal.ZERO);
 
@@ -215,6 +222,9 @@ public class CalculoController {
         req.setValorPenhora(BigDecimal.ZERO);
         if(!requisitorioDTO.getProcessoDeducaos().isEmpty()){
             ObjectMapper mapper = new ObjectMapper();
+            mapper.registerModule(new JavaTimeModule());
+            mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+            mapper.configure(DeserializationFeature.ADJUST_DATES_TO_CONTEXT_TIME_ZONE, false);
             for(var deducao : requisitorioDTO.getProcessoDeducaos()){
                 DadosDeducaoDTO dados = null;
                 try {
@@ -228,11 +238,12 @@ public class CalculoController {
                     if(!UtilCalculo.isNotNullOrZero(dados.getPorcentagemCessao())){
                         req.setPercentualCessao(dados.getPorcentagemCessao());
                     }
+                } else if(deducao.getTipoDeducao() == 4){
+                    req.setPercentualHonorario(dados.getPercentual_honorarios());
+                    req.setValorPagoAdvogado(dados.getOutros_valores_honorarios());
                 }
             }
-
         }
-
         return req;
     }
 
