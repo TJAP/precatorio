@@ -14,6 +14,7 @@ import br.jus.tjap.precatorio.relatorio.service.ReportJsService;
 import br.jus.tjap.precatorio.util.ApiVersions;
 import br.jus.tjap.precatorio.util.Response;
 import br.jus.tjap.precatorio.util.ResponseFactory;
+import br.jus.tjap.precatorio.util.StringUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -102,7 +103,7 @@ public class CalculoController {
     public ResponseEntity<Response<CalculoRequest>> gerarRequisicaoCalculoPorProcesso(@PathVariable Long id) {
         var requisitorio = requisitorioService.buscaPorId(id);
         var processosDeducoes = processoDeducaoService.listaProcessoDeducaoPorProcessoOrigem(requisitorio.getIdProcesso());
-        var acordos = requisitorioService.listarAcordoPorProcesso(requisitorio.getNumProcessoTucujuris());
+        var acordos = requisitorioService.listarAcordoPorProcesso(requisitorio.getIdPrecatorioTucujuris());
         requisitorio.setProcessoDeducaos(processosDeducoes);
         requisitorio.setAcordoDiretos(acordos);
         var requisitorioDTO = requisitorio.toMetadado();
@@ -251,7 +252,7 @@ public class CalculoController {
 
         var requisitorio = requisitorioService.buscaPorId(idRequisitorio);
         var processosDeducoes = processoDeducaoService.listaProcessoDeducaoPorProcessoOrigem(requisitorio.getIdProcesso());
-        var acordos = requisitorioService.listarAcordoPorProcesso(requisitorio.getNumProcessoTucujuris());
+        var acordos = requisitorioService.listarAcordoPorProcesso(requisitorio.getIdPrecatorioTucujuris());
         requisitorio.setProcessoDeducaos(processosDeducoes);
         requisitorio.setAcordoDiretos(acordos);
 

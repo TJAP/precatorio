@@ -11,6 +11,6 @@ import java.util.List;
 @Repository
 public interface AcordoDiretoRepository extends JpaRepository<AcordoDireto, Long> {
 
-    @Query("select a from AcordoDireto a where a.numeroProcesso = :numeroProcessoOrigem order by a.id desc limit 2")
-    List<AcordoDireto> findAllByNUmeroProcesso(@Param("numeroProcessoOrigem") String numeroProcessoOrigem);
+    @Query("select a from AcordoDireto a where a.idPrecatorioTucujuris = :idPrecatorioTucujuris order by a.id desc limit 2")
+    List<AcordoDireto> findAllByNumeroProcesso(@Param("idPrecatorioTucujuris") Long idPrecatorioTucujuris);
 }

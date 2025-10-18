@@ -169,7 +169,7 @@ SAP - SISTEMA DE APOIO PROCESSUAL]]></text>
 				<textElement verticalAlignment="Middle">
 					<font size="7"/>
 				</textElement>
-				<textFieldExpression><![CDATA["Nº do Processo Precatório: "+$F{processoPrecatorio}]]></textFieldExpression>
+				<textFieldExpression><![CDATA["Nº do Processo Precatório: "+$F{processoPrecatorioOrigem}]]></textFieldExpression>
 			</textField>
 			<textField>
 				<reportElement x="9" y="44" width="272" height="11" uuid="489b7f16-3b67-4bb6-9600-fb96c1b6c7a4">

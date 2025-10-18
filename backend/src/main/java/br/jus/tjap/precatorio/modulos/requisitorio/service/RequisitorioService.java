@@ -8,6 +8,7 @@ import br.jus.tjap.precatorio.modulos.requisitorio.repository.RequisitorioReposi
 import br.jus.tjap.precatorio.util.StringUtil;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -33,8 +34,11 @@ public class RequisitorioService {
         return requisitorio.orElseThrow();
     }
 
-    public List<AcordoDireto> listarAcordoPorProcesso(String numeroProcesso){
-        return acordoDiretoRepository.findAllByNUmeroProcesso(numeroProcesso);
+    public List<AcordoDireto> listarAcordoPorProcesso(Long idPrecatorioTucujuris){
+        if(idPrecatorioTucujuris == null){
+            return new ArrayList<AcordoDireto>();
+        }
+        return acordoDiretoRepository.findAllByNumeroProcesso(idPrecatorioTucujuris);
     }
 
     public Requisitorio salvar(Requisitorio requisitorio){

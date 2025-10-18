@@ -49,8 +49,7 @@ public class BancoCentralService {
         }
         try{
             String url = String.format(BASE_URL, codigoIndice, DateUtil.formatarData(dataInicial), DateUtil.formatarData(dataFinal));
-            BancoCentralResponse[] response = restTemplate.getForObject(url, BancoCentralResponse[].class);
-            return Arrays.asList(response);
+            return Arrays.asList(Objects.requireNonNull(restTemplate.getForObject(url, BancoCentralResponse[].class)));
         }catch (RuntimeException e){// Verificar se mês/ano são iguais ao mês/ano atual
 
             YearMonth hoje = YearMonth.now();

@@ -82,16 +82,15 @@ public class PagamentoPrecatorioService {
             faixaAjustada.setId(faixa.getId());
             faixaAjustada.setValorAliquota(faixa.getValorAliquota());
 
-            if(req.getNumeroMesesRRA() > 0){
-
-            faixaAjustada.setValorFaixaInicial(faixa.getValorFaixaInicial().multiply(valorCalculoProgressivo));
-            faixaAjustada.setValorFaixaFinal(faixa.getValorFaixaFinal().multiply(valorCalculoProgressivo));
-            faixaAjustada.setValorDeducao(faixa.getValorDeducao().multiply(valorCalculoProgressivo));
-            } else {
+            //if(req.getNumeroMesesRRA() > 0){
+            //faixaAjustada.setValorFaixaInicial(faixa.getValorFaixaInicial().multiply(valorCalculoProgressivo));
+            //faixaAjustada.setValorFaixaFinal(faixa.getValorFaixaFinal().multiply(valorCalculoProgressivo));
+            //faixaAjustada.setValorDeducao(faixa.getValorDeducao().multiply(valorCalculoProgressivo));
+            //} else {
                 faixaAjustada.setValorFaixaInicial(faixa.getValorFaixaInicial());
                 faixaAjustada.setValorFaixaFinal(faixa.getValorFaixaFinal());
                 faixaAjustada.setValorDeducao(faixa.getValorDeducao());
-            }
+            //}
 
             tabelaProgressivaCredor.add(faixaAjustada);
         }

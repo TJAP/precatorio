@@ -20,6 +20,9 @@ public class AcordoDireto {
     @Id
     private Long id;
 
+    @Column(name = "id_precatorio_tucujuris")
+    private Long idPrecatorioTucujuris;
+
     @Column(name="numero_cnj")
     private String numeroProcesso;
     @Column(name="nome")

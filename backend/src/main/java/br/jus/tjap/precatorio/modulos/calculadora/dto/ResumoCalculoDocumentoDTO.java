@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.Objects;
@@ -198,17 +199,18 @@ public class ResumoCalculoDocumentoDTO {
         doc.setAtualizacaoValorLimitePrioridade(RelatorioUtil.formatarValorMoeda(resumo.getCalculoPagamentoDTO().getValorBasePrioridade()));
         doc.setAtualizacaoLimitacaoPagamento(resumo.getRequest().isPagamentoParcial() ? StringUtil.formatarValorMoeda(resumo.getRequest().getValorPagamentoParcial()) : "NÃO");
         doc.setAtualizacaoAcordoDireto(resumo.getCalculoResumoDTO().getAtualizacaoAcordoDireto());
-        doc.setTributacaoHonorarioPercentual(resumo.getCalculoResumoDTO().getTributacaoHonorarioPercentual().toString());
+        doc.setTributacaoHonorarioPercentual(resumo.getCalculoResumoDTO().getTributacaoHonorarioPercentual().setScale(0, RoundingMode.HALF_UP).toString());
         doc.setTributacaoHonorarioMontanteDesembolso(RelatorioUtil.formatarValorMoeda(resumo.getCalculoResumoDTO().getTributacaoHonorarioMontanteDesembolso()));
         doc.setTributacaoHonorarioBaseTributacao(RelatorioUtil.formatarValorMoeda(resumo.getCalculoResumoDTO().getTributacaoHonorarioBaseTributacao()));
         doc.setTributacaoHonorarioTipoTributacao(resumo.getCalculoResumoDTO().getTributacaoHonorarioTipoTributacao());
         doc.setTributacaoHonorarioImposto(RelatorioUtil.formatarValorMoeda(resumo.getCalculoResumoDTO().getTributacaoHonorarioImposto()));
-        doc.setTributacaoCredorPercentual(resumo.getCalculoResumoDTO().getTributacaoCredorPercentual().toString());
+        doc.setTributacaoCredorPercentual(resumo.getCalculoResumoDTO().getTributacaoCredorPercentual().setScale(0, RoundingMode.HALF_UP).toString());
         doc.setTributacaoCredorMontanteDesembolso(RelatorioUtil.formatarValorMoeda(resumo.getCalculoResumoDTO().getTributacaoCredorMontanteDesembolso()));
         doc.setTributacaoCredorBaseTributacao(RelatorioUtil.formatarValorMoeda(resumo.getCalculoResumoDTO().getTributacaoCredorBaseTributacao()));
         doc.setTributacaoCredorTipoTributacao(resumo.getCalculoResumoDTO().getTributacaoCredorTipoTributacao());
         doc.setTributacaoCredorImposto(RelatorioUtil.formatarValorMoeda(resumo.getCalculoResumoDTO().getTributacaoCredorImposto()));
         doc.setTributacaoCredorPrevidencia(RelatorioUtil.formatarValorMoeda(resumo.getCalculoResumoDTO().getTributacaoCredorPrevidencia()));
+
         doc.setAlvaraDevedorNome(resumo.getCalculoResumoDTO().getAlvaraDevedorNome());
         doc.setAlvaraIRRFCredor(RelatorioUtil.formatarValorMoeda(resumo.getCalculoResumoDTO().getAlvaraIRRFCredor()));
         doc.setAlvaraOrgaoPrevidenciaNome(
@@ -216,6 +218,7 @@ public class ResumoCalculoDocumentoDTO {
                 resumo.getCalculoResumoDTO().getAlvaraOrgaoPrevidenciaNome() : "Sem previdência"
         );
         doc.setAlvaraValorPrevidencia(RelatorioUtil.formatarValorMoeda(resumo.getCalculoResumoDTO().getAlvaraValorPrevidencia()));
+
         doc.setAlvaraValorHonorarioContratualLiquido(RelatorioUtil.formatarValorMoeda(resumo.getCalculoResumoDTO().getAlvaraValorHonorarioContratualLiquido()));
         doc.setAlvaraIRRFHonorario(RelatorioUtil.formatarValorMoeda(resumo.getCalculoResumoDTO().getAlvaraIRRFHonorario()));
 
