@@ -132,7 +132,6 @@ public class DadosDeducaoDTO {
         throw new IllegalArgumentException("Tipo inválido para porcentagemCessao: " + porcentagemCessao.getClass());
     }
 
-
     public BigDecimal getPercentual_honorarios() {
         if (percentual_honorarios == null) {
             return BigDecimal.ZERO;
@@ -157,5 +156,6 @@ public class DadosDeducaoDTO {
 
         throw new IllegalArgumentException("Tipo inválido para percentual_honorarios: " + percentual_honorarios.getClass());
     }
+
 }
 

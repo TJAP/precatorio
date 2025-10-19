@@ -142,9 +142,9 @@ public class CalculoController {
         return ResponseFactory.ok(requi.toMetadado());
     }
 
-    private CalculoRequest montaRequest(RequisitorioDTO requisitorioDTO){
+    private CalculoRequest montaRequest(RequisitorioDTO requisitorioDTO) {
 
-        var req  = new CalculoRequest();
+        var req = new CalculoRequest();
 
         req.setIdPrecatorio(requisitorioDTO.getId());
 
@@ -159,30 +159,32 @@ public class CalculoController {
         req.setTipoVinculoCredor(requisitorioDTO.getTipoVinculoCredor());
 
         // verifica se tem acordo
-        if(!requisitorioDTO.getAcordos().isEmpty()){
+        if (!requisitorioDTO.getAcordos().isEmpty()) {
             req.setPercentualDesagio(requisitorioDTO.getAcordos().getFirst().getPercentualDesagio());
-            for(var acordo : requisitorioDTO.getAcordos()){
-                if(acordo.getTipoParte().equalsIgnoreCase("Credor Principal")){
+            for (var acordo : requisitorioDTO.getAcordos()) {
+                if (acordo.getTipoParte().equalsIgnoreCase("Credor Principal")) {
                     req.setAcordoCredor(Boolean.TRUE);
 
-                    if(Objects.nonNull(acordo.getTipoTributacao())){
-                        if(Objects.nonNull(req.getDataInicioRRA())){
+                    if (Objects.nonNull(acordo.getTipoTributacao())) {
+                        if (Objects.nonNull(req.getDataInicioRRA())) {
                             req.setTipoTributacaoCredor("RRA");
                         } else {
                             req.setTipoTributacaoCredor(
-                                    acordo.getTipoTributacao().equalsIgnoreCase("Pessoa Jurídica - Simples") ? "SN" : "PF"
+                                    (acordo.getTipoTributacao().equalsIgnoreCase("Pessoa Jurídica - Simples")
+                                            || acordo.getTipoTributacao().equalsIgnoreCase("Pessoa Jurídica Simples Nacional")) ? "SN" : "PF"
                             );
                         }
                     }
 
-                } else if(acordo.getTipoParte().equalsIgnoreCase("Honorários Contratuais")){
-                    if(Objects.nonNull(acordo.getPercentualHonorario())){
+                } else if (acordo.getTipoParte().equalsIgnoreCase("Honorários Contratuais")) {
+                    if (Objects.nonNull(acordo.getPercentualHonorario())) {
                         req.setPercentualHonorario(UtilCalculo.manterValorZeroSeNulo(acordo.getPercentualHonorario()));
                     }
 
-                    if(Objects.nonNull(acordo.getTipoTributacao())){
+                    if (Objects.nonNull(acordo.getTipoTributacao())) {
                         req.setTributacaoAdvogado(
-                                acordo.getTipoTributacao().equalsIgnoreCase("Pessoa Jurídica - Simples") ? "SN" : "PF"
+                                (acordo.getTipoTributacao().equalsIgnoreCase("Pessoa Jurídica - Simples")
+                                        || acordo.getTipoTributacao().equalsIgnoreCase("Pessoa Jurídica Simples Nacional")) ? "SN" : "PF"
                         );
                     }
                     req.setAcordoAdvogado(Boolean.TRUE);
@@ -193,7 +195,11 @@ public class CalculoController {
         req.setNumeroProcesso(requisitorioDTO.getIdProcesso());
         req.setDataUltimaAtualizacao(requisitorioDTO.getDtUltimaAtualizacaoPlanilha());
         req.setCnpjDevedor(requisitorioDTO.getDocumentoDevedor());
-        req.setDataFimAtualizacao(LocalDate.of(2025,8,30));
+        if (requisitorioDTO.getDtFimAtualizacaoPlanilha() != null) {
+            req.setDataFimAtualizacao(requisitorioDTO.getDtFimAtualizacaoPlanilha());
+        }else {
+            req.setDataFimAtualizacao(LocalDate.of(2025, 9, 30));
+        }
         req.setAnoVencimento(requisitorioDTO.getAnoVencimento());
         req.setDataInicioRRA(requisitorioDTO.getDtInicioRRA());
         req.setDataFimRRA(requisitorioDTO.getDtFimRRA());
@@ -242,6 +248,7 @@ public class CalculoController {
                 } else if(deducao.getTipoDeducao() == 4){
                     req.setPercentualHonorario(dados.getPercentual_honorarios());
                     req.setValorPagoAdvogado(dados.getOutros_valores_honorarios());
+                    req.setTributacaoAdvogado(dados.getTributacao_irrf());
                 }
             }
         }

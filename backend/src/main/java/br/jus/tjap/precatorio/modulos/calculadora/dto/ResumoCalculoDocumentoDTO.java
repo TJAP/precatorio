@@ -141,10 +141,11 @@ public class ResumoCalculoDocumentoDTO {
         doc.setDevedorContaJudicial(resumo.getRequisitorioDTO().getEnteDevedorDTO().getNumeroConta());
         doc.setCredorNome(resumo.getRequisitorioDTO().getNomeCredor());
         doc.setCredorDocumento(resumo.getRequisitorioDTO().getDocumentoCredor());
-        if(resumo.getRequisitorioDTO().getNascimentoCredor() == null){
-            throw new RuntimeException("Credor sem data de nascimento");
+        if(resumo.getRequisitorioDTO().getNascimentoCredor() != null){
+            doc.setCredorNascimento(StringUtil.formataDataDMY(resumo.getRequisitorioDTO().getNascimentoCredor()));
+        }else{
+            doc.setCredorNascimento("Não possui");
         }
-        doc.setCredorNascimento(StringUtil.formataDataDMY(resumo.getRequisitorioDTO().getNascimentoCredor()));
         // TODO - Verificar o banco do usuário
         doc.setCredorBanco(resumo.getRequisitorioDTO().getNomeBancoCredor());
         doc.setCredorAgencia(resumo.getRequisitorioDTO().getAgenciaCredor());
