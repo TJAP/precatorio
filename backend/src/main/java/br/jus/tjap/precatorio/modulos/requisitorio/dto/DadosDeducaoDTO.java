@@ -25,11 +25,11 @@ public class DadosDeducaoDTO {
     private Object outros_valores_honorarios;
     private String observacao;
     private String descricao;
-
+    private Integer tipoConta;
+    private Object porcentagemCessao;
     @JsonDeserialize(using = FlexibleLocalDateDeserializer.class)
     private LocalDate data_nascimento_pessoa_destino;
 
-    private Object porcentagemCessao;
 
     // defesa contra tipos diferentes de bigdecimal vindos da requisição
     public BigDecimal getValor() {
