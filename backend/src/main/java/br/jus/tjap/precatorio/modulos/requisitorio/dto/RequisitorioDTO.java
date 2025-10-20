@@ -93,6 +93,7 @@ public class RequisitorioDTO {
     private Integer codOrgaoJulgadorPje;
     private Integer codOrgaoJulgadorTucujuris;
     private BigDecimal vlSelic;
+    private BigDecimal vlTotalAtualizado;
     @JsonIgnore
     private byte[] arquivoPdf;
     private Long idPrecatorioTucujuris;

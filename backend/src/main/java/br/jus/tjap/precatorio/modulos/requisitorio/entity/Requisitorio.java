@@ -243,6 +243,9 @@ public class Requisitorio implements Serializable {
     @Column(name = "ano_vencimento")
     private Integer anoVencimento;
 
+    @Column(name = "vl_total_atualizado")
+    private BigDecimal vlTotalAtualizado;
+
     @JoinColumn(name = "id_ente_devedor")
     @ManyToOne
     private EnteDevedor enteDevedor;
@@ -327,6 +330,7 @@ public class Requisitorio implements Serializable {
         dto.setDtUltimaAtualizacaoPlanilha(this.dtUltimaAtualizacaoPlanilha);
         dto.setRetencaoImposto(this.retencaoImposto);
         dto.setVlRetencaoImposto(this.vlRetencaoImposto);
+        dto.setVlTotalAtualizado(this.vlTotalAtualizado);
 
         var mesesAcumulados = 0;
         if(Objects.isNull(this.dtInicioRRA) && Objects.isNull(this.dtFimRRA)){

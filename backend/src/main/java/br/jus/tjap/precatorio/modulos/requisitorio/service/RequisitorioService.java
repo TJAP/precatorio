@@ -1,5 +1,9 @@
 package br.jus.tjap.precatorio.modulos.requisitorio.service;
 
+import br.jus.tjap.precatorio.modulos.calculadora.entity.PagamentoTucujuris;
+import br.jus.tjap.precatorio.modulos.calculadora.entity.PrioridadeTucujuris;
+import br.jus.tjap.precatorio.modulos.calculadora.repository.PagamentoTucujurisRepository;
+import br.jus.tjap.precatorio.modulos.calculadora.repository.PrioridadeTucujurisRepository;
 import br.jus.tjap.precatorio.modulos.requisitorio.dto.AcordoDiretoDTO;
 import br.jus.tjap.precatorio.modulos.requisitorio.entity.AcordoDireto;
 import br.jus.tjap.precatorio.modulos.requisitorio.entity.Requisitorio;
@@ -16,11 +20,19 @@ public class RequisitorioService {
 
     private final RequisitorioRepository requisitorioRepository;
     private final AcordoDiretoRepository acordoDiretoRepository;
+    private final PrioridadeTucujurisRepository prioridadeTucujurisRepository;
+    private final PagamentoTucujurisRepository pagamentoTucujurisRepository;
 
 
-    public RequisitorioService(RequisitorioRepository requisitorioRepository, AcordoDiretoRepository acordoDiretoRepository) {
+    public RequisitorioService(
+            RequisitorioRepository requisitorioRepository,
+            AcordoDiretoRepository acordoDiretoRepository,
+            PrioridadeTucujurisRepository prioridadeTucujurisRepository,
+            PagamentoTucujurisRepository pagamentoTucujurisRepository) {
         this.requisitorioRepository = requisitorioRepository;
         this.acordoDiretoRepository = acordoDiretoRepository;
+        this.prioridadeTucujurisRepository = prioridadeTucujurisRepository;
+        this.pagamentoTucujurisRepository = pagamentoTucujurisRepository;
     }
 
     public Requisitorio buscaPorId(Long id){
@@ -39,6 +51,20 @@ public class RequisitorioService {
             return new ArrayList<AcordoDireto>();
         }
         return acordoDiretoRepository.findAllByNumeroProcesso(idPrecatorioTucujuris);
+    }
+
+    public List<PrioridadeTucujuris> listarPrioridadesTucujuris(Long idPrecatorioTucujuris){
+        if(idPrecatorioTucujuris == null){
+            return new ArrayList<PrioridadeTucujuris>();
+        }
+        return prioridadeTucujurisRepository.findAllByIdProcessoTucujuris(idPrecatorioTucujuris);
+    }
+
+    public List<PagamentoTucujuris> listarPagamentoTucujuris(Long idPrecatorioTucujuris){
+        if(idPrecatorioTucujuris == null){
+            return new ArrayList<PagamentoTucujuris>();
+        }
+        return pagamentoTucujurisRepository.findAllByIdPagamentoTucujuris(idPrecatorioTucujuris);
     }
 
     public Requisitorio salvar(Requisitorio requisitorio){

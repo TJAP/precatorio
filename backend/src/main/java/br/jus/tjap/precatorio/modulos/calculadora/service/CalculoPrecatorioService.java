@@ -39,10 +39,8 @@ public class CalculoPrecatorioService {
 
 
     private final IndicadorIndiceRepository indicadorIndiceRepository;
-
     private final TabelaIRRFRepository tabelaIRRFRepository;
     private final RequisitorioRepository requisitorioRepository;
-
     private BancoCentralService bancoCentralService;
 
     public CalculoPrecatorioService(

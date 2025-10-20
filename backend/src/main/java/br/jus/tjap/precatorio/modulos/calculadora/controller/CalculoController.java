@@ -149,6 +149,17 @@ public class CalculoController {
         req.setIdPrecatorio(requisitorioDTO.getId());
 
         var pagamentoEfetuado = pagamentoPrecatorioService.somarPagamentosLancados(requisitorioDTO.getIdPrecatorioTucujuris());
+        var prioridade = requisitorioService.listarPrioridadesTucujuris(requisitorioDTO.getIdPrecatorioTucujuris());
+        var pagamentoAtualizado = requisitorioService.listarPagamentoTucujuris(requisitorioDTO.getIdPrecatorioTucujuris());
+
+        if(!pagamentoAtualizado.isEmpty()){
+            var pag = pagamentoAtualizado.getFirst();
+            req.setPagamentoValorUltimoAtualizado(pag.getValorAtualizado());
+            req.setPagamentoDtUltimoAtualizado(pag.getDtAtualizacao());
+        } else {
+            req.setPagamentoValorUltimoAtualizado(requisitorioDTO.getVlTotalAtualizado());
+        }
+
 
         req.setPercentualHonorario(UtilCalculo.manterValorZeroSeNulo(requisitorioDTO.getVlPercentualHonorarioAdvCredor()));
         req.setPercentualDesagio(BigDecimal.ZERO);
@@ -157,6 +168,7 @@ public class CalculoController {
         req.setTipoTributacaoCredor(requisitorioDTO.getTipoTributacaoCredor());
         req.setTributacaoAdvogado(requisitorioDTO.getTipoTributacaoAdvogado());
         req.setTipoVinculoCredor(requisitorioDTO.getTipoVinculoCredor());
+
 
         // verifica se tem acordo
         if (!requisitorioDTO.getAcordos().isEmpty()) {
@@ -211,16 +223,16 @@ public class CalculoController {
         req.setCustas(UtilCalculo.manterValorZeroSeNulo(requisitorioDTO.getVlDevolucaoCusta()));
         req.setMulta(UtilCalculo.manterValorZeroSeNulo(requisitorioDTO.getVlPagamentoMulta()));
         req.setOutrosReembolsos(BigDecimal.ZERO);
-        req.setTemPrioridade(!requisitorioDTO.getPrioridades().isEmpty());
+        req.setTemPrioridade(!prioridade.isEmpty());
         // TODO: verifica de onde retirar essa informação
 
 
         req.setPagamentoParcial(Boolean.FALSE);
-        req.setValorPagamentoParcial(BigDecimal.ZERO);
+        req.setPagamentoValorParcial(BigDecimal.ZERO);
 
         if(UtilCalculo.isNotNullOrZero(pagamentoEfetuado)){
             req.setPagamentoParcial(Boolean.TRUE);
-            req.setValorPagamentoParcial(pagamentoEfetuado);
+            req.setPagamentoValorParcial(pagamentoEfetuado);
         }
 
         req.setValorPagoAdvogado(BigDecimal.ZERO);
@@ -242,7 +254,7 @@ public class CalculoController {
                 if(deducao.getTipoDeducao() == 1){
                     req.setValorPenhora(UtilCalculo.manterValorZeroSeNulo(dados.getValor()));
                 } else if(deducao.getTipoDeducao() == 2){
-                    if(!UtilCalculo.isNotNullOrZero(dados.getPorcentagemCessao())){
+                    if(UtilCalculo.isNotNullOrZero(dados.getPorcentagemCessao())){
                         req.setPercentualCessao(dados.getPorcentagemCessao());
                     }
                 } else if(deducao.getTipoDeducao() == 4){
@@ -311,7 +323,7 @@ public class CalculoController {
         pagRequest.setNumeroMesesRRA(resp.getResultadoNumeroMesesRRA());
         pagRequest.setTemPrioridade(req.isTemPrioridade());
         pagRequest.setPagamentoParcial(req.isPagamentoParcial());
-        pagRequest.setValorPagamentoParcial(req.getValorPagamentoParcial());
+        pagRequest.setValorPagamentoParcial(req.getPagamentoValorParcial());
         pagRequest.setPercentualHonorario(req.getPercentualHonorario());
         pagRequest.setValorPagoAdvogado(req.getValorPagoAdvogado());
         pagRequest.setTributacaoAdvogado(req.getTributacaoAdvogado());

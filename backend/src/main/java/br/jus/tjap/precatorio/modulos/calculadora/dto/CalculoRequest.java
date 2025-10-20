@@ -31,9 +31,13 @@ public class CalculoRequest {
     private BigDecimal multa = BigDecimal.ZERO;
     private BigDecimal outrosReembolsos = BigDecimal.ZERO;
 
+
     private boolean temPrioridade;
+    // pagamento
     private boolean pagamentoParcial;
-    private BigDecimal valorPagamentoParcial = BigDecimal.ZERO;
+    private BigDecimal pagamentoValorUltimoAtualizado = BigDecimal.ZERO;
+    private BigDecimal pagamentoValorParcial = BigDecimal.ZERO;
+    private LocalDate pagamentoDtUltimoAtualizado;
 
     private BigDecimal percentualHonorario = BigDecimal.ZERO;
     private BigDecimal valorPagoAdvogado = BigDecimal.ZERO;

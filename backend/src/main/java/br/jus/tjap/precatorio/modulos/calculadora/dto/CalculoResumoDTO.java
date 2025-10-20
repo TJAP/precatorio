@@ -154,7 +154,7 @@ public class CalculoResumoDTO {
         this.atualizacaoNumeroRRA = req.getCalculoAtualizacaoDTO().getResultadoNumeroMesesRRA();
         this.atualizacaoValorPrevidencia = req.getCalculoAtualizacaoDTO().getResultadoValorPrevidenciaAtualizado();
         this.atualizacaoValorLimitePrioridade = req.getCalculoPagamentoDTO().getValorBasePrioridade();
-        this.atualizacaoLimitacaoPagamento = req.getRequest().isPagamentoParcial() ? StringUtil.formatarValorMoeda(req.getRequest().getValorPagamentoParcial()) : "NÃO";
+        this.atualizacaoLimitacaoPagamento = req.getRequest().isPagamentoParcial() ? StringUtil.formatarValorMoeda(req.getRequest().getPagamentoValorParcial()) : "NÃO";
         this.atualizacaoAcordoDireto = req.getRequest().isAcordoAdvogado() && req.getRequest().isAcordoCredor() ? req.getRequest().getPercentualDesagio().toString() : "NÃO";
 
         // tributação

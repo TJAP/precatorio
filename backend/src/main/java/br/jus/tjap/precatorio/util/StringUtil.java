@@ -54,6 +54,7 @@ public class StringUtil {
         if(Objects.isNull(numeroProc)){
             return "Sem numero";
         }
+        numeroProc = removerFormatacaoNumeroDocumento(numeroProc);
         String numero = numeroProc.substring(0,7);
         String digito = numeroProc.substring(7,9);
         String ano = numeroProc.substring(9,13);

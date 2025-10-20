@@ -198,7 +198,7 @@ public class ResumoCalculoDocumentoDTO {
         doc.setAtualizacaoNumeroRRA(resumo.getCalculoAtualizacaoDTO().getResultadoNumeroMesesRRA());
         doc.setAtualizacaoValorPrevidencia(RelatorioUtil.formatarValorMoeda(resumo.getCalculoAtualizacaoDTO().getResultadoValorPrevidenciaAtualizado()));
         doc.setAtualizacaoValorLimitePrioridade(RelatorioUtil.formatarValorMoeda(resumo.getCalculoPagamentoDTO().getValorBasePrioridade()));
-        doc.setAtualizacaoLimitacaoPagamento(resumo.getRequest().isPagamentoParcial() ? StringUtil.formatarValorMoeda(resumo.getRequest().getValorPagamentoParcial()) : "NÃO");
+        doc.setAtualizacaoLimitacaoPagamento(resumo.getRequest().isPagamentoParcial() ? StringUtil.formatarValorMoeda(resumo.getRequest().getPagamentoValorParcial()) : "NÃO");
         doc.setAtualizacaoAcordoDireto(resumo.getCalculoResumoDTO().getAtualizacaoAcordoDireto());
         doc.setTributacaoHonorarioPercentual(resumo.getCalculoResumoDTO().getTributacaoHonorarioPercentual().setScale(0, RoundingMode.HALF_UP).toString());
         doc.setTributacaoHonorarioMontanteDesembolso(RelatorioUtil.formatarValorMoeda(resumo.getCalculoResumoDTO().getTributacaoHonorarioMontanteDesembolso()));
