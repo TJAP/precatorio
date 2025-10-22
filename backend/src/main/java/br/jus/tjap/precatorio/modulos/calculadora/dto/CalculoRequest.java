@@ -31,7 +31,6 @@ public class CalculoRequest {
     private BigDecimal multa = BigDecimal.ZERO;
     private BigDecimal outrosReembolsos = BigDecimal.ZERO;
 
-
     private boolean temPrioridade;
     // pagamento
     private boolean pagamentoParcial;
@@ -50,7 +49,30 @@ public class CalculoRequest {
     private String tipoVinculoCredor;
     private String tipoTributacaoCredor;
 
-    private BigDecimal percentualCessao = BigDecimal.ZERO;
+    // penhora
     private BigDecimal valorPenhora = BigDecimal.ZERO;
+    private String descricaoAlvaraPenhora;
+
+    // cessão
+    private boolean temCessao;
+    private BigDecimal percentualCessao = BigDecimal.ZERO;
+    private String cessaoNome;
+    private String cessaoNumeroDocumento;
+    private String cessaoPercentual;
+    private String cessaoBanco;
+    private String cessaoTipoConta;
+    private String cessaoAgencia;
+    private String cessaoConta;
+    private String cessaoDVConta;
+
+    // sucessão
+    private boolean temSucessao;
+    private String sucessaoNome;
+    private String sucessaoNumeroDocumento;
+    private String sucessaoBanco;
+    private String sucessaoTipoConta;
+    private String sucessaoAgencia;
+    private String sucessaoConta;
+    private String sucessaoDVConta;
 
 }

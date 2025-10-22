@@ -1,5 +1,6 @@
 package br.jus.tjap.precatorio.modulos.calculadora.service;
 
+import br.jus.tjap.precatorio.modulos.calculadora.dto.BancoDTO;
 import br.jus.tjap.precatorio.modulos.calculadora.dto.CalculoRequisitorioDTO;
 import br.jus.tjap.precatorio.modulos.calculadora.dto.CalculoTributoRequest;
 import br.jus.tjap.precatorio.modulos.calculadora.dto.CalculoPagamentoDTO;
@@ -8,6 +9,8 @@ import br.jus.tjap.precatorio.modulos.calculadora.entity.TabelaIRRF;
 import br.jus.tjap.precatorio.modulos.calculadora.repository.PagamentoRepository;
 import br.jus.tjap.precatorio.modulos.calculadora.repository.TabelaIRRFRepository;
 import br.jus.tjap.precatorio.modulos.calculadora.util.UtilCalculo;
+import br.jus.tjap.precatorio.modulos.requisitorio.entity.Requisitorio;
+import br.jus.tjap.precatorio.modulos.requisitorio.repository.RequisitorioRepository;
 import br.jus.tjap.precatorio.modulos.tabelasbasicas.repository.EnteDevedorRepository;
 import jdk.jshell.execution.Util;
 import org.springframework.stereotype.Service;
@@ -26,16 +29,29 @@ public class PagamentoPrecatorioService {
     private final TabelaIRRFRepository tabelaIRRFRepository;
     private final EnteDevedorRepository enteDevedorRepository;
     private final PagamentoRepository pagamentoRepository;
+    private final RequisitorioRepository requisitorioRepository;
 
     private final BigDecimal DESCONTO_SIMPLIFICADO = BigDecimal.valueOf(607.2);
 
     public PagamentoPrecatorioService(
             TabelaIRRFRepository tabelaIRRFRepository,
             EnteDevedorRepository enteDevedorRepository,
-            PagamentoRepository pagamentoRepository) {
+            PagamentoRepository pagamentoRepository,
+            RequisitorioRepository requisitorioRepository) {
         this.tabelaIRRFRepository = tabelaIRRFRepository;
         this.enteDevedorRepository = enteDevedorRepository;
         this.pagamentoRepository = pagamentoRepository;
+        this.requisitorioRepository = requisitorioRepository;
+    }
+
+    private boolean temNaturezaIndenizatoria(Requisitorio requisitorio){
+        var tem = Boolean.FALSE;
+
+        //if(requisitorio.get){
+
+        //}
+
+        return tem;
     }
 
     private BigDecimal calcularIRPFProgressivoAdvogado(CalculoPagamentoDTO req,BigDecimal baseCalculo) {
@@ -113,6 +129,16 @@ public class PagamentoPrecatorioService {
         BigDecimal resultado = BigDecimal.ZERO;
 
         String tipoContribuinte = req.getTipoTributacaoCredor() != null ? req.getTipoTributacaoCredor().trim() : "";
+
+        var requisitorio = requisitorioRepository.findById(req.getIdPrecatorio());
+
+        if(requisitorio.isPresent()){
+            if(requisitorio.get().getIdTipoOrbigacao() == 1){
+                tipoContribuinte = "Isento";
+            }
+        }else{
+            throw new RuntimeException("Requisitório de ID "+ req.getIdPrecatorio() +", não encontrado na tabela precatório.");
+        }
 
         switch (tipoContribuinte) {
 
@@ -192,11 +218,10 @@ public class PagamentoPrecatorioService {
             numeroPrioridadeRRA = BigDecimal.valueOf(req.getNumeroMesesRRA())
                     .multiply(percentualPagamentoParcial);
         }
-        req.setNumeroPrioridadeRRA(numeroPrioridadeRRA);
 
+        req.setNumeroPrioridadeRRA(numeroPrioridadeRRA);
         req.setValorBasePrioridade(valorBasePrioridade);
         req.setPercentualPrioridade(percentualPrioridade.setScale(4,RoundingMode.HALF_UP));
-
         req.setValorBaseParcialPago(valorBasePagamentoParcial);
         req.setPercentualParcialPago(percentualPagamentoParcial.setScale(4,RoundingMode.HALF_UP));
 
@@ -578,8 +603,6 @@ public class PagamentoPrecatorioService {
             }
         }
 
-
-
         req.setBaseTributavelCredorTipoCalculo(baseTributavelCredorTipoCalculo);
         req.setBaseTributavelCredorValor(UtilCalculo.escala(baseTributavelCredorValor,2));
         req.setBaseTributavelCredorTipo(baseTributavelCredorTipo);
@@ -706,6 +729,7 @@ public class PagamentoPrecatorioService {
         req.setSaldoRemanescentePrevidencia(UtilCalculo.escala(saldoRemanescentePrevidencia,2));
     }
 
+    // Metodo principal de calculo
     public CalculoPagamentoDTO calcularTributo(CalculoTributoRequest req) {
 
         var resultado = new CalculoPagamentoDTO();

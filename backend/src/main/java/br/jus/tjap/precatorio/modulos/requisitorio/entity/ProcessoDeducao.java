@@ -54,8 +54,13 @@ public class ProcessoDeducao implements Serializable {
         ProcessoDeducaoDTO resultado = new ProcessoDeducaoDTO();
 
         resultado.setId(this.id);
-        resultado.setNumeroProcessoOrigem(this.numeroProcessoOrigem);
         resultado.setTipoDeducao(this.tipoDeducao);
+        resultado.setNumeroProcessoOrigem(this.numeroProcessoOrigem);
+        resultado.setNomePessoaOrigem(this.nomePessoaOrigem);
+        resultado.setDocumentoPessoaOrigem(this.documentoPessoaOrigem);
+        resultado.setNumeroProcessoDestino(this.numeroProcessoDestino);
+        resultado.setNomePessoaDestino(this.nomePessoaDestino);
+        resultado.setDocumentoPessoaDestino(this.documentoPessoaDestino);
         resultado.setDadosDeducao(this.dadosDeducao);
 
         return resultado;

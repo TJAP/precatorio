@@ -1,5 +1,6 @@
 package br.jus.tjap.precatorio.modulos.requisitorio.service;
 
+import br.jus.tjap.precatorio.modulos.calculadora.dto.BancoDTO;
 import br.jus.tjap.precatorio.modulos.calculadora.entity.PagamentoTucujuris;
 import br.jus.tjap.precatorio.modulos.calculadora.entity.PrioridadeTucujuris;
 import br.jus.tjap.precatorio.modulos.calculadora.repository.PagamentoTucujurisRepository;
@@ -65,6 +66,19 @@ public class RequisitorioService {
             return new ArrayList<PagamentoTucujuris>();
         }
         return pagamentoTucujurisRepository.findAllByIdPagamentoTucujuris(idPrecatorioTucujuris);
+    }
+
+    public BancoDTO recuperaBanco(Long idBanco) {
+        Object result = pagamentoTucujurisRepository.getBanco(idBanco);
+
+        if (result != null) {
+            Object[] row = (Object[]) result;
+            Integer codigo = ((Number) row[0]).intValue();
+            String descricao = (String) row[1];
+            return new BancoDTO(codigo, descricao);
+        }
+
+        return null;
     }
 
     public Requisitorio salvar(Requisitorio requisitorio){

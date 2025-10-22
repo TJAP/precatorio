@@ -1,5 +1,6 @@
 package br.jus.tjap.precatorio.modulos.calculadora.repository;
 
+import br.jus.tjap.precatorio.modulos.calculadora.dto.BancoDTO;
 import br.jus.tjap.precatorio.modulos.calculadora.entity.PagamentoTucujuris;
 import br.jus.tjap.precatorio.modulos.calculadora.entity.PrioridadeTucujuris;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -14,4 +15,7 @@ public interface PagamentoTucujurisRepository extends JpaRepository<PagamentoTuc
 
     @Query("select p from PagamentoTucujuris p where p.idProcessoTucujuris = :idProcessoTucujuris order by id desc")
     List<PagamentoTucujuris> findAllByIdPagamentoTucujuris(@Param("idProcessoTucujuris") Long idProcessoTucujuris);
+
+    @Query(value = "select codigo, descricao from bancos b where b.codigo = :idBanco", nativeQuery = true)
+    Object getBanco(@Param("idBanco") Long idBanco);
 }

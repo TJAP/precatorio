@@ -13,6 +13,7 @@ import java.math.BigDecimal;
 public class CalculoTributoRequest {
 
     private String cnpjDevedor;
+    private Long idPrecatorio;
 
     private BigDecimal valorPrincipalTributavelAtualizado = BigDecimal.ZERO;
     private BigDecimal valorPrincipalNaoTributavelAtualizado = BigDecimal.ZERO;

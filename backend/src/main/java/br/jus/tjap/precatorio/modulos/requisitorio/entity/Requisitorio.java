@@ -275,6 +275,7 @@ public class Requisitorio implements Serializable {
         var dto = new RequisitorioDTO();
 
         dto.setId(this.id);
+        dto.setIdPrecatorioTucujuris(this.idPrecatorioTucujuris);
         dto.setIdProcesso(this.idProcesso);
         dto.setNumProcessoTucujuris(this.numProcessoTucujuris);
         dto.setPrecato(this.precato);
@@ -358,7 +359,6 @@ public class Requisitorio implements Serializable {
         dto.setCodOrgaoJulgadorPje(this.codOrgaoJulgadorPje);
         dto.setCodOrgaoJulgadorTucujuris(this.codOrgaoJulgadorTucujuris);
         dto.setArquivoPdf(this.arquivoPdf);
-        dto.setIdPrecatorioTucujuris(this.idPrecatorioTucujuris);
         dto.setDtCadastro(this.dtCadastro);
         dto.setDtAtualizacao(this.dtAtualizacao);
         dto.setDsJustificativaInvalidade(this.dsJustificativaInvalidade);

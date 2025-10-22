@@ -160,7 +160,6 @@ public class CalculoController {
             req.setPagamentoValorUltimoAtualizado(requisitorioDTO.getVlTotalAtualizado());
         }
 
-
         req.setPercentualHonorario(UtilCalculo.manterValorZeroSeNulo(requisitorioDTO.getVlPercentualHonorarioAdvCredor()));
         req.setPercentualDesagio(BigDecimal.ZERO);
         req.setAcordoAdvogado(Boolean.FALSE);
@@ -168,7 +167,6 @@ public class CalculoController {
         req.setTipoTributacaoCredor(requisitorioDTO.getTipoTributacaoCredor());
         req.setTributacaoAdvogado(requisitorioDTO.getTipoTributacaoAdvogado());
         req.setTipoVinculoCredor(requisitorioDTO.getTipoVinculoCredor());
-
 
         // verifica se tem acordo
         if (!requisitorioDTO.getAcordos().isEmpty()) {
@@ -210,7 +208,7 @@ public class CalculoController {
         if (requisitorioDTO.getDtFimAtualizacaoPlanilha() != null) {
             req.setDataFimAtualizacao(requisitorioDTO.getDtFimAtualizacaoPlanilha());
         }else {
-            req.setDataFimAtualizacao(LocalDate.of(2025, 9, 30));
+            req.setDataFimAtualizacao(LocalDate.of(LocalDate.now().getYear(), (LocalDate.now().getMonth().minus(1)), LocalDate.now().getDayOfMonth()));
         }
         req.setAnoVencimento(requisitorioDTO.getAnoVencimento());
         req.setDataInicioRRA(requisitorioDTO.getDtInicioRRA());
@@ -224,21 +222,19 @@ public class CalculoController {
         req.setMulta(UtilCalculo.manterValorZeroSeNulo(requisitorioDTO.getVlPagamentoMulta()));
         req.setOutrosReembolsos(BigDecimal.ZERO);
         req.setTemPrioridade(!prioridade.isEmpty());
-        // TODO: verifica de onde retirar essa informação
-
 
         req.setPagamentoParcial(Boolean.FALSE);
         req.setPagamentoValorParcial(BigDecimal.ZERO);
-
         if(UtilCalculo.isNotNullOrZero(pagamentoEfetuado)){
             req.setPagamentoParcial(Boolean.TRUE);
             req.setPagamentoValorParcial(pagamentoEfetuado);
         }
-
         req.setValorPagoAdvogado(BigDecimal.ZERO);
-
         req.setPercentualCessao(BigDecimal.ZERO);
         req.setValorPenhora(BigDecimal.ZERO);
+        req.setTemSucessao(Boolean.FALSE);
+        req.setTemCessao(Boolean.FALSE);
+
         if(!requisitorioDTO.getProcessoDeducaos().isEmpty()){
             ObjectMapper mapper = new ObjectMapper();
             mapper.registerModule(new JavaTimeModule());
@@ -253,10 +249,41 @@ public class CalculoController {
                 }
                 if(deducao.getTipoDeducao() == 1){
                     req.setValorPenhora(UtilCalculo.manterValorZeroSeNulo(dados.getValor()));
+                    req.setDescricaoAlvaraPenhora(
+                            "Processo destino: "+ deducao.getNumeroProcessoDestino() + ", Credor: "+ deducao.getNomePessoaDestino()
+                    );
                 } else if(deducao.getTipoDeducao() == 2){
                     if(UtilCalculo.isNotNullOrZero(dados.getPorcentagemCessao())){
                         req.setPercentualCessao(dados.getPorcentagemCessao());
+                        //{"dv": "1", "banco": 1, "conta": "101010", "agencia": "3851", "tipoConta": 1}
+                        BancoDTO banco = requisitorioService.recuperaBanco(Long.valueOf(dados.getBanco()));
+                        req.setTemCessao(Boolean.TRUE);
+                        req.setCessaoNome(deducao.getNomePessoaDestino());
+                        req.setCessaoNumeroDocumento(deducao.getDocumentoPessoaDestino());
+                        req.setCessaoBanco(banco.getDescricao());
+                        req.setCessaoTipoConta("Corrente");
+                        if(Objects.nonNull(dados.getTipoConta())){
+                            req.setCessaoTipoConta(dados.getTipoConta() == 1 ? "Corrente" : "Polpança");
+                        }
+                        req.setCessaoAgencia(dados.getAgencia());
+                        req.setCessaoConta(dados.getConta());
+                        req.setCessaoDVConta(dados.getDv());
+                        req.setCessaoPercentual(dados.getPorcentagemCessao().toString()+"%");
                     }
+                } else if(deducao.getTipoDeducao() == 3){
+                    //{"dv": "1", "banco": 1, "conta": "101010", "agencia": "3851", "tipoConta": 1}
+                    BancoDTO banco = requisitorioService.recuperaBanco(Long.valueOf(dados.getBanco()));
+                    req.setTemSucessao(Boolean.TRUE);
+                    req.setSucessaoNome(deducao.getNomePessoaDestino());
+                    req.setSucessaoNumeroDocumento(deducao.getDocumentoPessoaDestino());
+                    req.setSucessaoBanco(banco.getDescricao());
+                    req.setSucessaoTipoConta("Corrente");
+                    if(Objects.nonNull(dados.getTipoConta())){
+                        req.setSucessaoTipoConta(dados.getTipoConta() == 1 ? "Corrente" : "Polpança");
+                    }
+                    req.setSucessaoAgencia(dados.getAgencia());
+                    req.setSucessaoConta(dados.getConta());
+                    req.setSucessaoDVConta(dados.getDv());
                 } else if(deducao.getTipoDeducao() == 4){
                     req.setPercentualHonorario(dados.getPercentual_honorarios());
                     req.setValorPagoAdvogado(dados.getOutros_valores_honorarios());
@@ -308,6 +335,7 @@ public class CalculoController {
         CalculoAtualizacaoDTO resp = resultado.getCalculoAtualizacaoDTO();
         var pagRequest = new CalculoTributoRequest();
 
+        pagRequest.setIdPrecatorio(resultado.getIdRequisitorio());
         pagRequest.setPercentualDesagio(req.getPercentualDesagio());
         pagRequest.setAcordoAdvogado(req.isAcordoAdvogado());
         pagRequest.setAcordoCredor(req.isAcordoCredor());

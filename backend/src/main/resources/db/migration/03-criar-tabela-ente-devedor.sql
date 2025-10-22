@@ -34,4 +34,4 @@ INSERT INTO ente_devedor (ente, cnpj, limite_prioridade, com_vinculo, sem_vincul
 ('MUNICIPIO DE VITORIA DO JARI', 00720553000119, 24472.23, 'INSS', 'INSS', '4300117319986', NULL),
 ('INSS', 29979036068020, 273240.00, 'INSS', 'INSS', NULL, NULL);
 
-ALTER TABLE precatorio ADD id_ente_devedor int8 NULL;
+ALTER TABLE precatorio ADD id_ente_devedor int8 NULL;

@@ -1,6 +1,5 @@
 package br.jus.tjap.precatorio.modulos.calculadora.dto;
 
-import br.jus.tjap.precatorio.modulos.calculadora.util.PagamentoUtil;
 import br.jus.tjap.precatorio.modulos.calculadora.util.UtilCalculo;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -14,6 +13,7 @@ import java.math.BigDecimal;
 public class CalculoPagamentoDTO {
 
     private String numeroCNPJCredor;
+    private Long idPrecatorio;
 
     private BigDecimal valorPrincipalTributavelAtualizado = BigDecimal.ZERO;
     private BigDecimal valorPrincipalNaoTributavelAtualizado = BigDecimal.ZERO;
@@ -128,6 +128,7 @@ public class CalculoPagamentoDTO {
     private BigDecimal saldoRemanescentePrevidencia = BigDecimal.ZERO;
 
     public void preencherResultadoCalculo(CalculoTributoRequest req){
+        this.idPrecatorio = req.getIdPrecatorio();
         this.valorPrincipalTributavelAtualizadoDizima = req.getValorPrincipalTributavelAtualizado();
         this.valorPrincipalNaoTributavelAtualizadoDizima = req.getValorPrincipalNaoTributavelAtualizado();
         this.valorJurosAtualizadoDizima = req.getValorJurosAtualizado();

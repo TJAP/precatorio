@@ -41,13 +41,33 @@ public class ResumoCalculoDocumentoDTO {
     private String advCredorAgencia;
     private String advCredorConta;
     private String advCredorDV;
+    private String alvaraDescricaoAdvogado = "Transferência para o Advogado";
 
     private String temPrioridade = "Não";
     private String temAcordo = "Não";
     private String temPagamentoParcial = "Não";
     private String temCessaoCredito = "Não";
+    private String temSucessao = "Não";
     private String temPenhora = "Não";
     private String indicePrecatorio = "IPCA";
+
+    private String descricaoAlvaraPenhora = "Transferência para Vara";
+
+    private String sucessaoNome;
+    private String sucessaoNumeroDocumento;
+    private String sucessaoBanco;
+    private String sucessaoTipoConta;
+    private String sucessaoAgencia;
+    private String sucessaoConta;
+    private String sucessaoDVConta;
+
+    private String cessaoNome;
+    private String cessaoNumeroDocumento;
+    private String cessaoBanco;
+    private String cessaoTipoConta;
+    private String cessaoAgencia;
+    private String cessaoConta;
+    private String cessaoDVConta;
 
     // dados do requisitório
     private String requisitorioValorPrincipalTributavel;
@@ -216,7 +236,7 @@ public class ResumoCalculoDocumentoDTO {
         doc.setAlvaraIRRFCredor(RelatorioUtil.formatarValorMoeda(resumo.getCalculoResumoDTO().getAlvaraIRRFCredor()));
         doc.setAlvaraOrgaoPrevidenciaNome(
                 UtilCalculo.isNotNullOrZero(resumo.getCalculoResumoDTO().getTributacaoCredorPrevidencia()) ?
-                resumo.getCalculoResumoDTO().getAlvaraOrgaoPrevidenciaNome() : "Sem previdência"
+                        resumo.getCalculoResumoDTO().getAlvaraOrgaoPrevidenciaNome() : "Sem previdência"
         );
         doc.setAlvaraValorPrevidencia(RelatorioUtil.formatarValorMoeda(resumo.getCalculoResumoDTO().getAlvaraValorPrevidencia()));
 
@@ -251,7 +271,7 @@ public class ResumoCalculoDocumentoDTO {
         }
 
         if(UtilCalculo.isNotNullOrZero(resumo.getRequest().getPercentualCessao())){
-           doc.setTemCessaoCredito("Sim");
+            doc.setTemCessaoCredito("Sim");
         }
 
         doc.setIndicePrecatorio(resumo.getCalculoAtualizacaoDTO().getTipoCalculoRetornado());
@@ -263,6 +283,39 @@ public class ResumoCalculoDocumentoDTO {
 
         doc.setDataCorrente(StringUtil.formataDataDMY(LocalDate.now()));
         doc.setUsuarioCalculo("Não implementado (em fase de homologação)");
+
+
+        if(UtilCalculo.isNotNullOrZero(resumo.getRequest().getValorPenhora())){
+           doc.setDescricaoAlvaraPenhora(resumo.getRequest().getDescricaoAlvaraPenhora());
+        }
+
+        doc.setAlvaraDescricaoAdvogado(
+                resumo.get;
+        );
+
+        if(resumo.getRequest().isTemSucessao()){
+            var dadosSucessao = resumo.getRequest().getSucessaoNome()+ ", Banco: "+
+                    resumo.getRequest().getSucessaoBanco()+ ", Agencia: "+
+                    resumo.getRequest().getSucessaoAgencia()+ ", Conta: "+
+                    resumo.getRequest().getSucessaoConta()+ "-" +resumo.getRequest().getSucessaoDVConta()+ ", Tipo conta: "+
+                    resumo.getRequest().getSucessaoTipoConta();
+            doc.setSucessaoNome(dadosSucessao);
+        }else{
+            doc.setSucessaoNome("Transferência para o Sucessor");
+        }
+        doc.setTemSucessao(resumo.getRequest().isTemSucessao()?"Sim":"Não");
+
+        if(resumo.getRequest().isTemCessao()){
+            var dadosCessao = resumo.getRequest().getCessaoNome()+ ", Banco: "+
+                    resumo.getRequest().getCessaoBanco()+ ", Agencia: "+
+                    resumo.getRequest().getCessaoAgencia()+ ", Conta: "+
+                    resumo.getRequest().getCessaoConta()+ "-" +resumo.getRequest().getCessaoDVConta()+ ", Tipo conta: "+
+                    resumo.getRequest().getCessaoTipoConta();
+            doc.setCessaoNome(dadosCessao);
+        } else {
+            doc.setCessaoNome("Transferência para o Cessionário");
+        }
+
         return doc;
     }
 }
