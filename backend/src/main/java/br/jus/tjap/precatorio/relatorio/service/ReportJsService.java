@@ -26,6 +26,7 @@ public class ReportJsService {
 
     public byte[] getRelatorioResumosCalculo(ResumoCalculoDocumentoDTO dto){
         return getRelatorio("novo_precatorio", dto);
+        //return getRelatorio("novo_precatorio", dto);
     }
 
 

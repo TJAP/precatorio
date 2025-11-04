@@ -2,6 +2,7 @@ package br.jus.tjap.precatorio.modulos.requisitorio.dto;
 
 import br.jus.tjap.precatorio.modulos.requisitorio.entity.ProcessoDeducao;
 import br.jus.tjap.precatorio.modulos.tabelasbasicas.dto.EnteDevedorDTO;
+import br.jus.tjap.precatorio.modulos.tabelasbasicas.dto.TipoAcaoDTO;
 import br.jus.tjap.precatorio.util.StringUtil;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Column;
@@ -56,10 +57,14 @@ public class RequisitorioDTO {
     private String situacaoFuncionalCredor;
     private String nomeBancoCredor;
     private String agenciaCredor;
+    private String tipoContaCredor;
     private String contaCorrenteCredor;
+    private String dvContaCorrenteCredor;
     private String nomeBancoAdvCredor;
+    private String tipoContaAdvCredor;
     private String agenciaAdvCredor;
     private String contaCorrenteAdvCredor;
+    private String dvContaCorrenteAdvCredor;
     private BigDecimal valorCausa;
     //private SituacaoPrecatorioEnum situacao;
     private BigDecimal vlGlobalRequisicao;
@@ -109,6 +114,7 @@ public class RequisitorioDTO {
 
     private LocalDate dtInicioRRA;
     private LocalDate dtFimRRA;
+    private Integer numeroMesesRRA;
     private Integer anoVencimento;
 
     private EnteDevedorDTO enteDevedorDTO;
@@ -120,6 +126,8 @@ public class RequisitorioDTO {
     private String tipoVinculoCredor;
     private String tipoTributacaoCredor;
     private String tipoTributacaoAdvogado;
+
+    private TipoCredorDTO tipoCredor;
 
     public String getNumeroProcessoPJE(){
         return StringUtil.formataNumeroProcesso(getIdProcesso());

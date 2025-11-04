@@ -2,10 +2,7 @@ package br.jus.tjap.precatorio.modulos.tabelasbasicas.entity;
 
 import br.jus.tjap.precatorio.modulos.tabelasbasicas.dto.EnteDevedorDTO;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -44,6 +41,10 @@ public class EnteDevedor implements Serializable {
     @Column(name = "acordo")
     private String numeroContaAcordo;
 
+    @JoinColumn(name = "id_previdencia")
+    @ManyToOne
+    private Previdencia previdencia;
+
     public EnteDevedorDTO toMetadado(){
         EnteDevedorDTO dto = new EnteDevedorDTO();
 
@@ -55,6 +56,7 @@ public class EnteDevedor implements Serializable {
         dto.setNumeroConta(this.numeroConta);
         dto.setLimitePrioridade(this.limitePrioridade);
         dto.setNumeroContaAcordo(this.numeroContaAcordo);
+        dto.setPrevidenciaDTO(this.previdencia.toMetadado());
 
         return dto;
     }

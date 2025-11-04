@@ -29,6 +29,7 @@ public class DadosDeducaoDTO {
     private Object porcentagemCessao;
     @JsonDeserialize(using = FlexibleLocalDateDeserializer.class)
     private LocalDate data_nascimento_pessoa_destino;
+    private Object porcentagemSucessao;
 
 
     // defesa contra tipos diferentes de bigdecimal vindos da requisição
@@ -130,6 +131,31 @@ public class DadosDeducaoDTO {
         }
 
         throw new IllegalArgumentException("Tipo inválido para porcentagemCessao: " + porcentagemCessao.getClass());
+    }
+
+    public BigDecimal getPorcentagemSucessao() {
+        if (porcentagemSucessao == null) {
+            return BigDecimal.ZERO;
+        }
+
+        if (porcentagemSucessao instanceof BigDecimal) {
+            return (BigDecimal) porcentagemSucessao;
+        }
+
+        if (porcentagemSucessao instanceof Number) {
+            return BigDecimal.valueOf(((Number) porcentagemSucessao).doubleValue());
+        }
+
+        if (porcentagemSucessao instanceof String) {
+            String valor = ((String) porcentagemSucessao).trim().replace(",", ".");
+            try {
+                return new BigDecimal(valor);
+            } catch (NumberFormatException e) {
+                throw new IllegalArgumentException("Valor inválido para porcentagemSucessao: " + valor, e);
+            }
+        }
+
+        throw new IllegalArgumentException("Tipo inválido para porcentagemSucessao: " + porcentagemSucessao.getClass());
     }
 
     public BigDecimal getPercentual_honorarios() {

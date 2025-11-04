@@ -96,19 +96,19 @@ public class CalculoAtualizacaoDTO {
     private BigDecimal resultadoTaxaDuranteAtualizado = ZERO;
     private BigDecimal resultadoTaxaDepoisAtualizado = ZERO;
 
-    @JsonIgnore
+    //@JsonIgnore
     private BigDecimal resultadoValorPrincipalTributavelAtualizadoDizima = ZERO;
-    @JsonIgnore
+    //@JsonIgnore
     private BigDecimal resultadoValorPrincipalNaoTributavelAtualizadoDizima = ZERO;
-    @JsonIgnore
+    //@JsonIgnore
     private BigDecimal resultadoValorJurosAtualizadoDizima = ZERO;
-    @JsonIgnore
+    //@JsonIgnore
     private BigDecimal resultadoValorMultaCustasOutrosAtualizadoDizima = ZERO;
-    @JsonIgnore
+    //@JsonIgnore
     private BigDecimal resultadoValorSelicAtualizadoDizima = ZERO;
-    @JsonIgnore
+    //@JsonIgnore
     private BigDecimal resultadoValorBrutoAtualizadoDizima = ZERO;
-    @JsonIgnore
+    //@JsonIgnore
     private BigDecimal resultadoValorPrevidenciaAtualizadoDizima = ZERO;
 
     private long resultadoNumeroMesesRRA = 0;

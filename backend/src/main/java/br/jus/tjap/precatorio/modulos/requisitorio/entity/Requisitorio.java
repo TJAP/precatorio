@@ -10,8 +10,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 
-import br.jus.tjap.precatorio.modulos.calculadora.util.PagamentoUtil;
-import br.jus.tjap.precatorio.modulos.calculadora.util.UtilCalculo;
 import br.jus.tjap.precatorio.modulos.requisitorio.dto.RelatorioJsRequestDTO;
 import br.jus.tjap.precatorio.modulos.requisitorio.dto.RequisitorioDTO;
 import br.jus.tjap.precatorio.modulos.tabelasbasicas.entity.EnteDevedor;
@@ -55,8 +53,7 @@ public class Requisitorio implements Serializable {
     private Long idNaturezaCredito;
     @Column(name = "id_tipo_previdencia")
     private Long idTipoPrevidencia;
-    @Column(name = "id_tipo_orbigacao")
-    private Long idTipoOrbigacao;
+
     @Column(name = "ds_tipo_obrigacao")
     private String dsTipoObrigacao;
     @Column(name = "dt_ajuizamento")
@@ -110,8 +107,8 @@ public class Requisitorio implements Serializable {
 
     @Column(name = "orgao_vinculo_credor")
     private String orgaoVinculoCredor;
-    @Column(name = "situcao_funcional_credor")
-    private String situacaoFuncionalCredor;
+    //@Column(name = "situcao_funcional_credor")
+    //private String situacaoFuncionalCredor;
     @Column(name = "nome_banco_credor")
     private String nomeBancoCredor;
     @Column(name = "agencia_bancaria_credor")
@@ -250,6 +247,13 @@ public class Requisitorio implements Serializable {
     @ManyToOne
     private EnteDevedor enteDevedor;
 
+    @Column(name = "id_tipo_orbigacao")
+    private Long idTipoOrbigacao;
+
+    @JoinColumn(name = "situcao_funcional_credor")
+    @ManyToOne(fetch = FetchType.LAZY)
+    private TipoCredor tipoCredor;
+
     @OneToMany(mappedBy = "requisitorio", fetch = FetchType.LAZY)
     private List<Prioridade> prioridades = new ArrayList<>();
 
@@ -263,12 +267,26 @@ public class Requisitorio implements Serializable {
     private String numeroPrecatorio;
 
     @Transient
+    private Integer numeroMesesRRA;
+
+    @Transient
     private String precato;
 
     public String getNumeroProcessoPJE(){
         return StringUtil.formataNumeroProcesso(getIdProcesso());
     }
 
+    public Integer getNumeroMesesRRA(){
+        if(Objects.isNull(this.dtInicioRRA) && Objects.isNull(this.dtFimRRA)){
+            if(Objects.nonNull(this.numeroMesesRendimentoAcumulado)){
+                return this.numeroMesesRendimentoAcumulado;
+            }
+        } else {
+            return Math.toIntExact(DateUtil.calcularMesesPeriodo(this.dtInicioRRA, this.dtFimRRA))-1;
+        }
+
+        return 0;
+    }
 
     public RequisitorioDTO toMetadado(){
 
@@ -283,7 +301,6 @@ public class Requisitorio implements Serializable {
         dto.setIdTipoTitulo(this.idTipoTitulo);
         dto.setIdNaturezaCredito(this.idNaturezaCredito);
         dto.setIdTipoPrevidencia(this.idTipoPrevidencia);
-        dto.setIdTipoOrbigacao(this.idTipoOrbigacao);
         dto.setDsTipoObrigacao(this.dsTipoObrigacao);
         dto.setDtAjuizamento(this.dtAjuizamento);
         dto.setDtDecursoPrazo(this.dtDecursoPrazo);
@@ -308,7 +325,7 @@ public class Requisitorio implements Serializable {
         dto.setNascimentoRepresentanteCredor(this.nascimentoRepresentanteCredor);
         dto.setIdCredorNaturezaQualificacao(this.idCredorNaturezaQualificacao);
         dto.setOrgaoVinculoCredor(this.orgaoVinculoCredor);
-        dto.setSituacaoFuncionalCredor(this.situacaoFuncionalCredor);
+        //dto.setSituacaoFuncionalCredor(this.situacaoFuncionalCredor);
         dto.setNomeBancoCredor(this.nomeBancoCredor);
         dto.setAgenciaCredor(this.agenciaCredor);
         dto.setContaCorrenteCredor(this.contaCorrenteCredor);
@@ -333,16 +350,8 @@ public class Requisitorio implements Serializable {
         dto.setVlRetencaoImposto(this.vlRetencaoImposto);
         dto.setVlTotalAtualizado(this.vlTotalAtualizado);
 
-        var mesesAcumulados = 0;
-        if(Objects.isNull(this.dtInicioRRA) && Objects.isNull(this.dtFimRRA)){
-            if(Objects.nonNull(this.numeroMesesRendimentoAcumulado)){
-                mesesAcumulados = this.numeroMesesRendimentoAcumulado;
-            }
-        } else {
-            mesesAcumulados = Math.toIntExact(DateUtil.calcularMesesPeriodo(this.dtInicioRRA, this.dtFimRRA))-1;
-        }
-
-        dto.setNumeroMesesRendimentoAcumulado(mesesAcumulados);
+        dto.setNumeroMesesRRA(getNumeroMesesRRA());
+        dto.setNumeroMesesRendimentoAcumulado(getNumeroMesesRRA());
         dto.setPagamentoPrevidenciario(this.pagamentoPrevidenciario);
         dto.setVlPrevidencia(this.vlPrevidencia);
         dto.setOrgaoPrevidencia(this.orgaoPrevidencia);
@@ -365,13 +374,13 @@ public class Requisitorio implements Serializable {
         dto.setAtivo(this.ativo);
         dto.setMsgErroDistribuicao(this.msgErroDistribuicao);
         dto.setEnteDevedorDTO(this.enteDevedor.toMetadado());
-
+        dto.setTipoCredor(this.tipoCredor.toMetadado());
         dto.setTipoTributacaoAdvogado(deParaTributacaoAdvogado(this.idTipoTributacaoAdvCredor));
-        dto.setTipoVinculoCredor(deParaTipoVinculoCredor(this.situacaoFuncionalCredor));
+        dto.setTipoVinculoCredor(deParaTipoVinculoCredor(this.tipoCredor.getDescricao()));
         dto.setTipoTributacaoCredor(deParaTributacaoCredor(
                 this.documentoCredor,
                 this.dsTipoObrigacao.contains("Indenização") ? "INDENIZACAO" : this.dsTipoObrigacao,
-                mesesAcumulados > 0
+                getNumeroMesesRRA() > 0
         ));
 
         dto.setProcessoDeducaos(this.processoDeducaos.stream().map(ProcessoDeducao::toDto).toList());
@@ -380,113 +389,8 @@ public class Requisitorio implements Serializable {
         dto.setAnoVencimento(Objects.isNull(this.anoVencimento) ? 2021 : this.anoVencimento);
         dto.setDtInicioRRA(this.dtInicioRRA);
         dto.setDtFimRRA(this.dtFimRRA);
+        //dto.setTipoAcaoDTO(this.tipoAcao.toMetadado());
         return dto;
-    }
-
-    public RelatorioJsRequestDTO toRelatorio(){
-        var relatorio = new RelatorioJsRequestDTO();
-
-        var minuta = this.dtAssinatura == null;
-
-        relatorio.setRpv(this.tipoPrecatorio == 2);
-        relatorio.setPrecatorio(this.tipoPrecatorio == 1);
-        relatorio.setTipoDocumento(this.tipoPrecatorio == 1 ? "OFÍCIO REQUISITÓRIO DE PRECATÓRIO" : "REQUISIÇÃO DE PEQUENO VALOR");
-
-        relatorio.setDataAtual(DateUtil.localDataFormatada(LocalDate.now(), "dd/MM/yyyy"));
-
-        relatorio.setDataAtual(DateUtil.localDataFormatada(LocalDate.now(), "dd/MM/yyyy"));
-
-        relatorio.setMinuta(minuta);
-        relatorio.setNomeJuiz(this.nomeMagistrado);
-
-        relatorio.setNumeroPrecatorio((minuta ? "xxxx" : StringUtil.leftPad(this.id + "", "0", 4)) + "-" + this.codOrgaoJulgadorPje + "" + this.tipoPrecatorio + "/" + this.dtCadastro.getYear());
-        //relatorio.setNomeComarca(DeParaPrecatorioTucujuris.deParaComarca(this.lotacaoTucujuris.getComarca()));
-        //relatorio.setNomeVara(this.lotacaoTucujuris.getDescricao());
-        relatorio.setNumeroProcesso(this.idProcesso);
-
-        relatorio.setNomeDevedor(this.nomeDevedor);
-        relatorio.setDocumentoDevedor(this.documentoDevedor);
-        relatorio.setNomeDevedorAdv(this.nomeDevedorAdv);
-
-        if (this.idNaturezaCredito != null) {
-            relatorio.setNaturezaCredito(this.idNaturezaCredito == 0L ? "Alimentar" : "Comum");
-            //relatorio.setCreditoPreferencial(DeParaPrecatorioTucujuris.getPrioridade(this.prioridades));
-        } else {
-            relatorio.setNaturezaCredito("");
-            relatorio.setCreditoPreferencial("");
-        }
-/*
-        if (this.tipoObrigacao.getDescricao() != null) {
-            relatorio.setTipoObrigacao(this.tipoObrigacao.getDescricao());
-            relatorio.setDsTipoObrigacao(this.dsTipoObrigacao);
-        } else {
-            relatorio.setTipoObrigacao("");
-            relatorio.setDsTipoObrigacao("");
-        }
-*/
-        relatorio.setTipoTitulo(this.idTipoTitulo == 0L ? "Judicial" : "Extrajudicial");
-        relatorio.setDataAjuizamento(DateUtil.localDataFormatada(this.dtAjuizamento, "dd/MM/yyyy"));
-        relatorio.setDataTransitoJulgadoConhecimento(DateUtil.localDataFormatada(this.dtTransitoJulgadoConhecimento, "dd/MM/yyyy"));
-        relatorio.setDataTransitoJulgadoEmbargos(DateUtil.localDataFormatada(this.dtTransitoJulgadoEmbargos, "dd/MM/yyyy"));
-        relatorio.setDataDecursoPrazo(DateUtil.localDataFormatada(this.dtDecursoPrazo, "dd/MM/yyyy"));
-        relatorio.setDataTransitoJulgado(DateUtil.localDataFormatada(this.dtTransitoJulgadoConhecimento, "dd/MM/yyyy"));
-
-        relatorio.setNomeCredor(this.nomeCredor);
-        relatorio.setDocumentoCredor(this.documentoCredor);
-        relatorio.setNascimentoCredor(DateUtil.localDataFormatada(this.nascimentoCredor, "dd/MM/yyyy"));
-        relatorio.setBancoCredor(this.nomeBancoCredor);
-        relatorio.setAgenciaCredor(this.agenciaCredor);
-        relatorio.setContaCorrenteCredor(this.contaCorrenteCredor);
-        relatorio.setSituacaoFuncionalCredor(this.situacaoFuncionalCredor);
-        relatorio.setOrgaoVinculoCredor(this.orgaoVinculoCredor);
-
-        /*
-        if (this.tipoQualificacao != null || !this.nomeCredorRepresentante.equals("")) {
-            relatorio.setRepresentanteCredor(this.nomeCredorRepresentante);
-            relatorio.setDocCredorRepresentante(this.docCredorRepresentante);
-            relatorio.setNascimentoRepresentanteCredor(DateUtil.localDataFormatada(this.nascimentoRepresentanteCredor, "dd/MM/yyyy"));
-            relatorio.setCredorNaturezaQualificacao(this.tipoQualificacao.getDescricao());
-            relatorio.setTemRepresentante(true);
-        } else {
-            relatorio.setTemRepresentante(false);
-        }
-*/
-        if (this.nomeCredorAdv != null) {
-            relatorio.setNomeCredorAdv(this.nomeCredorAdv);
-            relatorio.setDocumentoCredorAdv(this.documentoCredorAdv);
-            relatorio.setNascimentoAdvCredor(DateUtil.localDataFormatada(this.nascimentoAdvCredor, "dd/MM/yyyy"));
-            relatorio.setNomeBancoAdvCredor(this.nomeBancoAdvCredor);
-            relatorio.setAgenciaAdvCredor(this.agenciaAdvCredor);
-            relatorio.setContaCorrenteAdvCredor(this.contaCorrenteAdvCredor);
-            relatorio.setTipoTributacaoAdvCredor(this.idTipoTributacaoAdvCredor);
-            relatorio.setVlPercentualHonorarioAdvCredor(StringUtil.formatarValorMoeda(this.vlPercentualHonorarioAdvCredor));
-            relatorio.setTemAdvogado(true);
-        } else {
-            relatorio.setTemAdvogado(false);
-        }
-
-        relatorio.setVlGlobalRequisicao(StringUtil.formatarValorMoeda(this.vlGlobalRequisicao));
-        relatorio.setVlPrincipalTributavelCorrigido(StringUtil.formatarValorMoeda(this.vlPrincipalTributavelCorrigido));
-        relatorio.setVlPrincipalNaoTributavelCorrigido(StringUtil.formatarValorMoeda(this.vlPrincipalNaoTributavelCorrigido));
-        //relatorio.setIndiceAtualizacao(DeParaPrecatorioTucujuris.indiceAtualizacao(this.indiceAtualizacao.toString()));
-        //relatorio.setIdTaxaJurosAplicadas(DeParaPrecatorioTucujuris.jurosAplicado(this.idTaxaJurosAplicadas.toString()));
-        relatorio.setVlJurosAplicado(StringUtil.formatarValorMoeda(this.vlJurosAplicado));
-        relatorio.setDevolucaoCusta(this.devolucaoCusta ? "SIM" : "NÃO");
-        relatorio.setVlDevolucaoCusta(this.devolucaoCusta ? StringUtil.formatarValorMoeda(this.vlDevolucaoCusta) : "R$ 0,00");
-        relatorio.setPagamentoMulta(this.pagamentoMulta ? "SIM" : "NÃO");
-        relatorio.setVlPagamentoMulta(this.pagamentoMulta ? StringUtil.formatarValorMoeda(this.vlPagamentoMulta) : "R$ 0,00");
-        relatorio.setDtUltimaAtualizacaoPlanilha(DateUtil.localDataFormatada(this.dtUltimaAtualizacaoPlanilha, "dd/MM/yyyy"));
-        relatorio.setNumeroMesesRendimentoAcumulado(this.numeroMesesRendimentoAcumulado.toString());
-        relatorio.setVlPrevidencia(StringUtil.formatarValorMoeda(this.vlPrevidencia));
-        //relatorio.setOrgaoPrevidencia(this.tipoPrevidencia.getDescricao());
-        relatorio.setAverbacaoPenhora(this.averbacaoPenhora ? "SIM" : "NÃO");
-        relatorio.setVlAverbacaoPenhora(this.averbacaoPenhora ? StringUtil.formatarValorMoeda(this.vlAverbacaoPenhora) : "R$ 0,00");
-        relatorio.setSessaoCredito(this.sessaoCredito ? "SIM" : "NÃO");
-        relatorio.setVlSessaoCredito(this.sessaoCredito ? StringUtil.formatarValorMoeda(this.vlSessaoCredito) : "R$ 0,00");
-        relatorio.setPagamentoAdministrativo(this.pagamentoAdministrativo ? "SIM" : "NÃO");
-        relatorio.setVlPagamentoAdministrativo(this.pagamentoAdministrativo ? StringUtil.formatarValorMoeda(this.vlPagamentoAdministrativo) : "R$ 0,00");
-
-        return relatorio;
     }
 
     private String deParaTipoVinculoCredor(String tipoVinculo){
@@ -496,12 +400,8 @@ public class Requisitorio implements Serializable {
             return resultado;
         }
 
-        if(this.situacaoFuncionalCredor.equalsIgnoreCase("Com vinculo")){
+        if(tipoVinculo.equalsIgnoreCase("Servidor Público Concursado") || tipoVinculo.equalsIgnoreCase("Servidor Público Não Concursado")){
             return "Com vinculo";
-        }
-
-        if(tipoVinculo.equalsIgnoreCase("Efetivo")){
-            resultado = "Com vinculo";
         }
 
         return resultado;

@@ -20,4 +20,6 @@ public class EnteDevedorDTO {
     private String semVinculo;
     private String numeroConta;
     private String numeroContaAcordo;
+
+    private PrevidenciaDTO previdenciaDTO;
 }

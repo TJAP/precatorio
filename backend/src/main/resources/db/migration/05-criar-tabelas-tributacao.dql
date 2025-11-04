@@ -16,11 +16,14 @@ CREATE SEQUENCE precatorio.tipo_tributacao_precatorio_id_seq
 -- Tabela principal
 CREATE TABLE precatorio.tipo_tributacao_precatorio (
     id BIGINT PRIMARY KEY DEFAULT nextval('precatorio.tipo_tributacao_precatorio_id_seq'),
-    codigo VARCHAR(50) UNIQUE NOT NULL,                -- Ex: 'RRA', 'ISENTO', etc.
+    id_tipo_credor INT NULL,
+    codigo VARCHAR(50) NOT NULL,                -- Ex: 'RRA', 'ISENTO', etc.
     descricao VARCHAR(200) NOT NULL,                   -- Ex: 'Rendimentos Recebidos Acumuladamente'
     aplica_ir BOOLEAN NOT NULL DEFAULT TRUE,           -- Se o tipo gera retenção de IR
     aliquota_padrao NUMERIC(5,2),                      -- Ex: 1.5, 1.0, NULL se não aplicável
     usa_tabela_progressiva BOOLEAN DEFAULT FALSE,      -- Se usa tabela progressiva (PF e RRA)
+    com_previdencia BOOLEAN DEFAULT FALSE,
+    com_rra BOOLEAN DEFAULT FALSE,
     origem_isencao VARCHAR(200),                       -- Base legal (Lei, art., etc.)
     observacao TEXT,                                   -- Observações adicionais
     ativo BOOLEAN NOT NULL DEFAULT TRUE                -- Para controle administrativo
@@ -50,7 +53,7 @@ VALUES
 -- ============================================================
 
 -- Sequence
-CREATE SEQUENCE precatorio.tipo_acao_precatorio_id_seq
+CREATE SEQUENCE precatorio.tipo_credor_precatorio_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -58,44 +61,19 @@ CREATE SEQUENCE precatorio.tipo_acao_precatorio_id_seq
     CACHE 1;
 
 -- Tabela principal
-CREATE TABLE precatorio.tipo_acao_precatorio (
-    id BIGINT PRIMARY KEY DEFAULT nextval('precatorio.tipo_acao_precatorio_id_seq'),
+CREATE TABLE precatorio.tipo_credor_precatorio (
+    id BIGINT PRIMARY KEY DEFAULT nextval('precatorio.tipo_credor_precatorio_id_seq'),
     descricao VARCHAR(200) NOT NULL,                        -- Ex: "Honorários Sucumbenciais"
-    id_tipo_tributacao BIGINT NOT NULL,                     -- FK para tipo_tributacao_precatorio
-    codigo_cnj VARCHAR(20),                                 -- opcional: código do assunto / classe CNJ
-    observacao TEXT,
-    ativo BOOLEAN NOT NULL DEFAULT TRUE,
-    CONSTRAINT fk_tipo_acao_tributacao FOREIGN KEY (id_tipo_tributacao)
-        REFERENCES precatorio.tipo_tributacao_precatorio (id)
+    tipo_pessoa VARCHAR(20),                                 -- opcional: código do assunto / classe CNJ
+    ativo BOOLEAN NOT NULL DEFAULT TRUE
 );
 
 -- Permissões
-GRANT ALL PRIVILEGES ON TABLE precatorio.tipo_acao_precatorio TO web;
-GRANT ALL PRIVILEGES ON SEQUENCE precatorio.tipo_acao_precatorio_id_seq TO web;
+GRANT ALL PRIVILEGES ON TABLE precatorio.tipo_credor_precatorio TO web;
+GRANT ALL PRIVILEGES ON SEQUENCE precatorio.tipo_credor_precatorio_id_seq TO web;
 
--- Inserts iniciais com base na imagem enviada
--- Ajustando as naturezas com o tipo de tributação mais provável:
-
-INSERT INTO precatorio.tipo_acao_precatorio (descricao, id_tipo_tributacao, observacao)
-SELECT descricao, id_tipo_tributacao, observacao
-FROM (
-    VALUES
-        ('Honorários Sucumbenciais', 2, 'Tributação PF – Tabela Progressiva (pessoa física, advogado)'),
-        ('Adicionais/Reflexos sem previdência', 1, 'RRA trabalhista'),
-        ('Dif. Salariais servidor efetivo', 1, 'RRA trabalhista'),
-        ('Dif. Salariais contratado/comissionado', 1, 'RRA trabalhista'),
-        ('Ressarcimento de impostos', 5, 'Isento de IR por natureza indenizatória'),
-        ('Verbas indenizatórias', 5, 'Isento de IR'),
-        ('Valores não pagos a PJ', 3, 'PJ – Serviços (retenção de 1,5%)'),
-        ('Valores não pagos a PF', 2, 'PF – Tabela Progressiva'),
-        ('Lucros cessantes', 2, 'PF – Tabela Progressiva, salvo se comprovada natureza indenizatória')
-        ('Administrativa', 1, 'Rendimentos acumulados de natureza remuneratória'),
-        ('Constitucional', 1, 'RRA – diferenças de subsídio ou remuneração'),
-        ('Tributária', 5, 'Restituição de tributos – isento de IR'),
-        ('Civil', 5, 'Indenização por danos morais ou materiais – isento de IR'),
-        ('Trabalhista', 1, 'RRA – verbas trabalhistas acumuladas'),
-        ('Acidente de Trabalho', 5, 'Indenização de natureza previdenciária – isento de IR'),
-        ('Indenização por desapropriação de imóvel residencial', 5, 'Isento conforme art. 22, §1º, Lei 9.249/1995'),
-        ('Indenização por desapropriação de imóvel residencial - art. 78 do ADCT', 5, 'Isento conforme art. 78, §2º, ADCT')
-) AS t(descricao, id_tipo_tributacao, observacao);
-
+update precatorio.precatorio set situcao_funcional_credor = 1 where situcao_funcional_credor = 'Efetivo'
+update precatorio.precatorio set situcao_funcional_credor = 2 where situcao_funcional_credor = 'Sem vínculo'
+update precatorio.precatorio set situcao_funcional_credor = 3 where situcao_funcional_credor = 'Contrato/Função'
+update precatorio.precatorio set situcao_funcional_credor = 4 where situcao_funcional_credor = 'Aposentado'
+update precatorio.precatorio set situcao_funcional_credor = 3 where situcao_funcional_credor isnull

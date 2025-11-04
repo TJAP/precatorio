@@ -92,6 +92,9 @@ public class RelatorioService {
 
     public byte[] gerarComprovantePrecatorio(ResumoCalculoDocumentoDTO dto, Map<String, Object> parametros) {
         try {
+            // com dados das pessoas em lista
+            //InputStream jrxmlStream = new ClassPathResource("relatorios/alvara-precatorio.jrxml").getInputStream();
+
             InputStream jrxmlStream = new ClassPathResource("relatorios/resumo_calculo.jrxml").getInputStream();
 
             JasperReport jasperReport = JasperCompileManager.compileReport(jrxmlStream);

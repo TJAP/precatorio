@@ -46,7 +46,7 @@ public class CalculoPagamentoDTO {
     private BigDecimal valorBaseParcialPago = BigDecimal.ZERO;
     private BigDecimal percentualParcialPago = BigDecimal.ZERO;
 
-    private long numeroMesesRRA;
+    private Long numeroMesesRRA;
 
     private boolean houvePrioridadeOuPagamentoParcial = Boolean.FALSE;
 

@@ -6,7 +6,8 @@ CREATE TABLE ente_devedor (
     com_vinculo VARCHAR(100),
     sem_vinculo VARCHAR(100),
     conta VARCHAR(20),
-    acordo VARCHAR(20)
+    acordo VARCHAR(20),
+    id_previdencia BIGINT
 );
 
 -- 2. Conceder permissão total para o usuário web

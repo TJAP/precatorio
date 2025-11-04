@@ -58,12 +58,12 @@ public class CalculoRequest {
     private BigDecimal percentualCessao = BigDecimal.ZERO;
     private String cessaoNome;
     private String cessaoNumeroDocumento;
-    private String cessaoPercentual;
     private String cessaoBanco;
     private String cessaoTipoConta;
     private String cessaoAgencia;
     private String cessaoConta;
     private String cessaoDVConta;
+    private BigDecimal cessaoPercentual;
 
     // sucessão
     private boolean temSucessao;
@@ -74,5 +74,22 @@ public class CalculoRequest {
     private String sucessaoAgencia;
     private String sucessaoConta;
     private String sucessaoDVConta;
+    private BigDecimal sucessaoPercentual;
+
+    private String credorNome;
+    private String credorNumeroDocumento;
+    private String credorBanco;
+    private String credorTipoConta;
+    private String credorAgencia;
+    private String credorConta;
+    private String credorDVConta;
+
+    private String advCredorNome;
+    private String advCredorNumeroDocumento;
+    private String advCredorBanco;
+    private String advCredorTipoConta;
+    private String advCredorAgencia;
+    private String advCredorConta;
+    private String advCredorDVConta;
 
 }
