@@ -127,6 +127,27 @@ public class CalculoPagamentoDTO {
     private BigDecimal saldoRemanescenteTotalRRA = BigDecimal.ZERO;
     private BigDecimal saldoRemanescentePrevidencia = BigDecimal.ZERO;
 
+    public void preencherResultadoCalculo(ResultadoAtualizacaoPrecatorioDTO req){
+        //this.idPrecatorio = req.getRequisitorioDTO().getId();
+        this.numeroMesesRRA = req.getValorNumeroMesesRRA();
+        this.valorPrincipalTributavelAtualizadoDizima = req.getValorPrincipalTributavelAtualizado();
+        this.valorPrincipalNaoTributavelAtualizadoDizima = req.getValorPrincipalNaoTributavelAtualizado();
+        this.valorJurosAtualizadoDizima = req.getValorJurosAtualizado();
+        this.valorMultaCustasOutrosAtualizadoDizima = req.getValorMultaCustasOutrosAtualizado();
+        this.valorSelicAtualizadoDizima = req.getValorSelicAtualizado();
+        this.valorBrutoAtualizadoDizima = req.getValorBrutoAtualizado();
+        this.valorPrevidenciaAtualizadoDizima = req.getValorPrevidenciaAtualizado();
+
+        this.valorPrincipalTributavelAtualizado = UtilCalculo.escala(req.getValorPrincipalTributavelAtualizado(),2);
+        this.valorPrincipalNaoTributavelAtualizado = UtilCalculo.escala(req.getValorPrincipalNaoTributavelAtualizado(),2);
+        this.valorJurosAtualizado = UtilCalculo.escala(req.getValorJurosAtualizado(),2);
+        this.valorMultaCustasOutrosAtualizado = UtilCalculo.escala(req.getValorMultaCustasOutrosAtualizado(),2);
+        this.valorSelicAtualizado = UtilCalculo.escala(req.getValorSelicAtualizado(),2);
+        this.valorBrutoAtualizado = UtilCalculo.escala(req.getValorBrutoAtualizado(),2);
+        this.valorPrevidenciaAtualizado = UtilCalculo.escala(req.getValorPrevidenciaAtualizado(),2);
+    }
+
+
     public void preencherResultadoCalculo(CalculoTributoRequest req){
         this.idPrecatorio = req.getIdPrecatorio();
         this.valorPrincipalTributavelAtualizadoDizima = req.getValorPrincipalTributavelAtualizado();

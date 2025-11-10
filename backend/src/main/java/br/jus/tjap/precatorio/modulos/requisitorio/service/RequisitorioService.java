@@ -1,11 +1,10 @@
 package br.jus.tjap.precatorio.modulos.requisitorio.service;
 
-import br.jus.tjap.precatorio.modulos.calculadora.dto.BancoDTO;
+import br.jus.tjap.precatorio.modulos.tabelasbasicas.dto.BancoDTO;
 import br.jus.tjap.precatorio.modulos.calculadora.entity.PagamentoTucujuris;
 import br.jus.tjap.precatorio.modulos.calculadora.entity.PrioridadeTucujuris;
 import br.jus.tjap.precatorio.modulos.calculadora.repository.PagamentoTucujurisRepository;
 import br.jus.tjap.precatorio.modulos.calculadora.repository.PrioridadeTucujurisRepository;
-import br.jus.tjap.precatorio.modulos.requisitorio.dto.AcordoDiretoDTO;
 import br.jus.tjap.precatorio.modulos.requisitorio.entity.AcordoDireto;
 import br.jus.tjap.precatorio.modulos.requisitorio.entity.Requisitorio;
 import br.jus.tjap.precatorio.modulos.requisitorio.repository.AcordoDiretoRepository;

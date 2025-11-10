@@ -83,7 +83,7 @@ public class RequisitorioDTO {
     private LocalDate dtFimAtualizacaoPlanilha;
     private Integer numeroMesesRendimentoAcumulado;
     private Boolean pagamentoPrevidenciario;
-    private BigDecimal vlPrevidencia;
+    private BigDecimal vlPrevidencia = BigDecimal.ZERO;
     private Integer orgaoPrevidencia;
     private boolean averbacaoPenhora;
     private BigDecimal vlAverbacaoPenhora;

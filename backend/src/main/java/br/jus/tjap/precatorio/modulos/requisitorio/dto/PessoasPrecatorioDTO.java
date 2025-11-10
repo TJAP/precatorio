@@ -1,4 +1,4 @@
-package br.jus.tjap.precatorio.modulos.calculadora.dto;
+package br.jus.tjap.precatorio.modulos.requisitorio.dto;
 
 
 import lombok.AllArgsConstructor;

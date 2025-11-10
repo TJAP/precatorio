@@ -2,6 +2,7 @@ package br.jus.tjap.precatorio.modulos.calculadora.dto;
 
 import br.jus.tjap.precatorio.modulos.calculadora.util.RelatorioUtil;
 import br.jus.tjap.precatorio.modulos.calculadora.util.UtilCalculo;
+import br.jus.tjap.precatorio.modulos.requisitorio.dto.PessoasPrecatorioDTO;
 import br.jus.tjap.precatorio.util.StringUtil;
 import lombok.AllArgsConstructor;
 import lombok.Data;

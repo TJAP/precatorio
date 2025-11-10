@@ -5,6 +5,7 @@ import br.jus.tjap.precatorio.modulos.calculadora.exception.IndexNotFoundExcepti
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.time.Month;
 import java.time.YearMonth;
 import java.time.temporal.ChronoUnit;
 import java.util.Map;
@@ -13,6 +14,18 @@ import java.util.Objects;
 public class UtilCalculo {
 
     private UtilCalculo(){}
+
+    public static final Map<Integer, PeriodoLimite> PERIODOS = Map.of(
+            2020, new PeriodoLimite(LocalDate.of(2019, Month.JULY, 1), LocalDate.of(2020, Month.DECEMBER, 31)),
+            2021, new PeriodoLimite(LocalDate.of(2020, Month.JULY, 1), LocalDate.of(2021, Month.DECEMBER, 31)),
+            2022, new PeriodoLimite(LocalDate.of(2021, Month.JULY, 1), LocalDate.of(2022, Month.DECEMBER, 31)),
+            2023, new PeriodoLimite(LocalDate.of(2022, Month.APRIL, 1), LocalDate.of(2023, Month.DECEMBER, 31)),
+            2024, new PeriodoLimite(LocalDate.of(2023, Month.APRIL, 1), LocalDate.of(2024, Month.DECEMBER, 31)),
+            2025, new PeriodoLimite(LocalDate.of(2024, Month.APRIL, 1), LocalDate.of(2025, Month.DECEMBER, 31)),
+            2026, new PeriodoLimite(LocalDate.of(2025, Month.APRIL, 1), LocalDate.of(2026, Month.DECEMBER, 31)),
+            2027, new PeriodoLimite(LocalDate.of(2026, Month.FEBRUARY, 1), LocalDate.of(2027, Month.DECEMBER, 31))
+    );
+    public record PeriodoLimite(LocalDate limiteInferior, LocalDate limiteSuperior) {}
 
     private static final YearMonth EC113_DATA_CORTE = YearMonth.of(2021, 11); // nov/2021
     private static final BigDecimal ZERO = new BigDecimal("0.00");
@@ -85,5 +98,11 @@ public class UtilCalculo {
 
         // +1 para incluir o mês inicial
         return diffMeses + 1;
+    }
+
+    public static BigDecimal maior(BigDecimal a, BigDecimal b) {
+        if (a == null) return b != null ? b : BigDecimal.ZERO;
+        if (b == null) return a;
+        return a.max(b);
     }
 }

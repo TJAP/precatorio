@@ -14,8 +14,7 @@ import java.time.LocalDate;
 public class ResultadoAtualizacaoPrecatorioDTO {
 
     private Long id;
-
-    private RequisitorioDTO requisitorioDTO;
+    //private RequisitorioDTO requisitorioDTO;
     private String tipoIndiceAplicado;
     private LocalDate dataInicioCalculo;
     private LocalDate dataFimCalculo;
@@ -32,6 +31,6 @@ public class ResultadoAtualizacaoPrecatorioDTO {
     private BigDecimal valorTaxaAntesAtualizado;
     private BigDecimal valorTaxaDuranteAtualizado;
     private BigDecimal valorTaxaDepoisAtualizado;
-    private Long valorNumeroMesesRRA;
+    private Long valorNumeroMesesRRA = 0L;
 
 }

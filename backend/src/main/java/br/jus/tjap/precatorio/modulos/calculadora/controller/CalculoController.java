@@ -1,7 +1,7 @@
 package br.jus.tjap.precatorio.modulos.calculadora.controller;
 
 import br.jus.tjap.precatorio.modulos.calculadora.dto.*;
-import br.jus.tjap.precatorio.modulos.calculadora.service.CalculoPrecatorioService;
+import br.jus.tjap.precatorio.modulos.calculadora.service.CalculoAtualizacaoPrecatorioService;
 import br.jus.tjap.precatorio.modulos.calculadora.service.PagamentoPrecatorioService;
 import br.jus.tjap.precatorio.modulos.calculadora.util.UtilCalculo;
 import br.jus.tjap.precatorio.modulos.requisitorio.dto.DadosDeducaoDTO;
@@ -9,6 +9,7 @@ import br.jus.tjap.precatorio.modulos.requisitorio.dto.RequisitorioDTO;
 import br.jus.tjap.precatorio.modulos.requisitorio.entity.Requisitorio;
 import br.jus.tjap.precatorio.modulos.requisitorio.service.RequisitorioService;
 import br.jus.tjap.precatorio.modulos.requisitorio.service.ProcessoDeducaoService;
+import br.jus.tjap.precatorio.modulos.tabelasbasicas.dto.BancoDTO;
 import br.jus.tjap.precatorio.relatorio.service.RelatorioService;
 import br.jus.tjap.precatorio.relatorio.service.ReportJsService;
 import br.jus.tjap.precatorio.util.ApiVersions;
@@ -28,7 +29,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.temporal.TemporalAdjuster;
 import java.time.temporal.TemporalAdjusters;
 import java.util.Base64;
 import java.util.Map;
@@ -40,14 +40,14 @@ import java.util.Objects;
 public class CalculoController {
 
     private final RequisitorioService requisitorioService;
-    private final CalculoPrecatorioService calculoJurosService;
+    private final CalculoAtualizacaoPrecatorioService calculoJurosService;
     private final PagamentoPrecatorioService pagamentoPrecatorioService;
     private final ProcessoDeducaoService processoDeducaoService;
     private final RelatorioService relatorioService;
     private final ReportJsService reportJsService;
 
     public CalculoController(
-            CalculoPrecatorioService calculoJurosService,
+            CalculoAtualizacaoPrecatorioService calculoJurosService,
             PagamentoPrecatorioService pagamentoPrecatorioService,
             RelatorioService relatorioService,
             RequisitorioService requisitorioService,
@@ -66,7 +66,7 @@ public class CalculoController {
             description = "Retorna o extrato de calculo em PDF",
             operationId = "calcularCorrecaoMonetariaPDF")
     public ResponseEntity<Response<ResultadoAtualizacaoPrecatorioDTO>> atualizacao(@PathVariable Long id) {
-        var atualizacao = calculoJurosService.atualizacaoPrecatorio(id);
+        var atualizacao = calculoJurosService.atualizacaoPrecatorio(null);
         return ResponseFactory.ok(atualizacao);
     }
 
@@ -75,9 +75,28 @@ public class CalculoController {
             summary = "Calcula atualização monetária e pagamento",
             description = "Retorna o extrato de calculo em PDF",
             operationId = "calcularCorrecaoMonetariaPDF")
-    public ResponseEntity<Response<ResultadoAtualizacaoPrecatorioDTO>> pagamento(@PathVariable Long id) {
-        var atualizacao = calculoJurosService.atualizacaoPrecatorio(id);
-        return ResponseFactory.ok(atualizacao);
+    public ResponseEntity<Response<ResultadoCalculoPrecatorioDTO>> pagamento(@PathVariable Long id) {
+
+        // Validação inicial
+        if (id == null) {
+            throw new IllegalArgumentException("O ID do requisitório não pode ser nulo.");
+        }
+
+        // Busca do requisitório
+        var requisitorio = requisitorioService.buscaPorId(id);
+        if (requisitorio == null) {
+            throw new RuntimeException("Requisitório não encontrado para o ID: " + id);
+        }
+
+        // Objeto principal do calculo
+        var resultado = new ResultadoCalculoPrecatorioDTO();
+
+        // Converte para DTO de metadados
+        var requisitorioDTO = requisitorio.toMetadado();
+        resultado.setRequisitorio(requisitorioDTO);
+        resultado.setAtualizacao(calculoJurosService.atualizacaoPrecatorio(resultado.getRequisitorio()));
+        var pagamento = pagamentoPrecatorioService.calcularPagamento(resultado);
+        return ResponseFactory.ok(pagamento);
     }
 
     @PostMapping("/precatorios/processo")
@@ -169,15 +188,13 @@ public class CalculoController {
         return ResponseFactory.ok(montaRequest(requisitorioDTO));
     }
 
-
-
     private CalculoRequest montaRequest(RequisitorioDTO requisitorioDTO) {
 
         var req = new CalculoRequest();
 
         req.setIdPrecatorio(requisitorioDTO.getId());
 
-        var pagamentoEfetuado = pagamentoPrecatorioService.somarPagamentosLancados(requisitorioDTO.getIdPrecatorioTucujuris());
+        //var pagamentoEfetuado = pagamentoPrecatorioService.somarPagamentosLancados(requisitorioDTO.getIdPrecatorioTucujuris());
         var prioridade = requisitorioService.listarPrioridadesTucujuris(requisitorioDTO.getIdPrecatorioTucujuris());
         var pagamentoAtualizado = requisitorioService.listarPagamentoTucujuris(requisitorioDTO.getIdPrecatorioTucujuris());
 
@@ -270,10 +287,10 @@ public class CalculoController {
 
         req.setPagamentoParcial(Boolean.FALSE);
         req.setPagamentoValorParcial(BigDecimal.ZERO);
-        if(UtilCalculo.isNotNullOrZero(pagamentoEfetuado)){
+        /*if(UtilCalculo.isNotNullOrZero(pagamentoEfetuado)){
             req.setPagamentoParcial(Boolean.TRUE);
             req.setPagamentoValorParcial(pagamentoEfetuado);
-        }
+        }*/
         req.setValorPagoAdvogado(BigDecimal.ZERO);
         req.setPercentualCessao(BigDecimal.ZERO);
         req.setValorPenhora(BigDecimal.ZERO);

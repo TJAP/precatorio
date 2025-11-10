@@ -1,8 +1,6 @@
 package br.jus.tjap.precatorio.modulos.calculadora.repository;
 
-import br.jus.tjap.precatorio.modulos.calculadora.dto.BancoDTO;
 import br.jus.tjap.precatorio.modulos.calculadora.entity.PagamentoTucujuris;
-import br.jus.tjap.precatorio.modulos.calculadora.entity.PrioridadeTucujuris;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
