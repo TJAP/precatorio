@@ -22,6 +22,7 @@ public class CorrecaoDTO {
     private BigDecimal juros;
     private BigDecimal multaCusta;
     private BigDecimal selic;
+    private BigDecimal previdencia;
     private BigDecimal total;
 
     public BigDecimal getTotal() {

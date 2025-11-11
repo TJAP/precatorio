@@ -346,6 +346,7 @@ public class Requisitorio implements Serializable {
         dto.setPagamentoMulta(this.pagamentoMulta);
         dto.setVlPagamentoMulta(this.vlPagamentoMulta);
         dto.setDtUltimaAtualizacaoPlanilha(this.dtUltimaAtualizacaoPlanilha);
+        dto.setDtFimAtualizacaoPlanilha(this.dtFimAtualizacaoPlanilha);
         dto.setRetencaoImposto(this.retencaoImposto);
         dto.setVlRetencaoImposto(this.vlRetencaoImposto);
         dto.setVlTotalAtualizado(this.vlTotalAtualizado);

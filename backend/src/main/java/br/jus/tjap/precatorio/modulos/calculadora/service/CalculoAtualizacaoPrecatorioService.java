@@ -31,7 +31,6 @@ public class CalculoAtualizacaoPrecatorioService {
     private static final int ESCALA_INDICE = 7;
 
     private static final BigDecimal FATOR_DOIS_PORCENTO = BigDecimal.valueOf(0.1666666667);
-    private static final LocalDate DATA_ATE_PRIMEIRO_CALCULO = LocalDate.of(2021, 11, 1);
 
     private final BancoCentralService bancoCentralService;
     private final RequisitorioService requisitorioService;
@@ -46,13 +45,15 @@ public class CalculoAtualizacaoPrecatorioService {
 
     public ResultadoAtualizacaoPrecatorioDTO controlarTipoCalculo(RequisitorioDTO dto) {
         var atualizacao = new ResultadoAtualizacaoPrecatorioDTO();
-
         var calculo = new CorrecaoDTO();
+        List<CorrecaoDTO> calculos = new ArrayList<>();
 
-        if (dto.getDtUltimaAtualizacaoPlanilha().plusMonths(1).isBefore(DATA_ATE_PRIMEIRO_CALCULO)) {
-            // aplica a regra 1
-            calculo = calcularPrimeiroPeriodo(dto);
-        }
+        // Periodo até Novembro de 2021
+        calculos = calcularPeriodoAteNovembro2021(dto);
+        calculos = calcularPeriodoEntreDezembro2021AhJulho2025(dto, calculos.getLast());
+        // Periodo entre Dezembro de 2021 a Julho de 2025
+
+
 
         return atualizacao;
     }
@@ -382,42 +383,7 @@ public class CalculoAtualizacaoPrecatorioService {
     }
 
 
-    private CorrecaoDTO calcularPrimeiroPeriodo(RequisitorioDTO requisitorioDTO) {
-
-        var primeiroFator = BigDecimal.ZERO;
-        var primeiroJuros = BigDecimal.ONE;
-
-        // --- Determinação dos períodos principais ---
-        final var dataInicioAtualizacao = requisitorioDTO.getDtUltimaAtualizacaoPlanilha().plusMonths(1);
-        var periodo = PeriodoGracaCalculator.calcularPeriodo(dataInicioAtualizacao, DATA_ATE_PRIMEIRO_CALCULO, requisitorioDTO.getAnoVencimento());
-
-        primeiroFator = bancoCentralService.multiplicarIPCAE(YearMonth.from(periodo.inicioAntes()), YearMonth.from(periodo.fimAntes()));
-        primeiroJuros = bancoCentralService.somarPoupanca(YearMonth.from(periodo.inicioAntes()), YearMonth.from(periodo.fimAntes()))
-                .divide(BigDecimal.valueOf(100));
-
-        var primeiroPeriodo = new CorrecaoDTO();
-        primeiroPeriodo.setDataInicio(periodo.inicioAntes());
-        primeiroPeriodo.setDataFim(periodo.fimAntes());
-        primeiroPeriodo.setFatorValor(primeiroFator);
-        primeiroPeriodo.setJurosValor(primeiroJuros);
-        primeiroPeriodo.setPrincipalTributavel(UtilCalculo.manterValorZeroSeNulo(requisitorioDTO.getVlPrincipalTributavelCorrigido().multiply(primeiroFator)));
-        primeiroPeriodo.setPrincipalNaoTributavel(UtilCalculo.manterValorZeroSeNulo(requisitorioDTO.getVlPrincipalNaoTributavelCorrigido().multiply(primeiroFator)));
-        primeiroPeriodo.setJuros(
-                UtilCalculo.manterValorZeroSeNulo(requisitorioDTO.getVlJurosAplicado()).multiply(primeiroFator).add(
-                        primeiroPeriodo.getPrincipalTributavel().add(primeiroPeriodo.getPrincipalNaoTributavel())
-                                .multiply(primeiroJuros)
-                )
-        );
-        primeiroPeriodo.setMultaCusta(UtilCalculo.manterValorZeroSeNulo(requisitorioDTO.getVlPagamentoMulta()).add(
-                        UtilCalculo.manterValorZeroSeNulo(requisitorioDTO.getVlDevolucaoCusta()))
-                .multiply(primeiroFator));
-        primeiroPeriodo.setSelic(UtilCalculo.manterValorZeroSeNulo(requisitorioDTO.getVlSelic()).multiply(primeiroFator));
-
-        primeiroPeriodo.setTotal(primeiroPeriodo.getTotal());
-
-        return primeiroPeriodo;
-    }
-
+    // Funcionando
     @Deprecated
     public CalculoAtualizacaoDTO calcularAtualizacao(CalculoRequest req) {
         validateRequest(req);
@@ -628,16 +594,6 @@ public class CalculoAtualizacaoPrecatorioService {
         }
     }
 
-    private Periodos calcularPeriodosAteNovembro21(LocalDate dataAtualizacao, LocalDate dataInicialGraca, LocalDate dataFinalGraca, LocalDate dataHoje) {
-
-        LocalDate antesInicio = null, antesFim = null;
-        LocalDate duranteInicio = null, duranteFim = null;
-        LocalDate depoisInicio = null, depoisFim = null;
-
-
-        return new Periodos(antesInicio, antesFim, duranteInicio, duranteFim, depoisInicio, depoisFim);
-    }
-
     private Periodos calcularPeriodos(LocalDate dataAtualizacao, LocalDate dataInicialGraca, LocalDate dataFinalGraca, LocalDate dataHoje) {
 
         LocalDate antesInicio = null, antesFim = null;
@@ -748,91 +704,158 @@ public class CalculoAtualizacaoPrecatorioService {
         //atualizacao.setResultadoValorPrevidenciaAtualizadoDizima(atualizacao.getSelicValorPrevidenciaCorrigido());
     }
 
-    private List<CorrecaoDTO> calcularPeriodos(RequisitorioDTO requisitorioDTO) {
+
+
+
+
+
+    private List<CorrecaoDTO> calcularPeriodoAteNovembro2021(RequisitorioDTO requisitorioDTO) {
 
         final var dataInicioAtualizacao = requisitorioDTO.getDtUltimaAtualizacaoPlanilha().plusMonths(1);
-        final var periodo = PeriodoGracaCalculator.calcularPeriodo(
+        final var periodo = PeriodoGracaCalculator.calcularPeriodoAntesNovembro2021(
                 dataInicioAtualizacao,
-                DATA_ATE_PRIMEIRO_CALCULO,
                 requisitorioDTO.getAnoVencimento()
         );
 
+        // Adiciona os valores do calculo para o metodo calcularPeriodoBasico
         List<CorrecaoDTO> periodosCalculados = new ArrayList<>();
-        CorrecaoDTO ultimoPeriodo = null;
+        CorrecaoDTO requisitorio = new CorrecaoDTO(null, null, null, null,
+                UtilCalculo.manterValorZeroSeNulo(requisitorioDTO.getVlPrincipalTributavelCorrigido()),
+                UtilCalculo.manterValorZeroSeNulo(requisitorioDTO.getVlPrincipalNaoTributavelCorrigido()),
+                UtilCalculo.manterValorZeroSeNulo(requisitorioDTO.getVlJurosAplicado()),
+                UtilCalculo.manterValorZeroSeNulo(requisitorioDTO.getVlDevolucaoCusta()).add(UtilCalculo.manterValorZeroSeNulo(requisitorioDTO.getVlPagamentoMulta())),
+                UtilCalculo.manterValorZeroSeNulo(requisitorioDTO.getVlSelic()),
+                UtilCalculo.manterValorZeroSeNulo(requisitorioDTO.getVlPrevidencia()),
+                null);
+
+        if (periodo.isNulo()) {
+            periodosCalculados.add(requisitorio);
+            return periodosCalculados;
+        }
 
         // 🔶 1️⃣ Antes da Graça
         if (periodo.inicioAntes() != null && periodo.fimAntes() != null) {
-            var primeiro = calcularPeriodoBasico(requisitorioDTO, periodo.inicioAntes(), periodo.fimAntes(), ultimoPeriodo);
+            var primeiro = calcularPeriodoAteNovembro2021(requisitorio, periodo.inicioAntes(), periodo.fimAntes());
             periodosCalculados.add(primeiro);
-            ultimoPeriodo = primeiro;
         }
 
         // 🔷 2️⃣ Durante a Graça
         if (periodo.inicioDurante() != null && periodo.fimDurante() != null) {
-            var durante = calcularPeriodoBasico(requisitorioDTO, periodo.inicioDurante(), periodo.fimDurante(), ultimoPeriodo);
+            var durante = calcularPeriodoAteNovembro2021(requisitorio, periodo.inicioDurante(), periodo.fimDurante());
             periodosCalculados.add(durante);
-            ultimoPeriodo = durante;
         }
 
         // 🔴 3️⃣ Após a Graça
         if (periodo.inicioApos() != null && periodo.fimApos() != null) {
-            var apos = calcularPeriodoBasico(requisitorioDTO, periodo.inicioApos(), periodo.fimApos(), ultimoPeriodo);
+            var apos = calcularPeriodoAteNovembro2021(requisitorio, periodo.inicioApos(), periodo.fimApos());
             periodosCalculados.add(apos);
-            ultimoPeriodo = apos;
         }
 
         return periodosCalculados;
     }
 
-    private CorrecaoDTO calcularPeriodoBasico(RequisitorioDTO requisitorioDTO,LocalDate inicio, LocalDate fim,CorrecaoDTO periodoAnterior) {
+    private CorrecaoDTO calcularPeriodoAteNovembro2021(CorrecaoDTO correcaoRequisitorio, LocalDate inicio, LocalDate fim) {
 
-        BigDecimal fator = BigDecimal.ZERO;
-        BigDecimal juros = BigDecimal.ONE;
+        BigDecimal fator = BigDecimal.ONE;
+        BigDecimal juros = BigDecimal.ZERO;
 
-        // IPCA e juros
-        fator = bancoCentralService.multiplicarIPCAE(YearMonth.from(inicio), YearMonth.from(fim));
-        juros = bancoCentralService.somarPoupanca(YearMonth.from(inicio), YearMonth.from(fim))
-                .divide(BigDecimal.valueOf(100));
+        if (inicio != null && fim != null) {
 
-        // Se existir período anterior, acumula os valores
-        BigDecimal fatorAcumulado = periodoAnterior != null
-                ? periodoAnterior.getFatorValor().multiply(fator)
-                : fator;
-
-        BigDecimal jurosAcumulado = periodoAnterior != null
-                ? periodoAnterior.getJurosValor().add(juros)
-                : juros;
+            fator = bancoCentralService.multiplicarIPCAE(YearMonth.from(inicio), YearMonth.from(fim));
+            juros = bancoCentralService.somarPoupanca(YearMonth.from(inicio), YearMonth.from(fim))
+                    .divide(BigDecimal.valueOf(100));
+        }
 
         var correcao = new CorrecaoDTO();
         correcao.setDataInicio(inicio);
         correcao.setDataFim(fim);
-        correcao.setFatorValor(fatorAcumulado);
-        correcao.setJurosValor(jurosAcumulado);
+        correcao.setFatorValor(fator);
+        correcao.setJurosValor(juros);
 
-        correcao.setPrincipalTributavel(UtilCalculo.manterValorZeroSeNulo(
-                requisitorioDTO.getVlPrincipalTributavelCorrigido().multiply(fatorAcumulado)
-        ));
-
-        correcao.setPrincipalNaoTributavel(UtilCalculo.manterValorZeroSeNulo(
-                requisitorioDTO.getVlPrincipalNaoTributavelCorrigido().multiply(fatorAcumulado)
-        ));
-
-        correcao.setJuros(UtilCalculo.manterValorZeroSeNulo(
-                        requisitorioDTO.getVlJurosAplicado()).multiply(fatorAcumulado)
-                .add(correcao.getPrincipalTributavel().add(correcao.getPrincipalNaoTributavel())
-                        .multiply(jurosAcumulado))
+        correcao.setPrincipalTributavel(correcaoRequisitorio.getPrincipalTributavel().multiply(fator));
+        correcao.setPrincipalNaoTributavel(correcaoRequisitorio.getPrincipalNaoTributavel().multiply(fator));
+        correcao.setJuros(
+                correcaoRequisitorio.getJuros().multiply(fator)
+                        .add(correcao.getPrincipalTributavel().add(correcao.getPrincipalNaoTributavel())
+                                .multiply(juros))
         );
-
-        correcao.setMultaCusta(UtilCalculo.manterValorZeroSeNulo(requisitorioDTO.getVlPagamentoMulta())
-                .add(UtilCalculo.manterValorZeroSeNulo(requisitorioDTO.getVlDevolucaoCusta()))
-                .multiply(fatorAcumulado)
-        );
-
-        correcao.setSelic(UtilCalculo.manterValorZeroSeNulo(requisitorioDTO.getVlSelic())
-                .multiply(fatorAcumulado)
-        );
-
+        correcao.setMultaCusta(correcaoRequisitorio.getMultaCusta().multiply(fator));
+        correcao.setSelic(correcaoRequisitorio.getSelic().multiply(fator));
         correcao.setTotal(correcao.getTotal());
+
+        correcao.setPrevidencia(correcaoRequisitorio.getPrevidencia().multiply(fator));
+
+        return correcao;
+    }
+
+    private List<CorrecaoDTO> calcularPeriodoEntreDezembro2021AhJulho2025(RequisitorioDTO requisitorioDTO, CorrecaoDTO requisitorio) {
+
+        final var dataInicioAtualizacao = requisitorioDTO.getDtUltimaAtualizacaoPlanilha();
+        final var periodo = PeriodoGracaCalculator.calcularPeriodoEntreDezembro2021AhJulho2025(
+                dataInicioAtualizacao,
+                requisitorioDTO.getDtFimAtualizacaoPlanilha(),
+                requisitorioDTO.getAnoVencimento()
+        );
+
+        // Adiciona os valores do calculo para o metodo calcularPeriodoBasico
+        List<CorrecaoDTO> periodosCalculados = new ArrayList<>();
+
+        if (periodo.isNulo()) {
+            periodosCalculados.add(requisitorio);
+            return periodosCalculados;
+        }
+/*
+        // 🔶 1️⃣ Antes da Graça
+        if (periodo.inicioAntes() != null && periodo.fimAntes() != null) {
+            var primeiro = calcularPeriodoAteNovembro2021(requisitorio, periodo.inicioAntes(), periodo.fimAntes());
+            periodosCalculados.add(primeiro);
+        }
+
+        // 🔷 2️⃣ Durante a Graça
+        if (periodo.inicioDurante() != null && periodo.fimDurante() != null) {
+            var durante = calcularPeriodoAteNovembro2021(requisitorio, periodo.inicioDurante(), periodo.fimDurante());
+            periodosCalculados.add(durante);
+        }
+
+        // 🔴 3️⃣ Após a Graça
+        if (periodo.inicioApos() != null && periodo.fimApos() != null) {
+            var apos = calcularPeriodoAteNovembro2021(requisitorio, periodo.inicioApos(), periodo.fimApos());
+            periodosCalculados.add(apos);
+        }*/
+
+        return periodosCalculados;
+    }
+
+    private CorrecaoDTO calcularPeriodoEntreDezembro2021AhJulho2025(CorrecaoDTO correcaoRequisitorio, LocalDate inicio, LocalDate fim) {
+
+        BigDecimal fator = BigDecimal.ONE;
+        BigDecimal juros = BigDecimal.ZERO;
+
+        if (inicio != null && fim != null) {
+
+            fator = bancoCentralService.multiplicarIPCAE(YearMonth.from(inicio), YearMonth.from(fim));
+            juros = bancoCentralService.somarPoupanca(YearMonth.from(inicio), YearMonth.from(fim))
+                    .divide(BigDecimal.valueOf(100));
+        }
+
+        var correcao = new CorrecaoDTO();
+        correcao.setDataInicio(inicio);
+        correcao.setDataFim(fim);
+        correcao.setFatorValor(fator);
+        correcao.setJurosValor(juros);
+
+        correcao.setPrincipalTributavel(correcaoRequisitorio.getPrincipalTributavel().multiply(fator));
+        correcao.setPrincipalNaoTributavel(correcaoRequisitorio.getPrincipalNaoTributavel().multiply(fator));
+        correcao.setJuros(
+                correcaoRequisitorio.getJuros().multiply(fator)
+                        .add(correcao.getPrincipalTributavel().add(correcao.getPrincipalNaoTributavel())
+                                .multiply(juros))
+        );
+        correcao.setMultaCusta(correcaoRequisitorio.getMultaCusta().multiply(fator));
+        correcao.setSelic(correcaoRequisitorio.getSelic().multiply(fator));
+        correcao.setTotal(correcao.getTotal());
+
+        correcao.setPrevidencia(correcaoRequisitorio.getPrevidencia().multiply(fator));
 
         return correcao;
     }
