@@ -15,6 +15,8 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.temporal.TemporalAdjusters;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
 
@@ -27,6 +29,7 @@ public class CalculoAtualizacaoPrecatorioService {
     private static final BigDecimal CEM = BigDecimal.valueOf(100);
     private static final int ESCALA_FATOR = 7;
     private static final int ESCALA_INDICE = 7;
+
     private static final BigDecimal FATOR_DOIS_PORCENTO = BigDecimal.valueOf(0.1666666667);
     private static final LocalDate DATA_ATE_PRIMEIRO_CALCULO = LocalDate.of(2021, 11, 1);
 
@@ -44,14 +47,15 @@ public class CalculoAtualizacaoPrecatorioService {
     public ResultadoAtualizacaoPrecatorioDTO controlarTipoCalculo(RequisitorioDTO dto) {
         var atualizacao = new ResultadoAtualizacaoPrecatorioDTO();
 
+        var calculo = new CorrecaoDTO();
+
         if (dto.getDtUltimaAtualizacaoPlanilha().plusMonths(1).isBefore(DATA_ATE_PRIMEIRO_CALCULO)) {
             // aplica a regra 1
-            calcularPrimeiroPeriodo(dto);
+            calculo = calcularPrimeiroPeriodo(dto);
         }
 
         return atualizacao;
     }
-
 
     public ResultadoAtualizacaoPrecatorioDTO atualizacaoPrecatorio(RequisitorioDTO requisitorioDTO) {
 
@@ -379,10 +383,6 @@ public class CalculoAtualizacaoPrecatorioService {
 
 
     private CorrecaoDTO calcularPrimeiroPeriodo(RequisitorioDTO requisitorioDTO) {
-
-        if (requisitorioDTO.getDtUltimaAtualizacaoPlanilha().isAfter(DATA_ATE_PRIMEIRO_CALCULO)) {
-            //return new Atualizacao('aqui retornaria os valores já existentes, sem corrigir');
-        }
 
         var primeiroFator = BigDecimal.ZERO;
         var primeiroJuros = BigDecimal.ONE;
@@ -748,6 +748,95 @@ public class CalculoAtualizacaoPrecatorioService {
         //atualizacao.setResultadoValorPrevidenciaAtualizadoDizima(atualizacao.getSelicValorPrevidenciaCorrigido());
     }
 
+    private List<CorrecaoDTO> calcularPeriodos(RequisitorioDTO requisitorioDTO) {
+
+        final var dataInicioAtualizacao = requisitorioDTO.getDtUltimaAtualizacaoPlanilha().plusMonths(1);
+        final var periodo = PeriodoGracaCalculator.calcularPeriodo(
+                dataInicioAtualizacao,
+                DATA_ATE_PRIMEIRO_CALCULO,
+                requisitorioDTO.getAnoVencimento()
+        );
+
+        List<CorrecaoDTO> periodosCalculados = new ArrayList<>();
+        CorrecaoDTO ultimoPeriodo = null;
+
+        // 🔶 1️⃣ Antes da Graça
+        if (periodo.inicioAntes() != null && periodo.fimAntes() != null) {
+            var primeiro = calcularPeriodoBasico(requisitorioDTO, periodo.inicioAntes(), periodo.fimAntes(), ultimoPeriodo);
+            periodosCalculados.add(primeiro);
+            ultimoPeriodo = primeiro;
+        }
+
+        // 🔷 2️⃣ Durante a Graça
+        if (periodo.inicioDurante() != null && periodo.fimDurante() != null) {
+            var durante = calcularPeriodoBasico(requisitorioDTO, periodo.inicioDurante(), periodo.fimDurante(), ultimoPeriodo);
+            periodosCalculados.add(durante);
+            ultimoPeriodo = durante;
+        }
+
+        // 🔴 3️⃣ Após a Graça
+        if (periodo.inicioApos() != null && periodo.fimApos() != null) {
+            var apos = calcularPeriodoBasico(requisitorioDTO, periodo.inicioApos(), periodo.fimApos(), ultimoPeriodo);
+            periodosCalculados.add(apos);
+            ultimoPeriodo = apos;
+        }
+
+        return periodosCalculados;
+    }
+
+    private CorrecaoDTO calcularPeriodoBasico(RequisitorioDTO requisitorioDTO,LocalDate inicio, LocalDate fim,CorrecaoDTO periodoAnterior) {
+
+        BigDecimal fator = BigDecimal.ZERO;
+        BigDecimal juros = BigDecimal.ONE;
+
+        // IPCA e juros
+        fator = bancoCentralService.multiplicarIPCAE(YearMonth.from(inicio), YearMonth.from(fim));
+        juros = bancoCentralService.somarPoupanca(YearMonth.from(inicio), YearMonth.from(fim))
+                .divide(BigDecimal.valueOf(100));
+
+        // Se existir período anterior, acumula os valores
+        BigDecimal fatorAcumulado = periodoAnterior != null
+                ? periodoAnterior.getFatorValor().multiply(fator)
+                : fator;
+
+        BigDecimal jurosAcumulado = periodoAnterior != null
+                ? periodoAnterior.getJurosValor().add(juros)
+                : juros;
+
+        var correcao = new CorrecaoDTO();
+        correcao.setDataInicio(inicio);
+        correcao.setDataFim(fim);
+        correcao.setFatorValor(fatorAcumulado);
+        correcao.setJurosValor(jurosAcumulado);
+
+        correcao.setPrincipalTributavel(UtilCalculo.manterValorZeroSeNulo(
+                requisitorioDTO.getVlPrincipalTributavelCorrigido().multiply(fatorAcumulado)
+        ));
+
+        correcao.setPrincipalNaoTributavel(UtilCalculo.manterValorZeroSeNulo(
+                requisitorioDTO.getVlPrincipalNaoTributavelCorrigido().multiply(fatorAcumulado)
+        ));
+
+        correcao.setJuros(UtilCalculo.manterValorZeroSeNulo(
+                        requisitorioDTO.getVlJurosAplicado()).multiply(fatorAcumulado)
+                .add(correcao.getPrincipalTributavel().add(correcao.getPrincipalNaoTributavel())
+                        .multiply(jurosAcumulado))
+        );
+
+        correcao.setMultaCusta(UtilCalculo.manterValorZeroSeNulo(requisitorioDTO.getVlPagamentoMulta())
+                .add(UtilCalculo.manterValorZeroSeNulo(requisitorioDTO.getVlDevolucaoCusta()))
+                .multiply(fatorAcumulado)
+        );
+
+        correcao.setSelic(UtilCalculo.manterValorZeroSeNulo(requisitorioDTO.getVlSelic())
+                .multiply(fatorAcumulado)
+        );
+
+        correcao.setTotal(correcao.getTotal());
+
+        return correcao;
+    }
+
     private record Periodos(
             LocalDate antesInicio, LocalDate antesFim,
             LocalDate duranteInicio, LocalDate duranteFim,
@@ -755,14 +844,6 @@ public class CalculoAtualizacaoPrecatorioService {
     ) {
     }
 
-    private record Atualizacao(
-            LocalDate dtInicio, LocalDate dtFim,
-            BigDecimal fator, BigDecimal juros,
-            BigDecimal principalTributavel, BigDecimal principalNaoTributavel,
-            BigDecimal jurosAplicado, BigDecimal multas, BigDecimal selic, BigDecimal total
-    ) {
-
-    }
 
 }
 
