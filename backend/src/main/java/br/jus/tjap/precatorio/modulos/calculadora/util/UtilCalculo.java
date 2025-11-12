@@ -6,6 +6,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.Month;
+import java.time.Period;
 import java.time.YearMonth;
 import java.time.temporal.ChronoUnit;
 import java.util.Map;
@@ -80,6 +81,23 @@ public class UtilCalculo {
         }
         YearMonth mesAno = YearMonth.from(dataFim.minusMonths(mesesCalculoLei - 1));
         return mesAno.atDay(dia);
+    }
+
+    public static int calcularPeriodoMeses(LocalDate dataInicio, LocalDate dataFim) {
+        if (dataInicio == null || dataFim == null) return 0;
+
+        // Equivalente a DATA(ANO(L4); MÊS(L4)+1; 1)
+        LocalDate proximoMes = dataFim.plusMonths(1).withDayOfMonth(1);
+
+        // DATADIF(I4; DATA(...); "y")
+        int anos = Period.between(dataInicio, proximoMes).getYears();
+
+        // DATADIF(I4; L4; "m")
+        Period periodoMeses = Period.between(dataInicio, dataFim);
+        int meses = periodoMeses.getYears() * 12 + periodoMeses.getMonths();
+
+        // Fórmula final: (anos) + (meses + 1)
+        return anos + (meses + 1);
     }
 
     public static long contarMesesInclusivos(LocalDate dataInicio, LocalDate dataFim) {

@@ -140,6 +140,7 @@ public class BancoCentralService {
                 .filter(e -> !e.getKey().isBefore(inicio) && !e.getKey().isAfter(fim))
                 .map(Map.Entry::getValue)
                 .reduce(UM, BigDecimal::multiply);
+
     }
 
     private BigDecimal manterValorZeroSeNulo(BigDecimal b) {

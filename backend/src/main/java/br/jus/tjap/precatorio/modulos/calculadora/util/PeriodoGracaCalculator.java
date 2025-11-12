@@ -10,9 +10,6 @@ public class PeriodoGracaCalculator {
 
     private static final LocalDate DATA_ATE_PRIMEIRO_CALCULO = LocalDate.of(2021, 11, 1);
 
-    private static final LocalDate DATA_INICIO_SEGUNDO_CALCULO = LocalDate.of(2021, 12, 1);
-    private static final LocalDate DATA_FIM_SEGUNDO_CALCULO = LocalDate.of(2025, 7, 1);
-
     public record Periodo(LocalDate inicioAntes, LocalDate fimAntes,
                           LocalDate inicioDurante, LocalDate fimDurante,
                           LocalDate inicioApos, LocalDate fimApos) {
@@ -75,59 +72,111 @@ public class PeriodoGracaCalculator {
         return new Periodo(inicioAntes, fimAntes, inicioDurante, fimDurante, inicioApos, fimApos);
     }
 
-    public static Periodo calcularPeriodoEntreDezembro2021AhJulho2025(LocalDate dataInicioAtualizacao,LocalDate dataFinalAtualizacao, int anoVencimento){
+    public static Periodo calcularPeriodoEntreDezembro2021AhJulho2025(LocalDate dataInicioAtualizacao,LocalDate dataFinalAtualizacao,int anoVencimento) {
 
-        PeriodoLimite limite = PERIODOS_GRACA.get(anoVencimento);
-        if (limite == null) {
-            throw new IllegalArgumentException("Ano de precatório inválido ou não mapeado: " + anoVencimento);
+        // Limites globais do cálculo (período total possível)
+        final LocalDate DATA_INICIO_SEGUNDO_CALCULO = LocalDate.of(2021, Month.DECEMBER, 1);
+        final LocalDate DATA_FIM_SEGUNDO_CALCULO = LocalDate.of(2025, Month.JULY, 1);
+
+        // Obtém o período de graça (Lei 21) conforme o ano de vencimento
+        PeriodoLimite periodoLei21 = PERIODOS_GRACA.get(anoVencimento);
+        if (periodoLei21 == null) {
+            throw new IllegalArgumentException("Ano de vencimento não mapeado: " + anoVencimento);
         }
+
+        LocalDate INICIO_GRACA_LEI21 = periodoLei21.limiteInferior();
+        LocalDate FIM_GRACA_LEI21 = periodoLei21.limiteSuperior();
+
+        // Se o intervalo informado não intersecta o segundo cálculo, nada é calculado
+        if (dataFinalAtualizacao.isBefore(DATA_INICIO_SEGUNDO_CALCULO) ||
+                dataInicioAtualizacao.isAfter(DATA_FIM_SEGUNDO_CALCULO)) {
+            return new Periodo(null, null, null, null, null, null);
+        }
+
+        // Define o intervalo efetivo (interseção com o segundo cálculo)
+        LocalDate inicioEfetivo = dataInicioAtualizacao.isBefore(DATA_INICIO_SEGUNDO_CALCULO)
+                ? DATA_INICIO_SEGUNDO_CALCULO
+                : dataInicioAtualizacao;
+
+        LocalDate fimEfetivo = dataFinalAtualizacao.isAfter(DATA_FIM_SEGUNDO_CALCULO)
+                ? DATA_FIM_SEGUNDO_CALCULO
+                : dataFinalAtualizacao;
 
         LocalDate inicioAntes = null, fimAntes = null;
         LocalDate inicioDurante = null, fimDurante = null;
         LocalDate inicioApos = null, fimApos = null;
 
-        PeriodoLimite inicioPeriodoAno = PERIODOS_GRACA.get(anoVencimento);
-
-        LocalDate inicioGraca = limite.limiteInferior();
-        LocalDate fimGraca = limite.limiteSuperior();
-
-        LocalDate proximoMes = dataInicioAtualizacao.plusMonths(1);
-        LocalDate dataInicio = null;
-        LocalDate dataFim = null;
-
-        if (proximoMes.isBefore(DATA_INICIO_SEGUNDO_CALCULO) && !dataFinalAtualizacao.isBefore(DATA_INICIO_SEGUNDO_CALCULO)) {
-            dataInicio = DATA_INICIO_SEGUNDO_CALCULO;
-        } else if ((proximoMes.isEqual(DATA_INICIO_SEGUNDO_CALCULO) || proximoMes.isAfter(DATA_INICIO_SEGUNDO_CALCULO))
-                && (proximoMes.isEqual(DATA_FIM_SEGUNDO_CALCULO) || proximoMes.isBefore(DATA_FIM_SEGUNDO_CALCULO))) {
-            dataInicio = proximoMes;
+        // Antes da graça — entre início do cálculo e início do período da Lei 21
+        if (inicioEfetivo.isBefore(INICIO_GRACA_LEI21)) {
+            inicioAntes = inicioEfetivo;
+            fimAntes = INICIO_GRACA_LEI21.minusMonths(1);
         }
 
-        if (dataInicio != null && dataFinalAtualizacao.isAfter(DATA_FIM_SEGUNDO_CALCULO)) {
-            dataFim = DATA_FIM_SEGUNDO_CALCULO;
-        } else if (dataInicio != null
-                && (dataFinalAtualizacao.isEqual(DATA_INICIO_SEGUNDO_CALCULO) || dataFinalAtualizacao.isAfter(DATA_INICIO_SEGUNDO_CALCULO))
-                && (dataFinalAtualizacao.isBefore(DATA_FIM_SEGUNDO_CALCULO) || dataFinalAtualizacao.isEqual(DATA_FIM_SEGUNDO_CALCULO))) {
-            dataFim = dataFinalAtualizacao;
+        // Durante a graça — período mapeado no ano de vencimento
+        if (!fimEfetivo.isBefore(INICIO_GRACA_LEI21)) {
+            inicioDurante = INICIO_GRACA_LEI21;
+            fimDurante = fimEfetivo.isBefore(FIM_GRACA_LEI21)
+                    ? fimEfetivo
+                    : FIM_GRACA_LEI21;
         }
 
-
-        if(DATA_INICIO_SEGUNDO_CALCULO.isBefore(dataInicio)){
-            inicioAntes  = dataInicio;
-            fimAntes = fimGraca.isBefore(inicioGraca) ? dataFim : inicioGraca.minusMonths(1);
+        // Após a graça — se o cálculo ultrapassar o fim da Lei 21
+        if (fimEfetivo.isAfter(FIM_GRACA_LEI21)) {
+            inicioApos = FIM_GRACA_LEI21.plusMonths(1);
+            fimApos = DATA_FIM_SEGUNDO_CALCULO;
         }
 
-        if (inicioPeriodoAno == null) return new Periodo(null, null,null,null,null,null);
-
-        
-
-
-
-
-
-
-
-
-
-        return new Periodo(inicioAntes, fimAntes,inicioDurante,fimDurante,inicioApos,fimApos);
+        return new Periodo(inicioAntes, fimAntes, inicioDurante, fimDurante, inicioApos, fimApos);
     }
+
+    public static Periodo calcularPeriodoAposAgosto2025(LocalDate dataInicioAtualizacao,LocalDate dataFinalAtualizacao,int anoVencimento) {
+
+        // Limites globais do cálculo (período total possível)
+        final LocalDate DATA_INICIO_TERCEIRO_CALCULO = LocalDate.of(2025, Month.AUGUST, 1);
+        final LocalDate DATA_FIM_TERCEIRO_CALCULO = (dataFinalAtualizacao != null)
+                ? dataFinalAtualizacao
+                : LocalDate.now().minusMonths(1);
+
+        // Obtém o período de graça (Lei 21) conforme o ano de vencimento
+        PeriodoLimite periodoLei25 = PERIODOS_GRACA.get(anoVencimento);
+        if (periodoLei25 == null) {
+            throw new IllegalArgumentException("Ano de vencimento não mapeado: " + anoVencimento);
+        }
+
+        LocalDate INICIO_GRACA_LEI25 = periodoLei25.limiteInferior();
+        LocalDate FIM_GRACA_LEI25 = periodoLei25.limiteSuperior();
+
+        // Calcula os blocos (antes, durante, após)
+        LocalDate inicioAntes = null, fimAntes = null;
+        LocalDate inicioDurante = null, fimDurante = null;
+        LocalDate inicioApos = null, fimApos = null;
+
+        // --- ANTES DA GRAÇA ---
+        // Só exibe se hoje ainda estiver antes do início da graça
+        if (DATA_FIM_TERCEIRO_CALCULO.isBefore(INICIO_GRACA_LEI25)) {
+            inicioAntes = dataInicioAtualizacao.isBefore(INICIO_GRACA_LEI25)
+                    ? dataInicioAtualizacao
+                    : INICIO_GRACA_LEI25;
+            fimAntes = INICIO_GRACA_LEI25.minusMonths(1);
+        }
+
+        // --- DURANTE A GRAÇA ---
+        // Exibe se a data atual estiver dentro da faixa da Lei 21
+        if (!DATA_FIM_TERCEIRO_CALCULO.isBefore(INICIO_GRACA_LEI25) && !DATA_FIM_TERCEIRO_CALCULO.isAfter(FIM_GRACA_LEI25)) {
+            inicioDurante = INICIO_GRACA_LEI25;
+            fimDurante = FIM_GRACA_LEI25;
+        }
+
+        // --- APÓS A GRAÇA ---
+        // Só exibe se o cálculo atual já atingiu agosto/2025
+        if (!DATA_FIM_TERCEIRO_CALCULO.isBefore(DATA_INICIO_TERCEIRO_CALCULO)) {
+            inicioApos = DATA_INICIO_TERCEIRO_CALCULO;
+            fimApos = DATA_FIM_TERCEIRO_CALCULO.isAfter(inicioApos)
+                    ? DATA_FIM_TERCEIRO_CALCULO
+                    : inicioApos;
+        }
+
+        return new Periodo(inicioAntes, fimAntes, inicioDurante, fimDurante, inicioApos, fimApos);
+    }
+
 }
