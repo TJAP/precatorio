@@ -44,8 +44,74 @@ public class CalculoAtualizacaoPrecatorioService {
     public static void main(String[] args) {
     }
 
-    public ResultadoAtualizacaoPrecatorioDTO controlarTipoCalculo(RequisitorioDTO dto) {
-        var atualizacao = new ResultadoAtualizacaoPrecatorioDTO();
+    private BigDecimal getTotal(List<CorrecaoDTO> calculos, TipoGraca tipoGraca) {
+        return calculos.stream()
+                .filter(c -> c.getTempoGraca().equals(tipoGraca.descricao))
+                .map(CorrecaoDTO::getTotal)
+                .filter(v -> v != null)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    private boolean isEqual(BigDecimal a, BigDecimal b) {
+        if (a == null || b == null) return false;
+        return a.compareTo(b) == 0;
+    }
+
+    private CalculoAtualizacaoDTO montaResultado(RequisitorioDTO req, CorrecaoDTO corrigido, List<CorrecaoDTO> correcoes) {
+
+        var atualizacao = new CalculoAtualizacaoDTO();
+
+        atualizacao.setIdPrecatorio(req.getId());
+        atualizacao.setNumeroProcesso(req.getNumProcessoTucujuris());
+
+        var antesGraca = correcoes.stream().filter(c -> c.getTempoGraca().equals(TipoGraca.ANTES.descricao)).findFirst().orElse(new CorrecaoDTO());
+        var duranteGraca = correcoes.stream().filter(c -> c.getTempoGraca().equals(TipoGraca.DURANTE.descricao)).findFirst().orElse(new CorrecaoDTO());
+        ;
+        var aposGraca = correcoes.stream().filter(c -> c.getTempoGraca().equals(TipoGraca.DEPOIS.descricao)).findFirst().orElse(new CorrecaoDTO());
+        ;
+
+        atualizacao.setDataAntesGracaDataInicio(antesGraca.getDataInicio());
+        atualizacao.setDataAntesGracaDataFim(antesGraca.getDataFim());
+        atualizacao.setDataDuranteGracaDataInicio(duranteGraca.getDataInicio());
+        atualizacao.setDataDuranteGracaDataFim(duranteGraca.getDataFim());
+        atualizacao.setDataPosGracaDataInicio(aposGraca.getDataInicio());
+        atualizacao.setDataPosGracaDataFim(aposGraca.getDataFim());
+
+        atualizacao.setResultadoValorPrincipalTributavelAtualizado(UtilCalculo.escala(corrigido.getPrincipalTributavel(), 2));
+        atualizacao.setResultadoValorPrincipalNaoTributavelAtualizado(UtilCalculo.escala(corrigido.getPrincipalNaoTributavel(), 2));
+        atualizacao.setResultadoValorJurosAtualizado(UtilCalculo.escala(corrigido.getJuros(), 2));
+        atualizacao.setResultadoValorMultaCustasOutrosAtualizado(UtilCalculo.escala(corrigido.getMultaCusta(), 2));
+        atualizacao.setResultadoValorSelicAtualizado(UtilCalculo.escala(corrigido.getSelic(), 2));
+        atualizacao.setResultadoValorBrutoAtualizado(UtilCalculo.escala(corrigido.getTotal(), 2));
+        atualizacao.setResultadoValorPrevidenciaAtualizado(UtilCalculo.escala(corrigido.getPrevidencia(), 2));
+
+        atualizacao.setResultadoFatorAntesAtualizado(antesGraca.getFatorValor());
+        atualizacao.setResultadoFatorDuranteAtualizado(duranteGraca.getFatorValor());
+        atualizacao.setResultadoFatorDepoisAtualizado(aposGraca.getFatorValor());
+
+        atualizacao.setResultadoTaxaAntesAtualizado(antesGraca.getJurosValor());
+        atualizacao.setResultadoTaxaDuranteAtualizado(duranteGraca.getJurosValor());
+        atualizacao.setResultadoTaxaDepoisAtualizado(aposGraca.getJurosValor());
+
+        atualizacao.setResultadoValorPrincipalTributavelAtualizadoDizima(corrigido.getPrincipalTributavel());
+        atualizacao.setResultadoValorPrincipalNaoTributavelAtualizadoDizima(corrigido.getPrincipalNaoTributavel());
+        atualizacao.setResultadoValorJurosAtualizadoDizima(corrigido.getJuros());
+        atualizacao.setResultadoValorMultaCustasOutrosAtualizadoDizima(corrigido.getMultaCusta());
+        atualizacao.setResultadoValorSelicAtualizadoDizima(corrigido.getSelic());
+        atualizacao.setResultadoValorBrutoAtualizadoDizima(corrigido.getTotal());
+        atualizacao.setResultadoValorPrevidenciaAtualizadoDizima(corrigido.getPrevidencia());
+
+        atualizacao.setResultadoNumeroMesesRRA(CalculoUtil.calcularMesesPeriodo(req.getDtInicioRRA(), req.getDtFimRRA()));
+        atualizacao.setResultadoCnpjDevedor(req.getDocumentoDevedor());
+        atualizacao.setTipoCalculoRetornado(corrigido.getTipoCalculo());
+        atualizacao.setDataUltimaAtualizacao(req.getDtUltimaAtualizacaoPlanilha());
+        atualizacao.setDataFimAtualizacao(req.getDtFimAtualizacaoPlanilha());
+
+        return atualizacao;
+    }
+
+    public CalculoAtualizacaoDTO controlarTipoCalculo(RequisitorioDTO dto) {
+        var atualizacao = new CalculoAtualizacaoDTO();
         var calculo = new CorrecaoDTO();
         List<CorrecaoDTO> calculos1 = new ArrayList<>();
         List<CorrecaoDTO> calculos2 = new ArrayList<>();
@@ -57,25 +123,34 @@ public class CalculoAtualizacaoPrecatorioService {
         // Periodo de Dezembro de 2021 a Julho de 2025
         calculos2 = calcularPeriodoEntreDezembro2021AhJulho2025(dto, calculos1.getLast());
         // Periodo a partir de Agosto de 2021
-        calculos3 = calcularPeriodoAposAgosto2025(dto, calculos2.getLast());
+        if (!calculos2.isEmpty()) {
+            calculos3 = calcularPeriodoAposAgosto2025(dto, calculos2.getLast());
+        }
 
-        calculosTotal.addAll(calculos1);
-        calculosTotal.addAll(calculos2);
-        calculosTotal.addAll(calculos3);
+        if (!calculos3.isEmpty()) {
 
-        if(!calculos3.isEmpty()){
-            calculo = calculos3.stream()
+            var ipca = calculos3.stream().filter(c -> c.getTipoCalculo().equals(TipoCalculo.IPCA.descricao)).toList();
+            var selic = calculos3.stream().filter(c -> c.getTipoCalculo().equals(TipoCalculo.SELIC.descricao)).toList();
+
+            calculosTotal.add(ipca.getLast());
+            calculosTotal.add(selic.getLast());
+            calculo = calculosTotal.stream()
                     .filter(c -> c.getTotal() != null)
                     .min(Comparator.comparing(CorrecaoDTO::getTotal))
                     .orElse(new CorrecaoDTO());
+            return montaResultado(dto, calculo, calculos3);
+        } else {
+            if (!calculos2.isEmpty()) {
+                calculo = calculos2.getLast();
+                return montaResultado(dto, calculo, calculos2);
+            }
+
+            if (!calculos1.isEmpty()) {
+                calculo = calculos1.getLast();
+                return montaResultado(dto, calculo, calculos1);
+            }
+
         }
-
-        var request = new CalculoRequest();
-
-        //request.set
-        // Periodo entre Dezembro de 2021 a Julho de 2025
-
-
         return atualizacao;
     }
 
@@ -737,7 +812,7 @@ public class CalculoAtualizacaoPrecatorioService {
 
         // Adiciona os valores do calculo para o metodo calcularPeriodoBasico
         List<CorrecaoDTO> periodosCalculados = new ArrayList<>();
-        CorrecaoDTO requisitorio = new CorrecaoDTO("Primeiro", null, null, null, null,
+        CorrecaoDTO requisitorio = new CorrecaoDTO("Primeiro", "Antes", null, null, null, null,
                 UtilCalculo.manterValorZeroSeNulo(requisitorioDTO.getVlPrincipalTributavelCorrigido()),
                 UtilCalculo.manterValorZeroSeNulo(requisitorioDTO.getVlPrincipalNaoTributavelCorrigido()),
                 UtilCalculo.manterValorZeroSeNulo(requisitorioDTO.getVlJurosAplicado()),
@@ -754,34 +829,34 @@ public class CalculoAtualizacaoPrecatorioService {
         CorrecaoDTO calculoAnterior = new CorrecaoDTO();
 
         // Antes da Graça
-        if (periodo.inicioAntes() != null && periodo.fimAntes() != null) {
-            var primeiro = calcularPeriodoAteNovembro2021(requisitorio, periodo.inicioAntes(), periodo.fimAntes());
-            periodosCalculados.add(primeiro);
-            calculoAnterior = primeiro;
-        } else {
-            calculoAnterior = requisitorio;
-        }
+        //if (periodo.inicioAntes() != null && periodo.fimAntes() != null) {
+        var primeiro = calcularPeriodoAteNovembro2021(requisitorio, periodo.inicioAntes(), periodo.fimAntes(), TipoGraca.ANTES);
+        periodosCalculados.add(primeiro);
+        calculoAnterior = primeiro;
+        //} else {
+        //    calculoAnterior = requisitorio;
+        //}
 
         // Durante a Graça
-        if (periodo.inicioDurante() != null && periodo.fimDurante() != null) {
-            var durante = calcularPeriodoAteNovembro2021(calculoAnterior, periodo.inicioDurante(), periodo.fimDurante());
-            periodosCalculados.add(durante);
-            calculoAnterior = durante;
-        } else {
-            calculoAnterior = requisitorio;
-        }
+        //if (periodo.inicioDurante() != null && periodo.fimDurante() != null) {
+        var durante = calcularPeriodoAteNovembro2021(calculoAnterior, periodo.inicioDurante(), periodo.fimDurante(), TipoGraca.DURANTE);
+        periodosCalculados.add(durante);
+        calculoAnterior = durante;
+        //} else {
+        //    calculoAnterior = requisitorio;
+        //}
 
         // Após a Graça
-        if (periodo.inicioApos() != null && periodo.fimApos() != null) {
-            var apos = calcularPeriodoAteNovembro2021(calculoAnterior, periodo.inicioApos(), periodo.fimApos());
-            periodosCalculados.add(apos);
-            calculoAnterior = apos;
-        }
+        //if (periodo.inicioApos() != null && periodo.fimApos() != null) {
+        var apos = calcularPeriodoAteNovembro2021(calculoAnterior, periodo.inicioApos(), periodo.fimApos(), TipoGraca.DEPOIS);
+        periodosCalculados.add(apos);
+        calculoAnterior = apos;
+        //}
 
         return periodosCalculados;
     }
 
-    private CorrecaoDTO calcularPeriodoAteNovembro2021(CorrecaoDTO correcaoRequisitorio, LocalDate inicio, LocalDate fim) {
+    private CorrecaoDTO calcularPeriodoAteNovembro2021(CorrecaoDTO correcaoRequisitorio, LocalDate inicio, LocalDate fim, TipoGraca graca) {
 
         BigDecimal fator = BigDecimal.ONE;
         BigDecimal juros = BigDecimal.ZERO;
@@ -794,6 +869,8 @@ public class CalculoAtualizacaoPrecatorioService {
         }
 
         var correcao = new CorrecaoDTO();
+        correcao.setTipoCalculo("C1");
+        correcao.setTempoGraca(graca.descricao);
         correcao.setDataInicio(inicio);
         correcao.setDataFim(fim);
         correcao.setFatorValor(fator);
@@ -828,44 +905,41 @@ public class CalculoAtualizacaoPrecatorioService {
         List<CorrecaoDTO> periodosCalculados = new ArrayList<>();
 
         if (periodo.isNulo()) {
-            periodosCalculados.add(requisitorio);
+            //periodosCalculados.add(requisitorio);
             return periodosCalculados;
         }
 
         CorrecaoDTO calculoAnterior = new CorrecaoDTO();
 
         // Antes da Graça
-        if (periodo.inicioAntes() != null && periodo.fimAntes() != null) {
-            var primeiro = calcularPeriodoEntreDezembro2021AhJulho2025(requisitorio, periodo.inicioAntes(), periodo.fimAntes(), false);
-            primeiro.setTipoCalculo("Segundo");
-            periodosCalculados.add(primeiro);
-            calculoAnterior = primeiro;
-        } else {
-            calculoAnterior = requisitorio;
-        }
+        //if (periodo.inicioAntes() != null && periodo.fimAntes() != null) {
+        var primeiro = calcularPeriodoEntreDezembro2021AhJulho2025(requisitorio, periodo.inicioAntes(), periodo.fimAntes(), TipoGraca.ANTES, false);
+        periodosCalculados.add(primeiro);
+        calculoAnterior = primeiro;
+        //} else {
+        //    calculoAnterior = requisitorio;
+        //}
 
         // Durante a Graça
-        if (periodo.inicioDurante() != null && periodo.fimDurante() != null) {
-            var durante = calcularPeriodoEntreDezembro2021AhJulho2025(calculoAnterior, periodo.inicioDurante(), periodo.fimDurante(), true);
-            durante.setTipoCalculo("Segundo");
-            periodosCalculados.add(durante);
-            calculoAnterior = durante;
-        } else {
-            calculoAnterior = requisitorio;
-        }
+        //if (periodo.inicioDurante() != null && periodo.fimDurante() != null) {
+        var durante = calcularPeriodoEntreDezembro2021AhJulho2025(calculoAnterior, periodo.inicioDurante(), periodo.fimDurante(), TipoGraca.DURANTE, true);
+        periodosCalculados.add(durante);
+        calculoAnterior = durante;
+        //} else {
+        //   calculoAnterior = requisitorio;
+        //}
 
         // Após a Graça
-        if (periodo.inicioApos() != null && periodo.fimApos() != null) {
-            var apos = calcularPeriodoEntreDezembro2021AhJulho2025(calculoAnterior, periodo.inicioApos(), periodo.fimApos(), false);
-            apos.setTipoCalculo("Segundo");
-            periodosCalculados.add(apos);
-            calculoAnterior = apos;
-        }
+        //if (periodo.inicioApos() != null && periodo.fimApos() != null) {
+        var apos = calcularPeriodoEntreDezembro2021AhJulho2025(calculoAnterior, periodo.inicioApos(), periodo.fimApos(), TipoGraca.DEPOIS, false);
+        periodosCalculados.add(apos);
+        calculoAnterior = apos;
+        //}
 
         return periodosCalculados;
     }
 
-    private CorrecaoDTO calcularPeriodoEntreDezembro2021AhJulho2025(CorrecaoDTO correcaoRequisitorio, LocalDate inicio, LocalDate fim, boolean duranteGraca) {
+    private CorrecaoDTO calcularPeriodoEntreDezembro2021AhJulho2025(CorrecaoDTO correcaoRequisitorio, LocalDate inicio, LocalDate fim, TipoGraca graca, boolean duranteGraca) {
 
         BigDecimal fator = BigDecimal.ONE;
         BigDecimal taxaSelic = BigDecimal.ZERO;
@@ -880,6 +954,8 @@ public class CalculoAtualizacaoPrecatorioService {
         }
 
         var correcao = new CorrecaoDTO();
+        correcao.setTipoCalculo("C2");
+        correcao.setTempoGraca(graca.descricao);
         correcao.setDataInicio(inicio);
         correcao.setDataFim(fim);
         correcao.setFatorValor(fator);
@@ -919,71 +995,72 @@ public class CalculoAtualizacaoPrecatorioService {
         List<CorrecaoDTO> periodosCalculados = new ArrayList<>();
 
         if (periodo.isNulo()) {
-            periodosCalculados.add(requisitorio);
             return periodosCalculados;
+            //periodosCalculados.add(requisitorio);
+            //return periodosCalculados;
         }
 
         CorrecaoDTO calculoAnterior = new CorrecaoDTO();
 
         // Antes da Graça
-        if (periodo.inicioAntes() != null && periodo.fimAntes() != null) {
-            var primeiroIpca = calcularPeriodoAposAgosto2025(requisitorio, periodo.inicioAntes(), periodo.fimAntes(), TipoCalculo.IPCA, false);
-            var primeiroSelic = calcularPeriodoAposAgosto2025(requisitorio, periodo.inicioAntes(), periodo.fimAntes(), TipoCalculo.SELIC, false);
-            periodosCalculados.add(primeiroIpca);
-            periodosCalculados.add(primeiroSelic);
-            calculoAnterior = primeiroIpca;
-        } else {
-            calculoAnterior = requisitorio;
-        }
+        //if (periodo.inicioAntes() != null && periodo.fimAntes() != null) {
+        var primeiroIpca = calcularPeriodoAposAgosto2025(requisitorio, periodo.inicioAntes(), periodo.fimAntes(), TipoCalculo.IPCA, TipoGraca.ANTES, false);
+        var primeiroSelic = calcularPeriodoAposAgosto2025(requisitorio, periodo.inicioAntes(), periodo.fimAntes(), TipoCalculo.SELIC, TipoGraca.ANTES, false);
+        periodosCalculados.add(primeiroIpca);
+        periodosCalculados.add(primeiroSelic);
+        calculoAnterior = primeiroIpca;
+        //} else {
+        //    calculoAnterior = requisitorio;
+        //}
 
         // Durante a Graça
-        if (periodo.inicioDurante() != null && periodo.fimDurante() != null) {
-            var duranteIpca = calcularPeriodoAposAgosto2025(calculoAnterior, periodo.inicioDurante(), periodo.fimDurante(), TipoCalculo.IPCA, true);
-            var duranteSelic = calcularPeriodoAposAgosto2025(calculoAnterior, periodo.inicioDurante(), periodo.fimDurante(), TipoCalculo.SELIC, true);
-            periodosCalculados.add(duranteIpca);
-            periodosCalculados.add(duranteSelic);
-            calculoAnterior = duranteIpca;
-        } else {
-            calculoAnterior = requisitorio;
-        }
+        //if (periodo.inicioDurante() != null && periodo.fimDurante() != null) {
+        var duranteIpca = calcularPeriodoAposAgosto2025(calculoAnterior, periodo.inicioDurante(), periodo.fimDurante(), TipoCalculo.IPCA, TipoGraca.DURANTE, true);
+        var duranteSelic = calcularPeriodoAposAgosto2025(calculoAnterior, periodo.inicioDurante(), periodo.fimDurante(), TipoCalculo.SELIC, TipoGraca.DURANTE, true);
+        periodosCalculados.add(duranteIpca);
+        periodosCalculados.add(duranteSelic);
+        calculoAnterior = duranteIpca;
+        //} else {
+        //    calculoAnterior = requisitorio;
+        //}
 
         // Após a Graça
-        if (periodo.inicioApos() != null && periodo.fimApos() != null) {
-            var aposIpca = calcularPeriodoAposAgosto2025(calculoAnterior, periodo.inicioApos(), periodo.fimApos(), TipoCalculo.IPCA, false);
-            var aposSelic = calcularPeriodoAposAgosto2025(calculoAnterior, periodo.inicioApos(), periodo.fimApos(), TipoCalculo.SELIC, false);
-            periodosCalculados.add(aposIpca);
-            periodosCalculados.add(aposSelic);
-            calculoAnterior = aposIpca;
-        }
+        //if (periodo.inicioApos() != null && periodo.fimApos() != null) {
+        var aposIpca = calcularPeriodoAposAgosto2025(calculoAnterior, periodo.inicioApos(), periodo.fimApos(), TipoCalculo.IPCA, TipoGraca.DEPOIS, false);
+        var aposSelic = calcularPeriodoAposAgosto2025(calculoAnterior, periodo.inicioApos(), periodo.fimApos(), TipoCalculo.SELIC, TipoGraca.DEPOIS, false);
+        periodosCalculados.add(aposIpca);
+        periodosCalculados.add(aposSelic);
+        calculoAnterior = aposIpca;
+        //}
 
         return periodosCalculados;
     }
 
-    private CorrecaoDTO calcularPeriodoAposAgosto2025(CorrecaoDTO correcaoRequisitorio, LocalDate inicio, LocalDate fim, TipoCalculo tipoCalculo, boolean durante) {
+    private CorrecaoDTO calcularPeriodoAposAgosto2025(CorrecaoDTO correcaoRequisitorio, LocalDate inicio, LocalDate fim, TipoCalculo tipoCalculo, TipoGraca graca, boolean duranteGraca) {
 
         BigDecimal fator = BigDecimal.ONE;
         BigDecimal juros = BigDecimal.ZERO;
 
-
         if (inicio != null && fim != null && tipoCalculo.equals(TipoCalculo.IPCA)) {
-            fator = BigDecimal.valueOf( 1.0025907); //bancoCentralService.multiplicarIPCA(YearMonth.from(inicio), YearMonth.from(fim));
+            fator = bancoCentralService.multiplicarIPCA(YearMonth.from(inicio), YearMonth.from(fim));//BigDecimal.valueOf( 1.0025907);
             long totalMesesJurosPoupanca = UtilCalculo.calcularPeriodoMeses(inicio, fim);
-            if (!durante) {
+            if (!duranteGraca) {
                 juros = FATOR_DOIS_PORCENTO.multiply(BigDecimal.valueOf(totalMesesJurosPoupanca));
             }
         }
 
         if (inicio != null && fim != null && tipoCalculo.equals(TipoCalculo.SELIC)) {
-            if (durante) {
+            if (duranteGraca) {
                 fator = bancoCentralService.multiplicarIPCA(YearMonth.from(inicio), YearMonth.from(fim));
             }
-            if (!durante) {
+            if (!duranteGraca) {
                 juros = bancoCentralService.somarSelic(YearMonth.from(inicio), YearMonth.from(fim));
             }
         }
 
         var correcao = new CorrecaoDTO();
         correcao.setTipoCalculo(tipoCalculo.descricao);
+        correcao.setTempoGraca(graca.descricao);
         correcao.setDataInicio(inicio);
         correcao.setDataFim(fim);
         correcao.setFatorValor(fator);
@@ -997,7 +1074,7 @@ public class CalculoAtualizacaoPrecatorioService {
 
         if (tipoCalculo.equals(TipoCalculo.SELIC)) {
             jurosCorrigido = correcaoRequisitorio.getJuros().multiply(fator);
-            if(durante){
+            if (duranteGraca) {
                 selicCorrigido = correcaoRequisitorio.getSelic().multiply(fator);
             } else {
                 selicCorrigido = correcaoRequisitorio.getTotal().subtract(correcaoRequisitorio.getSelic()).multiply(juros.divide(BigDecimal.valueOf(100))).add(correcaoRequisitorio.getSelic());
@@ -1005,14 +1082,14 @@ public class CalculoAtualizacaoPrecatorioService {
         } else {
 
             selicCorrigido = correcaoRequisitorio.getSelic().multiply(fator);
-            if(durante){
+            if (duranteGraca) {
                 jurosCorrigido = correcaoRequisitorio.getJuros().multiply(fator);
             } else {
-            jurosCorrigido = correcaoRequisitorio.getJuros().multiply(fator)
-                    .add(
-                            correcao.getPrincipalTributavel().add(correcao.getPrincipalNaoTributavel())
-                                    .multiply(juros).divide(BigDecimal.valueOf(100))
-                    );
+                jurosCorrigido = correcaoRequisitorio.getJuros().multiply(fator)
+                        .add(
+                                correcao.getPrincipalTributavel().add(correcao.getPrincipalNaoTributavel())
+                                        .multiply(juros).divide(BigDecimal.valueOf(100))
+                        );
             }
         }
 
@@ -1041,6 +1118,23 @@ public class CalculoAtualizacaoPrecatorioService {
         private final String descricao;
 
         TipoCalculo(String descricao) {
+            this.descricao = descricao;
+        }
+
+        @Override
+        public String toString() {
+            return descricao;
+        }
+    }
+
+    private enum TipoGraca {
+        ANTES("ANTES"),
+        DURANTE("DURANTE"),
+        DEPOIS("DEPOIS");
+
+        private final String descricao;
+
+        TipoGraca(String descricao) {
             this.descricao = descricao;
         }
 

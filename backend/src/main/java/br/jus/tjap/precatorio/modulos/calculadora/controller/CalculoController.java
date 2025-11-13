@@ -397,10 +397,11 @@ public class CalculoController {
         resultado.setRequest(req);
         resultado.setRequisitorioDTO(requisitorioDTO);
 
-        CalculoAtualizacaoDTO atualizacao = calculoJurosService.calcularAtualizacao(req);
-        atualizacao.preencherIpcaAntesComEscala();
-        atualizacao.preencherIpcaDuranteComEscala();
-        atualizacao.preencherIpcaDepoisComEscala();
+        //CalculoAtualizacaoDTO atualizacao = calculoJurosService.calcularAtualizacao(req);
+        CalculoAtualizacaoDTO atualizacao = calculoJurosService.controlarTipoCalculo(requisitorioDTO);
+        //atualizacao.preencherIpcaAntesComEscala();
+        //atualizacao.preencherIpcaDuranteComEscala();
+        //atualizacao.preencherIpcaDepoisComEscala();
 
         atualizacao.setDataUltimaAtualizacao(req.getDataUltimaAtualizacao());
         atualizacao.setDataFimAtualizacao(req.getDataFimAtualizacao());

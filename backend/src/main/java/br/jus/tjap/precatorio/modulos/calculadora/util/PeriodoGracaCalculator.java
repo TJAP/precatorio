@@ -123,7 +123,7 @@ public class PeriodoGracaCalculator {
         // Após a graça — se o cálculo ultrapassar o fim da Lei 21
         if (fimEfetivo.isAfter(FIM_GRACA_LEI21)) {
             inicioApos = FIM_GRACA_LEI21.plusMonths(1);
-            fimApos = DATA_FIM_SEGUNDO_CALCULO;
+            fimApos = fimEfetivo.isBefore(DATA_FIM_SEGUNDO_CALCULO) ? fimEfetivo : DATA_FIM_SEGUNDO_CALCULO;
         }
 
         return new Periodo(inicioAntes, fimAntes, inicioDurante, fimDurante, inicioApos, fimApos);
@@ -145,6 +145,12 @@ public class PeriodoGracaCalculator {
 
         LocalDate INICIO_GRACA_LEI25 = periodoLei25.limiteInferior();
         LocalDate FIM_GRACA_LEI25 = periodoLei25.limiteSuperior();
+
+        // Se o intervalo informado não intersecta o segundo cálculo, nada é calculado
+        if (dataFinalAtualizacao.isBefore(DATA_INICIO_TERCEIRO_CALCULO) ||
+                dataInicioAtualizacao.isAfter(DATA_FIM_TERCEIRO_CALCULO)) {
+            return new Periodo(null, null, null, null, null, null);
+        }
 
         // Calcula os blocos (antes, durante, após)
         LocalDate inicioAntes = null, fimAntes = null;

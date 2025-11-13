@@ -13,6 +13,7 @@ import java.time.LocalDate;
 public class CorrecaoDTO {
 
     private String tipoCalculo;
+    private String tempoGraca;
     private LocalDate dataInicio;
     private LocalDate dataFim;
     private BigDecimal fatorValor;
