@@ -16,6 +16,7 @@ import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
@@ -53,15 +54,25 @@ public class CalculoAtualizacaoPrecatorioService {
 
         // Periodo até Novembro de 2021
         calculos1 = calcularPeriodoAteNovembro2021(dto);
+        // Periodo de Dezembro de 2021 a Julho de 2025
         calculos2 = calcularPeriodoEntreDezembro2021AhJulho2025(dto, calculos1.getLast());
+        // Periodo a partir de Agosto de 2021
         calculos3 = calcularPeriodoAposAgosto2025(dto, calculos2.getLast());
+
         calculosTotal.addAll(calculos1);
         calculosTotal.addAll(calculos2);
         calculosTotal.addAll(calculos3);
 
+        if(!calculos3.isEmpty()){
+            calculo = calculos3.stream()
+                    .filter(c -> c.getTotal() != null)
+                    .min(Comparator.comparing(CorrecaoDTO::getTotal))
+                    .orElse(new CorrecaoDTO());
+        }
+
         var request = new CalculoRequest();
 
-        request.set
+        //request.set
         // Periodo entre Dezembro de 2021 a Julho de 2025
 
 
