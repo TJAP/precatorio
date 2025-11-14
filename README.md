@@ -15,6 +15,19 @@
 
 ---
 
+## 🧠 Estrutura de Pacotes
+br.jus.tjap.precatorio
+├── config          # Segurança, CORS, OAuth2
+├── controller      # Endpoints REST
+├── service         # Regras de negócio
+├── repository      # JPA Repositories
+├── model/entity    # Entidades do banco
+├── dto             # Objetos de transporte
+├── enums           # Constantes e tipos fixos
+└── util            # Funções auxiliares
+
+---
+
 ## 🧩 Estrutura Modular
 
 ### 🔹 **Módulo Repositório**
@@ -81,4 +94,12 @@ Executa a lógica de **atualização monetária e pagamento**:
 ## 🧱 Banco de Dados
 
 Estrutura principal no schema `precatorio`:
+
+---
+
+## 📚 Licença e Direitos
+
+> 📌 Tribunal de Justiça do Estado do Amapá (TJAP)
+> Sistema desenvolvido conforme diretrizes do Conselho Nacional de Justiça (CNJ).
+> Distribuição e uso restritos ao âmbito institucional.
 
