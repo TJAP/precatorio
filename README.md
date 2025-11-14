@@ -100,6 +100,7 @@ Estrutura principal no schema `precatorio`:
 ## 📚 Licença e Direitos
 
 > 📌 Tribunal de Justiça do Estado do Amapá (TJAP).
+> 
 > Sistema desenvolvido conforme diretrizes do Conselho Nacional de Justiça (CNJ).
 > Distribuição e uso restritos ao âmbito institucional.
 
