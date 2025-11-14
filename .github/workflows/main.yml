@@ -1,12 +1,7 @@
 name: Build and Push Docker Image
 
 on:
-  push:
-    branches:
-      - main
-      - master
-      - develop
-  pull_request:
+  workflow_dispatch:   # 🔹 Permite execução manual pelo botão "Run workflow" no GitHub UI
 
 jobs:
   build:
@@ -43,9 +38,30 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Extract project version from pom.xml
-        id: project
-        run: echo "version=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_OUTPUT
+      - name: Define version based on branch
+        id: versioning
+        run: |
+          BRANCH_NAME=${GITHUB_REF##*/}
+          
+          if [[ "$BRANCH_NAME" == "develop" ]]; then
+            PREFIX="develop"
+          elif [[ "$BRANCH_NAME" == "main" || "$BRANCH_NAME" == "master" ]]; then
+            PREFIX="main"
+          else
+            PREFIX="build"
+          fi
+
+          LAST_TAG=$(git tag --list "${PREFIX}.*" | sort -V | tail -n 1)
+
+          if [ -z "$LAST_TAG" ]; then
+            VERSION="${PREFIX}.1.0.0"
+          else
+            IFS='.' read -r PREFIX_NAME MAJOR MINOR PATCH <<<"${LAST_TAG}"
+            PATCH=$((PATCH + 1))
+            VERSION="${PREFIX}.${MAJOR}.${MINOR}.${PATCH}"
+          fi
+
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
@@ -54,5 +70,5 @@ jobs:
           file: ./backend/Dockerfile
           push: true
           tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/precatorio-back:${{ steps.project.outputs.version }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/precatorio-back:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/precatorio:${{ steps.versioning.outputs.version }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/precatorio:latest
