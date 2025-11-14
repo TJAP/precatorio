@@ -1,0 +1,79 @@
+-- ============================================================
+-- Tabela: tipo_tributacao_precatorio
+-- Finalidade: Controlar o tipo de tributação do precatório
+-- Autor: Pedro Junior
+-- Data: 2025-10-21
+-- ============================================================
+
+-- Sequence para a PK
+CREATE SEQUENCE precatorio.tipo_tributacao_precatorio_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+-- Tabela principal
+CREATE TABLE precatorio.tipo_tributacao_precatorio (
+    id BIGINT PRIMARY KEY DEFAULT nextval('precatorio.tipo_tributacao_precatorio_id_seq'),
+    id_tipo_credor INT NULL,
+    codigo VARCHAR(50) NOT NULL,                -- Ex: 'RRA', 'ISENTO', etc.
+    descricao VARCHAR(200) NOT NULL,                   -- Ex: 'Rendimentos Recebidos Acumuladamente'
+    aplica_ir BOOLEAN NOT NULL DEFAULT TRUE,           -- Se o tipo gera retenção de IR
+    aliquota_padrao NUMERIC(5,2),                      -- Ex: 1.5, 1.0, NULL se não aplicável
+    usa_tabela_progressiva BOOLEAN DEFAULT FALSE,      -- Se usa tabela progressiva (PF e RRA)
+    com_previdencia BOOLEAN DEFAULT FALSE,
+    com_rra BOOLEAN DEFAULT FALSE,
+    origem_isencao VARCHAR(200),                       -- Base legal (Lei, art., etc.)
+    observacao TEXT,                                   -- Observações adicionais
+    ativo BOOLEAN NOT NULL DEFAULT TRUE                -- Para controle administrativo
+);
+
+-- Permissões para o usuário do sistema
+GRANT ALL PRIVILEGES ON TABLE precatorio.tipo_tributacao_precatorio TO web;
+GRANT ALL PRIVILEGES ON SEQUENCE precatorio.tipo_tributacao_precatorio_id_seq TO web;
+
+-- Dados iniciais (baseados na legislação e prática CNJ/RFB)
+INSERT INTO precatorio.tipo_tributacao_precatorio
+(codigo, descricao, aplica_ir, aliquota_padrao, usa_tabela_progressiva, origem_isencao, observacao)
+VALUES
+('RRA', 'Rendimentos Recebidos Acumuladamente', TRUE, NULL, TRUE, 'Lei 7.713/1988, art. 12-A', 'Aplica tabela progressiva considerando meses de referência'),
+('PF_TABELA', 'Pessoa Física – Tabela Progressiva', TRUE, NULL, TRUE, 'Lei 7.713/1988', 'Aplica tabela progressiva comum'),
+('PJ_SERVICOS', 'Pessoa Jurídica – Serviços', TRUE, 1.5, FALSE, 'RIR/2018', 'Retenção de 1,5% sobre o valor pago'),
+('PJ_CESSAO', 'Pessoa Jurídica – Cessão de Mão de Obra', TRUE, 1.0, FALSE, 'RIR/2018', 'Retenção de 1% sobre o valor pago'),
+('ISENTO', 'Isento de IR', FALSE, NULL, FALSE, 'Lei 7.713/1988, art. 6º', 'Natureza indenizatória, moléstia grave ou outra isenção legal');
+
+
+-- ============================================================
+-- Tabela: tipo_acao_precatorio
+-- Finalidade: Definir o tipo de ação / natureza do crédito,
+--              com base no tipo de tributação aplicável.
+-- Autor: Pedro Junior
+-- Data: 2025-10-22
+-- ============================================================
+
+-- Sequence
+CREATE SEQUENCE precatorio.tipo_credor_precatorio_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+-- Tabela principal
+CREATE TABLE precatorio.tipo_credor_precatorio (
+    id BIGINT PRIMARY KEY DEFAULT nextval('precatorio.tipo_credor_precatorio_id_seq'),
+    descricao VARCHAR(200) NOT NULL,                        -- Ex: "Honorários Sucumbenciais"
+    tipo_pessoa VARCHAR(20),                                 -- opcional: código do assunto / classe CNJ
+    ativo BOOLEAN NOT NULL DEFAULT TRUE
+);
+
+-- Permissões
+GRANT ALL PRIVILEGES ON TABLE precatorio.tipo_credor_precatorio TO web;
+GRANT ALL PRIVILEGES ON SEQUENCE precatorio.tipo_credor_precatorio_id_seq TO web;
+
+update precatorio.precatorio set situcao_funcional_credor = 1 where situcao_funcional_credor = 'Efetivo'
+update precatorio.precatorio set situcao_funcional_credor = 2 where situcao_funcional_credor = 'Sem vínculo'
+update precatorio.precatorio set situcao_funcional_credor = 3 where situcao_funcional_credor = 'Contrato/Função'
+update precatorio.precatorio set situcao_funcional_credor = 4 where situcao_funcional_credor = 'Aposentado'
+update precatorio.precatorio set situcao_funcional_credor = 3 where situcao_funcional_credor isnull

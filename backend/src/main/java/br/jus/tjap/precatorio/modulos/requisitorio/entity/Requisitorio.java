@@ -1,0 +1,474 @@
+package br.jus.tjap.precatorio.modulos.requisitorio.entity;
+
+
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
+
+import br.jus.tjap.precatorio.modulos.requisitorio.dto.RelatorioJsRequestDTO;
+import br.jus.tjap.precatorio.modulos.requisitorio.dto.RequisitorioDTO;
+import br.jus.tjap.precatorio.modulos.tabelasbasicas.entity.EnteDevedor;
+import br.jus.tjap.precatorio.util.DateUtil;
+import br.jus.tjap.precatorio.util.StringUtil;
+import jakarta.persistence.*;
+
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
+import lombok.*;
+
+@Entity
+@Table(name = Requisitorio.TABLE_NAME, schema="precatorio")
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class Requisitorio implements Serializable {
+
+    public static final String TABLE_NAME = "precatorio";
+
+    private static final long serialVersionUID = 1L;
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "gen_" + TABLE_NAME)
+    @SequenceGenerator(name = "gen_" + TABLE_NAME, sequenceName = "precatorio.sq_" + TABLE_NAME, allocationSize = 1)
+    private Long id;
+
+    //1: OR, 2:RPV
+    @Column(name = "tp_precatorio")
+    private Integer tipoPrecatorio;
+
+    @Column(name = "id_processo")
+    private String idProcesso;
+    @Column(name = "num_processo_tucujuris")
+    private String numProcessoTucujuris;
+    @Column(name = "nome_magistrado")
+    private String nomeMagistrado;
+    @Column(name = "id_tipo_titulo")
+    private Long idTipoTitulo;
+    @Column(name = "id_natureza_credito")
+    private Long idNaturezaCredito;
+    @Column(name = "id_tipo_previdencia")
+    private Long idTipoPrevidencia;
+
+    @Column(name = "ds_tipo_obrigacao")
+    private String dsTipoObrigacao;
+    @Column(name = "dt_ajuizamento")
+    private LocalDate dtAjuizamento;
+    @Column(name = "dt_decurso_prazo")
+    private LocalDate dtDecursoPrazo;
+    @Column(name = "dt_transito_julgado_conhecimento")
+    private LocalDate dtTransitoJulgadoConhecimento;
+    @Column(name = "dt_transito_julgado_embargos")
+    private LocalDate dtTransitoJulgadoEmbargos;
+
+    // dados devedor
+    @Column(name = "nome_devedor")
+    private String nomeDevedor;
+    @Column(name = "doc_devedor")
+    private String documentoDevedor;
+    @Column(name = "dt_nascimento_devedor")
+    private LocalDate nascimentoDevedor;
+    @Column(name = "nome_adv_devedor_")
+    private String nomeDevedorAdv;
+    @Column(name = "doc_adv_devedor")
+    private String documentoDevedorAdv;
+
+    // dados credor
+    @Column(name = "nome_credor")
+    private String nomeCredor;
+    @Column(name = "doc_credor")
+    private String documentoCredor;
+    @Column(name = "dt_nascimento_credor")
+    private LocalDate nascimentoCredor;
+    @Column(name = "nome_adv_credor")
+    private String nomeCredorAdv;
+    @Column(name = "doc_adv_credor")
+    private String documentoCredorAdv;
+    @Column(name = "dt_nascimento_adv_credor")
+    private LocalDate nascimentoAdvCredor;
+    @Column(name = "percent_honor_adv_credor")
+    private BigDecimal vlPercentualHonorarioAdvCredor;
+    @Column(name = "tp_tributacao_adv_credor")
+    private String idTipoTributacaoAdvCredor;
+
+    @Column(name = "nome_representante_credor")
+    private String nomeCredorRepresentante;
+    @Column(name = "doc_representante_credor")
+    private String docCredorRepresentante;
+    @Column(name = "dat_nascimento_representante_credor")
+    private LocalDate nascimentoRepresentanteCredor;
+    @Column(name = "id_natureza_qualificacao_credor")
+    private Long idCredorNaturezaQualificacao;
+
+
+    @Column(name = "orgao_vinculo_credor")
+    private String orgaoVinculoCredor;
+    //@Column(name = "situcao_funcional_credor")
+    //private String situacaoFuncionalCredor;
+    @Column(name = "nome_banco_credor")
+    private String nomeBancoCredor;
+    @Column(name = "agencia_bancaria_credor")
+    private String agenciaCredor;
+    @Column(name = "conta_corrente_credor")
+    private String contaCorrenteCredor;
+    @Column(name = "nome_banco_adv_credor")
+    private String nomeBancoAdvCredor;
+    @Column(name = "agencia_bancaria_adv_credor")
+    private String agenciaAdvCredor;
+    @Column(name = "conta_corrente_adv_credor")
+    private String contaCorrenteAdvCredor;
+
+    @Column(name = "vl_causa")
+    private BigDecimal valorCausa;
+    //@Column(name = "situacao", columnDefinition = "varchar(10) default 'ABERTO'")
+    //private SituacaoPrecatorioEnum situacao;
+
+    // novos campos
+    @Column(name = "vl_global_requisicao")
+    private BigDecimal vlGlobalRequisicao;
+    @Column(name = "vl_principal_tributavel_corrigido")
+    private BigDecimal vlPrincipalTributavelCorrigido;
+    @Column(name = "vl_principal_nao_tributavel_corrigido")
+    private BigDecimal vlPrincipalNaoTributavelCorrigido;
+    @Column(name = "indice_atualizacao")
+    private Integer indiceAtualizacao;
+    @Column(name = "id_taxa_juros_aplicada")
+    private BigDecimal idTaxaJurosAplicadas;
+    @Column(name = "vl_juros_aplicado")
+    private BigDecimal vlJurosAplicado;
+
+    @Column(name = "in_devolucao_custa")
+    private Boolean devolucaoCusta;
+    @Column(name = "vl_devolucao_custa")
+    private BigDecimal vlDevolucaoCusta;
+
+    @Column(name = "in_pagamento_multa")
+    private Boolean pagamentoMulta;
+    @Column(name = "vl_pagamento_multa")
+    private BigDecimal vlPagamentoMulta;
+
+    @Column(name = "dt_base_ultima_atualizacao")
+    private LocalDate dtUltimaAtualizacaoPlanilha;
+
+    @Column(name = "dt_base_final_atualizacao")
+    private LocalDate dtFimAtualizacaoPlanilha;
+
+    // imposto de renda
+    @Column(name = "in_retencao_ir")
+    private Boolean retencaoImposto;
+    @Column(name = "vl_retencao_ir")
+    private BigDecimal vlRetencaoImposto;
+    @Column(name = "nm_meses_rendimento_recebido_acumulado")
+    private Integer numeroMesesRendimentoAcumulado;
+
+    // previdencia
+    @Column(name = "in_pagamento_previdenciario")
+    private Boolean pagamentoPrevidenciario;
+    @Column(name = "vl_previdencia")
+    private BigDecimal vlPrevidencia;
+    @Column(name = "orgao_previdencia")
+    private Integer orgaoPrevidencia;
+
+    // averbação
+    @Column(name = "in_averbacao_penhora")
+    private Boolean averbacaoPenhora;
+    @Column(name = "vl_averbacao_penhora")
+    private BigDecimal vlAverbacaoPenhora;
+
+    // sessão crédito
+    @Column(name = "in_sessao_credito")
+    private Boolean sessaoCredito;
+    @Column(name = "vl__sessao_credito")
+    private BigDecimal vlSessaoCredito;
+
+    @Column(name = "vl_selic")
+    private BigDecimal vlSelic;
+
+    // pagamento administrativo
+    @Column(name = "in_pagamento_administrativo")
+    private Boolean pagamentoAdministrativo;
+    @Column(name = "vl_pagamento_administrativo")
+    private BigDecimal vlPagamentoAdministrativo;
+
+    @Column(name = "dt_assinatura")
+    private LocalDateTime dtAssinatura;
+    @Column(name = "assinador")
+    private String assinador;
+    @Column(name = "id_pe_assinador")
+    private Integer idPeAssinador;
+
+    @Column(name = "id_orgao_julgador_pje")
+    private Integer codOrgaoJulgadorPje;
+
+    @Column(name = "id_orgao_julgador_tucujuris")
+    private Integer codOrgaoJulgadorTucujuris;
+
+    @Basic(fetch = FetchType.LAZY)
+    //@Type(type="org.hibernate.type.BinaryType")
+    @Column(name = "arquivo_pdf")
+    @JsonManagedReference
+    private byte[] arquivoPdf;
+
+    @Column(name = "id_precatorio_tucujuris")
+    private Long idPrecatorioTucujuris;
+
+    @Column(name = "dt_cadastro")
+    private LocalDateTime dtCadastro;
+
+    @Column(name = "dt_atualizacao")
+    private LocalDateTime dtAtualizacao;
+
+    @Column(name = "ds_justificativa_invalidade")
+    private String dsJustificativaInvalidade;
+
+    @Column(name = "ativo")
+    private boolean ativo;
+
+    @Column(name = "msg_erro_distribuicao")
+    private String msgErroDistribuicao;
+
+    @Column(name = "dt_inicio_rra")
+    private LocalDate dtInicioRRA;
+
+    @Column(name = "dt_fim_rra")
+    private LocalDate dtFimRRA;
+
+    @Column(name = "ano_vencimento")
+    private Integer anoVencimento;
+
+    @Column(name = "vl_total_atualizado")
+    private BigDecimal vlTotalAtualizado;
+
+    @JoinColumn(name = "id_ente_devedor")
+    @ManyToOne
+    private EnteDevedor enteDevedor;
+
+    @Column(name = "id_tipo_orbigacao")
+    private Long idTipoOrbigacao;
+
+    @JoinColumn(name = "situcao_funcional_credor")
+    @ManyToOne(fetch = FetchType.LAZY)
+    private TipoCredor tipoCredor;
+
+    @OneToMany(mappedBy = "requisitorio", fetch = FetchType.LAZY)
+    private List<Prioridade> prioridades = new ArrayList<>();
+
+    @Transient
+    private List<ProcessoDeducao> processoDeducaos = new ArrayList<>();
+
+    @Transient
+    private List<AcordoDireto> acordoDiretos = new ArrayList<>();
+
+    @Transient
+    private String numeroPrecatorio;
+
+    @Transient
+    private Integer numeroMesesRRA;
+
+    @Transient
+    private String precato;
+
+    public String getNumeroProcessoPJE(){
+        return StringUtil.formataNumeroProcesso(getIdProcesso());
+    }
+
+    public Integer getNumeroMesesRRA(){
+        if(Objects.isNull(this.dtInicioRRA) && Objects.isNull(this.dtFimRRA)){
+            if(Objects.nonNull(this.numeroMesesRendimentoAcumulado)){
+                return this.numeroMesesRendimentoAcumulado;
+            }
+        } else {
+            return Math.toIntExact(DateUtil.calcularMesesPeriodo(this.dtInicioRRA, this.dtFimRRA))-1;
+        }
+
+        return 0;
+    }
+
+    public RequisitorioDTO toMetadado(){
+
+        var dto = new RequisitorioDTO();
+
+        dto.setId(this.id);
+        dto.setIdPrecatorioTucujuris(this.idPrecatorioTucujuris);
+        dto.setIdProcesso(this.idProcesso);
+        dto.setNumProcessoTucujuris(this.numProcessoTucujuris);
+        dto.setPrecato(this.precato);
+        dto.setNomeMagistrado(this.nomeMagistrado);
+        dto.setIdTipoTitulo(this.idTipoTitulo);
+        dto.setIdNaturezaCredito(this.idNaturezaCredito);
+        dto.setIdTipoPrevidencia(this.idTipoPrevidencia);
+        dto.setDsTipoObrigacao(this.dsTipoObrigacao);
+        dto.setDtAjuizamento(this.dtAjuizamento);
+        dto.setDtDecursoPrazo(this.dtDecursoPrazo);
+        dto.setDtTransitoJulgadoConhecimento(this.dtTransitoJulgadoConhecimento);
+        dto.setDtTransitoJulgadoEmbargos(this.dtTransitoJulgadoEmbargos);
+        dto.setNumeroPrecatorio(this.numeroPrecatorio);
+        dto.setNomeDevedor(this.nomeDevedor);
+        dto.setDocumentoDevedor(this.documentoDevedor);
+        dto.setNascimentoDevedor(this.nascimentoDevedor);
+        dto.setNomeDevedorAdv(this.nomeDevedorAdv);
+        dto.setDocumentoDevedorAdv(this.documentoDevedorAdv);
+        dto.setNomeCredor(this.nomeCredor);
+        dto.setDocumentoCredor(this.documentoCredor);
+        dto.setNascimentoCredor(this.nascimentoCredor);
+        dto.setNomeCredorAdv(this.nomeCredorAdv);
+        dto.setDocumentoCredorAdv(this.documentoCredorAdv);
+        dto.setNascimentoAdvCredor(this.nascimentoAdvCredor);
+        dto.setVlPercentualHonorarioAdvCredor(this.vlPercentualHonorarioAdvCredor);
+        dto.setIdTipoTributacaoAdvCredor(this.idTipoTributacaoAdvCredor);
+        dto.setNomeCredorRepresentante(this.nomeCredorRepresentante);
+        dto.setDocCredorRepresentante(this.docCredorRepresentante);
+        dto.setNascimentoRepresentanteCredor(this.nascimentoRepresentanteCredor);
+        dto.setIdCredorNaturezaQualificacao(this.idCredorNaturezaQualificacao);
+        dto.setOrgaoVinculoCredor(this.orgaoVinculoCredor);
+        //dto.setSituacaoFuncionalCredor(this.situacaoFuncionalCredor);
+        dto.setNomeBancoCredor(this.nomeBancoCredor);
+        dto.setAgenciaCredor(this.agenciaCredor);
+        dto.setContaCorrenteCredor(this.contaCorrenteCredor);
+        dto.setNomeBancoAdvCredor(this.nomeBancoAdvCredor);
+        dto.setAgenciaAdvCredor(this.agenciaAdvCredor);
+        dto.setContaCorrenteAdvCredor(this.contaCorrenteAdvCredor);
+        dto.setValorCausa(this.valorCausa);
+        //dto.setSituacao(this.situacao);
+        dto.setVlGlobalRequisicao(this.vlGlobalRequisicao);
+        dto.setVlPrincipalTributavelCorrigido(this.vlPrincipalTributavelCorrigido);
+        dto.setVlPrincipalNaoTributavelCorrigido(this.vlPrincipalNaoTributavelCorrigido);
+        dto.setIndiceAtualizacao(this.indiceAtualizacao);
+        dto.setIdTaxaJurosAplicadas(this.idTaxaJurosAplicadas);
+        dto.setVlJurosAplicado(this.vlJurosAplicado);
+        dto.setVlSelic(this.vlSelic);
+        dto.setDevolucaoCusta(this.devolucaoCusta);
+        dto.setVlDevolucaoCusta(this.vlDevolucaoCusta);
+        dto.setPagamentoMulta(this.pagamentoMulta);
+        dto.setVlPagamentoMulta(this.vlPagamentoMulta);
+        dto.setDtUltimaAtualizacaoPlanilha(this.dtUltimaAtualizacaoPlanilha);
+        dto.setDtFimAtualizacaoPlanilha(this.dtFimAtualizacaoPlanilha);
+        dto.setRetencaoImposto(this.retencaoImposto);
+        dto.setVlRetencaoImposto(this.vlRetencaoImposto);
+        dto.setVlTotalAtualizado(this.vlTotalAtualizado);
+
+        dto.setNumeroMesesRRA(getNumeroMesesRRA());
+        dto.setNumeroMesesRendimentoAcumulado(getNumeroMesesRRA());
+        dto.setPagamentoPrevidenciario(this.pagamentoPrevidenciario);
+        dto.setVlPrevidencia(this.vlPrevidencia);
+        dto.setOrgaoPrevidencia(this.orgaoPrevidencia);
+        dto.setAverbacaoPenhora(this.averbacaoPenhora);
+        dto.setVlAverbacaoPenhora(this.vlAverbacaoPenhora);
+        dto.setSessaoCredito(this.sessaoCredito);
+        dto.setVlSessaoCredito(this.vlSessaoCredito);
+        dto.setPagamentoAdministrativo(this.pagamentoAdministrativo);
+        dto.setVlPagamentoAdministrativo(this.vlPagamentoAdministrativo);
+        dto.setTipoPrecatorio(this.tipoPrecatorio);
+        dto.setDtAssinatura(this.dtAssinatura);
+        dto.setAssinador(this.assinador);
+        dto.setIdPeAssinador(this.idPeAssinador);
+        dto.setCodOrgaoJulgadorPje(this.codOrgaoJulgadorPje);
+        dto.setCodOrgaoJulgadorTucujuris(this.codOrgaoJulgadorTucujuris);
+        dto.setArquivoPdf(this.arquivoPdf);
+        dto.setDtCadastro(this.dtCadastro);
+        dto.setDtAtualizacao(this.dtAtualizacao);
+        dto.setDsJustificativaInvalidade(this.dsJustificativaInvalidade);
+        dto.setAtivo(this.ativo);
+        dto.setMsgErroDistribuicao(this.msgErroDistribuicao);
+        dto.setEnteDevedorDTO(this.enteDevedor.toMetadado());
+        dto.setTipoCredor(this.tipoCredor.toMetadado());
+        dto.setTipoTributacaoAdvogado(deParaTributacaoAdvogado(this.idTipoTributacaoAdvCredor));
+        dto.setTipoVinculoCredor(deParaTipoVinculoCredor(this.tipoCredor.getDescricao()));
+        dto.setTipoTributacaoCredor(deParaTributacaoCredor(
+                this.documentoCredor,
+                this.dsTipoObrigacao.contains("Indenização") ? "INDENIZACAO" : this.dsTipoObrigacao,
+                getNumeroMesesRRA() > 0
+        ));
+
+        dto.setProcessoDeducaos(this.processoDeducaos.stream().map(ProcessoDeducao::toDto).toList());
+        dto.setPrioridades(this.prioridades.stream().map(Prioridade::toDTO).toList());
+        dto.setAcordos(this.acordoDiretos.stream().map(AcordoDireto::toDTO).toList());
+        dto.setAnoVencimento(Objects.isNull(this.anoVencimento) ? 2021 : this.anoVencimento);
+        dto.setDtInicioRRA(this.dtInicioRRA);
+        dto.setDtFimRRA(this.dtFimRRA);
+        //dto.setTipoAcaoDTO(this.tipoAcao.toMetadado());
+        return dto;
+    }
+
+    private String deParaTipoVinculoCredor(String tipoVinculo){
+        var resultado = "Sem vinculo";
+
+        if(Objects.isNull(tipoVinculo)){
+            return resultado;
+        }
+
+        if(tipoVinculo.equalsIgnoreCase("Servidor Público Concursado") || tipoVinculo.equalsIgnoreCase("Servidor Público Não Concursado")){
+            return "Com vinculo";
+        }
+
+        return resultado;
+    }
+
+    private String deParaTributacaoAdvogado(String tipoTributacaoAdv){
+        var resultado = "PF";
+
+        if(Objects.isNull(tipoTributacaoAdv)){
+            return resultado;
+        }
+
+        if(tipoTributacaoAdv.equalsIgnoreCase("Pessoa Física")){
+            resultado = "PF";
+        } else  if(tipoTributacaoAdv.equalsIgnoreCase("Pessoa Jurídica")){
+            resultado = "PJ";
+        } else  if(tipoTributacaoAdv.equalsIgnoreCase("Pessoa Jurídica Simples Nacional")){
+            resultado = "SN";
+        }
+
+        return resultado;
+    }
+
+    private String deParaTributacaoCredor(String documentoCredor, String vinculoNorm, boolean rraNoRequisitorio){
+        var tipoPessoa = "PJ";
+
+        if(Objects.isNull(documentoCredor)){
+            throw new RuntimeException("Documento não informado no requisitório");
+        }
+
+        if(StringUtil.removerFormatacaoNumeroDocumento(documentoCredor).length() <= 12 ){
+            tipoPessoa = "PF";
+        }
+
+        if(tipoPessoa.equalsIgnoreCase("PJ")){
+            if(vinculoNorm.toUpperCase().contains("EXECUÇÃO de OBRAS")){
+                vinculoNorm = "PJCESSAO";
+            }else if(vinculoNorm.toUpperCase().contains("SERVIÇOS")){
+                vinculoNorm = "SERVICOS";
+            }
+        }
+
+        return determinarTributacaoIR(tipoPessoa, vinculoNorm, rraNoRequisitorio);
+    }
+
+    private String determinarTributacaoIR(String tipoPessoa, String vinculoNorm, boolean rraNoRequisitorio) {
+        if ("PF".equals(tipoPessoa)) {
+            if (vinculoNorm.contains("INDENIZACAO") || vinculoNorm.contains("INDENIZACAO".toUpperCase(Locale.ROOT))) {
+                return "Isento"; // CPF indenização -> isento
+            }
+            if (rraNoRequisitorio) {
+                return "RRA";
+            } else {
+                return "PF";
+            }
+        } else { // CNPJ
+            if (vinculoNorm.contains("PJ CESSAO") || vinculoNorm.contains("PJCESSAO") || vinculoNorm.contains("PJ CESSAO M O")) {
+                return "PJ-Cessao"; // 1%
+            } else if (vinculoNorm.contains("SERVICOS") || vinculoNorm.contains("SERVICO")) {
+                return "PJ-Servicos"; // 1.5%
+            } else {
+                // PJ-Outros, Simples Nacional, Indenização (PJ) -> ISENTO
+                return "Isento";
+            }
+        }
+    }
+
+}
+
