@@ -17,14 +17,14 @@
 
 ## 🧠 Estrutura de Pacotes
 br.jus.tjap.precatorio
-├── config          # Segurança, CORS, OAuth2
-├── controller      # Endpoints REST
-├── service         # Regras de negócio
-├── repository      # JPA Repositories
-├── model/entity    # Entidades do banco
-├── dto             # Objetos de transporte
-├── enums           # Constantes e tipos fixos
-└── util            # Funções auxiliares
+- config          # Segurança, CORS, OAuth2
+- controller      # Endpoints REST
+- service         # Regras de negócio
+- repository      # JPA Repositories
+- model/entity    # Entidades do banco
+- dto             # Objetos de transporte
+- enums           # Constantes e tipos fixos
+- util            # Funções auxiliares
 
 ---
 
